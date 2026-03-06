@@ -16,5 +16,10 @@ export default defineConfig({
                 },
             },
         }),
-    ],
+    ], server: {
+        host: '0.0.0.0', // Écoute sur tout le réseau du container
+        hmr: {
+            host: 'localhost', // Force le navigateur à utiliser localhost pour le hot reload
+        },
+    },
 });

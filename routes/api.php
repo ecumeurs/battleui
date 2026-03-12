@@ -7,7 +7,9 @@ use App\Http\Controllers\API\GameController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::post('/battle/webhook/{id}', [BattleController::class, 'webhook']);
+use App\Http\Controllers\API\WebhookController;
+
+Route::post('/webhook/upsilon', [WebhookController::class, 'handle']);
 
 Route::group(["api/v1"], function () {
 

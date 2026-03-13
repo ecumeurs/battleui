@@ -20,7 +20,8 @@ class Character extends Model
         'hp',
         'movement',
         'attack',
-        'defense'
+        'defense',
+        'initial_movement'
     ];
 
     public function player()
@@ -29,6 +30,7 @@ class Character extends Model
     }
 
     /**
+     * @spec-link [[entity_character_allocate_hp]]
      * @spec-link [[uc_player_registration_generate_characters]]
      */
     public static function generateInitialRoster(string $playerId)
@@ -42,6 +44,7 @@ class Character extends Model
                 'movement' => $stats['movement'],
                 'attack' => $stats['attack'],
                 'defense' => $stats['defense'],
+                'initial_movement' => $stats['movement'],
             ]);
         }
     }
@@ -57,14 +60,21 @@ class Character extends Model
             'movement' => $stats['movement'],
             'attack' => $stats['attack'],
             'defense' => $stats['defense'],
+            'initial_movement' => $stats['movement'],
         ]);
         return $this;
     }
 
+    /**
+     * @spec-link [[entity_character_allocate_hp]]
+     */
     public static function distributePoints(int $totalPoints): array
     {
+        // New Rule: 3 HP, 1 in others (Total 6 base)
         $stats = ['hp' => 3, 'movement' => 1, 'attack' => 1, 'defense' => 1];
-        $remaining = $totalPoints - (3 + 1 + 1 + 1); // Minimum values
+        
+        // Exactly 4 points dispatched
+        $remaining = 4; // $totalPoints - (3 + 1 + 1 + 1) where $totalPoints is 10
 
         $keys = array_keys($stats);
         while ($remaining > 0) {

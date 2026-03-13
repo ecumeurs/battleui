@@ -7,13 +7,15 @@ use Illuminate\Foundation\Auth\User as Authenticatable;
 
 use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
+use Laravel\Sanctum\HasApiTokens;
+
 /**
  * @spec-link [[entity_player]]
  * @spec-link [[data_persistence]]
  */
 class User extends Authenticatable
 {
-    use HasUuids;
+    use HasApiTokens, HasUuids;
 
     protected $fillable = [
         'account_name',
@@ -21,8 +23,19 @@ class User extends Authenticatable
         'password_hash',
         'total_wins',
         'total_losses',
-        'ratio'
+        'ratio',
+        'reroll_count'
     ];
+
+    protected $hidden = [
+        'password_hash',
+        'remember_token',
+    ];
+
+    public function getAuthPasswordName()
+    {
+        return 'password_hash';
+    }
 
     public function characters()
     {

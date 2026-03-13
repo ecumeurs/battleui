@@ -20,12 +20,18 @@ class GameController extends Controller
         // Placeholder for GET /arena/{id} logic once it exists in engine
     }
 
+    /**
+     * @spec-link [[api_battle_proxy]]
+     * @spec-link [[api_go_battle_action]]
+     */
     public function action(Request $request, string $id)
     {
+        $frontendRequestId = $request->header('X-Request-ID', (string) str()->uuid());
+
         // 1. Validate payload from frontend
         $validated = $request->validate([
-            'player_id' => 'required|uuid',
-            'entity_id' => 'required|uuid',
+            'player_id' => 'required|string',
+            'entity_id' => 'required|string',
             'type' => 'required|string',
             'target_coords' => 'array',
         ]);
@@ -40,6 +46,6 @@ class GameController extends Controller
         );
 
         // 3. Return Standard Envelope back
-        return response()->json($response, $response['success'] ?? false ? 200 : 400);
+        return response()->json($response, ($response['success'] ?? false) ? 200 : 400);
     }
 }

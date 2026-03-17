@@ -5,12 +5,16 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Contracts\UpsilonApiServiceInterface;
+use App\Traits\ApiResponder;
+use App\Http\Requests\API\Game\ActionRequest;
 
 /**
  * @spec-link [[api_go_battle_action]]
  */
 class GameController extends Controller
 {
+    use ApiResponder;
+
     public function __construct(
         protected UpsilonApiServiceInterface $upsilonService
     ) {}
@@ -24,17 +28,12 @@ class GameController extends Controller
      * @spec-link [[api_battle_proxy]]
      * @spec-link [[api_go_battle_action]]
      */
-    public function action(Request $request, string $id)
+    public function action(ActionRequest $request, string $id)
     {
         $frontendRequestId = $request->header('X-Request-ID', (string) str()->uuid());
 
         // 1. Validate payload from frontend
-        $validated = $request->validate([
-            'player_id' => 'required|string',
-            'entity_id' => 'required|string',
-            'type' => 'required|string',
-            'target_coords' => 'array',
-        ]);
+        $validated = $request->validated();
 
         // 2. Call the UPSILON ENGINE via Service
         $response = $this->upsilonService->sendAction(
@@ -46,6 +45,6 @@ class GameController extends Controller
         );
 
         // 3. Return Standard Envelope back
-        return response()->json($response, ($response['success'] ?? false) ? 200 : 400);
+        return $this->success($response['data'] ?? $response, $response['message'] ?? 'Action processed', ($response['success'] ?? false) ? 200 : 400);
     }
 }

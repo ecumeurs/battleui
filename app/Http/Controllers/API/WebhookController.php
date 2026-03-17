@@ -11,9 +11,12 @@ use Illuminate\Support\Facades\Log;
  */
 use App\Models\GameMatch;
 use App\Events\BoardUpdated;
+use App\Traits\ApiResponder;
 
 class WebhookController extends Controller
 {
+    use ApiResponder;
+
     /**
      * @spec-link [[api_battle_proxy]]
      * @spec-link [[api_go_webhook_callback]]
@@ -25,7 +28,7 @@ class WebhookController extends Controller
 
         if (!$matchId) {
             Log::error("Webhook received with no match_id", $payload);
-            return response()->json(['success' => false], 400);
+            return $this->error('Webhook received with no match_id', 400);
         }
 
         $match = GameMatch::find($matchId);
@@ -41,11 +44,6 @@ class WebhookController extends Controller
             broadcast(new BoardUpdated($matchId, $payload['data'] ?? $payload));
         }
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', $payload['request_id'] ?? (string) str()->uuid()),
-            'message' => 'Webhook processed successfully.',
-            'success' => true,
-            'data' => null,
-        ]);
+        return $this->success(null, 'Webhook processed successfully.');
     }
 }

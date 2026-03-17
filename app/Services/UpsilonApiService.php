@@ -27,7 +27,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
         $payload = [
             'match_id' => $matchId,
             'callback_url' => $callbackUrl,
-            'players' => array_map(fn($player) => $player->toArray(), $players),
+            'players' => array_map(fn($player) => $player instanceof \Illuminate\Http\Resources\Json\JsonResource ? $player->resolve() : $player, $players),
         ];
         
         // Let's dump the finalized payload arrays
@@ -48,7 +48,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
         ];
 
         if (!empty($targetCoords)) {
-            $payload['target_coords'] = array_map(fn($pos) => $pos->toArray(), $targetCoords);
+            $payload['target_coords'] = array_map(fn($pos) => is_array($pos) ? $pos : $pos->toArray(), $targetCoords);
         }
 
         return $this->sendEnvelopeRequest('POST', "/arena/{$arenaId}/action", $payload, "Action: {$type}");

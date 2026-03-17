@@ -5,9 +5,12 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Services\Contracts\UpsilonApiServiceInterface;
-use App\DTOs\Upsilon\PlayerDTO;
-use App\DTOs\Upsilon\EntityDTO;
 use Illuminate\Support\Str;
+use App\Traits\ApiResponder;
+use App\Http\Requests\API\Matchmaking\JoinMatchRequest;
+use App\Http\Resources\GameMatchResource;
+use App\Http\Resources\API\Upsilon\UpsilonPlayerResource;
+use App\Http\Resources\API\Upsilon\UpsilonEntityResource;
 
 /**
  * @spec-link [[api_go_battle_start]]
@@ -15,6 +18,7 @@ use Illuminate\Support\Str;
  */
 class MatchMakingController extends Controller
 {
+    use ApiResponder;
     public function __construct(
         protected UpsilonApiServiceInterface $upsilonService
     ) {}
@@ -26,11 +30,11 @@ class MatchMakingController extends Controller
         '2v2_PVE' => ['required' => 2, 'ai_count' => 1], // 1 AI team
     ];
 
-    public function joinMatch(Request $request)
+    public function joinMatch(JoinMatchRequest $request)
     {
         $user = auth()->user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return $this->error('Unauthorized', 401);
         }
 
         $gameMode = $request->input('game_mode', '1v1_PVP');
@@ -79,31 +83,17 @@ class MatchMakingController extends Controller
                 $entryUser = \App\Models\User::find($entry->user_id);
                 $entryChars = \App\Models\Character::whereIn('id', $entry->character_ids)->get();
                 
-                $entities = [];
-                foreach ($entryChars as $char) {
-                    $entities[] = new EntityDTO(
-                        id: $char->id,
-                        name: $char->name,
-                        hp: $char->hp,
-                        maxHp: $char->hp,
-                        attack: $char->attack,
-                        defense: $char->defense,
-                        move: $char->movement,
-                        maxMove: $char->movement
-                    );
-                }
-
                 // Assign teams: for 1v1_PVP, index 0 is team 1, index 1 is team 2.
                 // For 2v2_PVP, 0,1 are team 1, 2,3 are team 2.
                 $team = ($index < ($config['required'] / 2)) ? 1 : 2;
                 if ($config['required'] === 1) $team = 1; // PVE
 
-                $players[] = new PlayerDTO(
-                    id: $entryUser->id,
-                    team: $team,
-                    ia: false,
-                    entities: $entities
-                );
+                $players[] = new UpsilonPlayerResource([
+                    'id' => $entryUser->id,
+                    'team' => $team,
+                    'ia' => false,
+                    'entities' => $entryChars
+                ]);
 
                 // Record participant
                 \App\Models\MatchParticipant::create([
@@ -116,18 +106,21 @@ class MatchMakingController extends Controller
             // Handle AI if needed
             if ($config['ai_count'] > 0) {
                 // Simplified AI addition
-                $players[] = new PlayerDTO(
-                    id: Str::uuid()->toString(),
-                    team: 2,
-                    ia: true,
-                    entities: [
-                        new EntityDTO(
-                            id: Str::uuid()->toString(),
-                            name: "AI Unit 1",
-                            hp: 10, maxHp: 10, attack: 3, defense: 2, move: 3, maxMove: 3
-                        )
+                $players[] = new UpsilonPlayerResource([
+                    'id' => Str::uuid()->toString(),
+                    'team' => 2,
+                    'ia' => true,
+                    'entities' => [
+                        (object)[
+                            'id' => Str::uuid()->toString(),
+                            'name' => "AI Unit 1",
+                            'hp' => 10,
+                            'attack' => 3,
+                            'defense' => 2,
+                            'movement' => 3
+                        ]
                     ]
-                );
+                ]);
             }
 
             $this->upsilonService->startArena(
@@ -139,25 +132,19 @@ class MatchMakingController extends Controller
             // Cleanup queue
             \App\Models\MatchmakingQueue::whereIn('id', $queue->pluck('id'))->delete();
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'status' => 'matched',
-                    'match_id' => $match->id,
-                    'expected_participants' => $config['required'],
-                    'empty_slots' => 0
-                ]
+            return $this->success([
+                'status' => 'matched',
+                'match_id' => $match->id,
+                'expected_participants' => $config['required'],
+                'empty_slots' => 0
             ]);
         }
 
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'status' => 'queued',
-                'match_id' => null,
-                'expected_participants' => $config['required'],
-                'empty_slots' => $config['required'] - $queue->count()
-            ]
+        return $this->success([
+            'status' => 'queued',
+            'match_id' => null,
+            'expected_participants' => $config['required'],
+            'empty_slots' => $config['required'] - $queue->count()
         ]);
     }
 
@@ -165,7 +152,7 @@ class MatchMakingController extends Controller
     {
         $user = auth()->user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return $this->error('Unauthorized', 401);
         }
 
         // 1. Check if in queue
@@ -174,15 +161,12 @@ class MatchMakingController extends Controller
             $config = self::MODE_CONFIG[$queueEntry->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];
             $queueCount = \App\Models\MatchmakingQueue::where('game_mode', $queueEntry->game_mode)->count();
 
-            return response()->json([
-                'success' => true,
-                'data' => [
-                    'status' => 'queued',
-                    'match_id' => null,
-                    'expected_participants' => $config['required'],
-                    'empty_slots' => max(0, $config['required'] - $queueCount),
-                    'queued_at' => $queueEntry->created_at->toIso8601String()
-                ]
+            return $this->success([
+                'status' => 'queued',
+                'match_id' => null,
+                'expected_participants' => $config['required'],
+                'empty_slots' => max(0, $config['required'] - $queueCount),
+                'queued_at' => $queueEntry->created_at->toIso8601String()
             ]);
         }
 
@@ -195,41 +179,33 @@ class MatchMakingController extends Controller
              $match = $participant->match;
              $config = self::MODE_CONFIG[$match->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];
 
-             return response()->json([
-                 'success' => true,
-                 'data' => [
-                     'status' => 'matched',
-                     'match_id' => $match->id,
-                     'expected_participants' => $config['required'],
-                     'empty_slots' => 0
-                 ],
-                 'message' => 'Match in progress. Reconnecting...'
-             ]);
+             return $this->success([
+                 'status' => 'matched',
+                 'match_id' => $match->id,
+                 'expected_participants' => $config['required'],
+                 'empty_slots' => 0
+             ], 'Match in progress. Reconnecting...');
         }
 
         // 3. User is idle
-        return response()->json([
-            'success' => true,
-            'data' => [
-                'status' => 'idle',
-                'match_id' => null,
-                'expected_participants' => null,
-                'empty_slots' => null
-            ],
-            'message' => 'Not in queue'
-        ]);
+        return $this->success([
+            'status' => 'idle',
+            'match_id' => null,
+            'expected_participants' => null,
+            'empty_slots' => null
+        ], 'Not in queue');
     }
 
     public function leaveMatch(Request $request)
     {
         $user = auth()->user();
         if (!$user) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 401);
+            return $this->error('Unauthorized', 401);
         }
 
         \App\Models\MatchmakingQueue::where('user_id', $user->id)->delete();
 
-        return response()->json(['success' => true]);
+        return $this->success(null);
     }
 
 }

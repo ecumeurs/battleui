@@ -28,7 +28,7 @@ class CharacterUpgradeTest extends TestCase
         ]);
 
         // Attempting to add 1 HP (Total 11) with 0 wins should fail
-        $response = $this->actingAs($user)->postJson("/api/v1/profile/{$user->id}/character/{$character->id}/upgrade", [
+        $response = $this->actingAs($user)->postJson("/api/v1/profile/character/{$character->id}/upgrade", [
             'stats' => ['hp' => 1]
         ]);
 
@@ -53,7 +53,7 @@ class CharacterUpgradeTest extends TestCase
         ]);
 
         // Total cap is 10 + 2 = 12. Adding 2 points should succeed.
-        $response = $this->actingAs($user)->postJson("/api/v1/profile/{$user->id}/character/{$character->id}/upgrade", [
+        $response = $this->actingAs($user)->postJson("/api/v1/profile/character/{$character->id}/upgrade", [
             'stats' => ['hp' => 2]
         ]);
 
@@ -78,7 +78,7 @@ class CharacterUpgradeTest extends TestCase
         ]);
 
         // Even if within total cap (14), movement upgrade should fail if < 5 wins
-        $response = $this->actingAs($user)->postJson("/api/v1/profile/{$user->id}/character/{$character->id}/upgrade", [
+        $response = $this->actingAs($user)->postJson("/api/v1/profile/character/{$character->id}/upgrade", [
             'stats' => ['movement' => 1]
         ]);
 
@@ -86,7 +86,7 @@ class CharacterUpgradeTest extends TestCase
         
         // Success with 5 wins
         $user->update(['total_wins' => 5]);
-        $response = $this->actingAs($user)->postJson("/api/v1/profile/{$user->id}/character/{$character->id}/upgrade", [
+        $response = $this->actingAs($user)->postJson("/api/v1/profile/character/{$character->id}/upgrade", [
             'stats' => ['movement' => 1]
         ]);
         $response->assertStatus(200);

@@ -36,7 +36,7 @@ class CharacterTest extends TestCase
     public function test_user_can_get_profile_with_characters()
     {
         $response = $this->actingAs($this->user)
-            ->getJson("/api/v1/profile/{$this->user->id}");
+            ->getJson("/api/v1/profile");
 
         $response->assertStatus(200)
             ->assertJsonStructure([
@@ -60,7 +60,7 @@ class CharacterTest extends TestCase
         $oldStats = $character->only(['hp', 'attack', 'defense', 'movement']);
 
         $response = $this->actingAs($this->user)
-            ->postJson("/api/v1/profile/{$this->user->id}/character/{$character->id}/reroll");
+            ->postJson("/api/v1/profile/character/{$character->id}/reroll");
 
         $response->assertStatus(200)
             ->assertJson([
@@ -77,7 +77,7 @@ class CharacterTest extends TestCase
         $character = $this->user->characters()->first();
 
         $response = $this->actingAs($this->user)
-            ->postJson("/api/v1/profile/{$this->user->id}/character/{$character->id}/reroll");
+            ->postJson("/api/v1/profile/character/{$character->id}/reroll");
 
         $response->assertStatus(403)
             ->assertJson([
@@ -91,11 +91,12 @@ class CharacterTest extends TestCase
      */
     public function test_user_can_upgrade_character_stats()
     {
+        $this->user->update(['total_wins' => 5]);
         $character = $this->user->characters()->first();
         $initialAttack = $character->attack;
 
         $response = $this->actingAs($this->user)
-            ->postJson("/api/v1/profile/{$this->user->id}/character/{$character->id}/upgrade", [
+            ->postJson("/api/v1/profile/character/{$character->id}/upgrade", [
                 'stats' => ['attack' => 2]
             ]);
 

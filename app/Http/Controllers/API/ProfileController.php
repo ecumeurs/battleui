@@ -7,129 +7,93 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use App\Models\Character;
 use Illuminate\Support\Facades\DB;
+use App\Traits\ApiResponder;
+use App\Http\Requests\API\Profile\UpdateProfileRequest;
+use App\Http\Requests\API\Profile\UpdateCharacterRequest;
+use App\Http\Resources\UserResource;
+use App\Http\Resources\CharacterResource;
 
 class ProfileController extends Controller
 {
+    use ApiResponder;
     /**
      * @spec-link [[api_profile_character]]
      */
-    public function getProfile(Request $request, string $id)
+    public function getProfile(Request $request)
     {
-        $user = User::with('characters')->findOrFail($id);
-
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Profile retrieved.',
-            'success' => true,
-            'data' => $user,
-        ]);
+        $user = $request->user();
+        return $this->success(new UserResource($user->load('characters')), 'Profile retrieved.');
     }
 
     /**
      * @spec-link [[api_profile_character]]
      */
-    public function updateProfile(Request $request, string $id)
+    public function updateProfile(UpdateProfileRequest $request)
     {
-        $user = User::findOrFail($id);
-        $validated = $request->validate([
-            'account_name' => 'string|max:255|unique:users,account_name,' . $id,
-            'email' => 'string|email|max:255|unique:users,email,' . $id,
-        ]);
+        $user = $request->user();
+        $validated = $request->validated();
 
         $user->update($validated);
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Profile updated.',
-            'success' => true,
-            'data' => $user,
-        ]);
+        return $this->success(new UserResource($user), 'Profile updated.');
     }
 
     /**
      * @spec-link [[api_profile_character]]
      */
-    public function getCharacter(Request $request, string $id, string $characterId)
+    public function getCharacter(Request $request, string $characterId)
     {
-        $character = Character::where('player_id', $id)->findOrFail($characterId);
+        $user = $request->user();
+        $character = Character::findOrFail($characterId);
+        $this->authorize('view', $character);
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Character retrieved.',
-            'success' => true,
-            'data' => $character,
-        ]);
+        return $this->success(new CharacterResource($character), 'Character retrieved.');
     }
     
     /**
      * @spec-link [[api_profile_character]]
      */
-    public function getCharacters(Request $request, string $id)
+    public function getCharacters(Request $request)
     {
-        $characters = Character::where('player_id', $id)->get();
+        $user = $request->user();
+        $characters = Character::where('player_id', $user->id)->get();
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Characters retrieved.',
-            'success' => true,
-            'data' => $characters,
-        ]);
+        return $this->success(CharacterResource::collection($characters), 'Characters retrieved.');
     }
 
     /**
      * @spec-link [[api_profile_character]]
      * @spec-link [[mech_character_reroll_limit]]
      */
-    public function rerollCharacter(Request $request, string $id, string $characterId)
+    public function rerollCharacter(Request $request, string $characterId)
     {
         $user = $request->user();
-        if ($user->id !== $id) {
-            return response()->json(['success' => false, 'message' => 'Unauthorized'], 403);
-        }
 
-        if ($user->reroll_count >= 3) {
-            return response()->json([
-                'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-                'message' => 'Reroll limit reached.',
-                'success' => false,
-                'data' => ['reroll_count' => $user->reroll_count],
-            ], 403);
-        }
-
-        $character = Character::where('player_id', $id)->findOrFail($characterId);
+        $character = Character::findOrFail($characterId);
+        $this->authorize('reroll', $character);
 
         DB::transaction(function () use ($user, $character) {
             $character->rerollStats();
             $user->increment('reroll_count');
         });
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Character rerolled.',
-            'success' => true,
-            'data' => [
-                'character' => $character->fresh(),
-                'reroll_count' => $user->fresh()->reroll_count,
-            ],
-        ]);
+        return $this->success([
+            'character' => new CharacterResource($character->fresh()),
+            'reroll_count' => $user->fresh()->reroll_count,
+        ], 'Character rerolled.');
     }
 
     /**
      * @spec-link [[api_profile_character]]
      * @spec-link [[rule_progression]]
      */
-    public function updateCharacter(Request $request, string $id, string $characterId)
+    public function updateCharacter(UpdateCharacterRequest $request, string $characterId)
     {
-        $character = Character::where('player_id', $id)->with('player')->findOrFail($characterId);
-        $user = $character->player;
+        $user = $request->user();
+        $character = Character::findOrFail($characterId);
+        $this->authorize('update', $character);
         
-        $validated = $request->validate([
-            'stats' => 'required|array',
-            'stats.hp' => 'integer|min:0',
-            'stats.attack' => 'integer|min:0',
-            'stats.defense' => 'integer|min:0',
-            'stats.movement' => 'integer|min:0',
-        ]);
+        $validated = $request->validated();
 
         $newHp = $character->hp + ($validated['stats']['hp'] ?? 0);
         $newAttack = $character->attack + ($validated['stats']['attack'] ?? 0);
@@ -141,29 +105,20 @@ class ProfileController extends Controller
         $maxAttributes = 10 + $user->total_wins;
 
         if ($totalAttributes > $maxAttributes) {
-            return response()->json([
-                'success' => false,
-                'message' => "Upgrade failed: Total attributes ($totalAttributes) exceed the allowed cap ($maxAttributes based on {$user->total_wins} wins).",
-            ], 400);
+            return $this->error("Upgrade failed: Total attributes ($totalAttributes) exceed the allowed cap ($maxAttributes based on {$user->total_wins} wins).", 400);
         }
 
         // Constraint 2: Movement <= initial_movement + floor(total_wins / 5)
         $maxMovement = $character->initial_movement + floor($user->total_wins / 5);
         if ($newMovement > $maxMovement) {
-            return response()->json([
-                'success' => false,
-                'message' => "Upgrade failed: Movement ($newMovement) exceeds the allowed limit ($maxMovement based on {$user->total_wins} wins and initial movement {$character->initial_movement}).",
-            ], 400);
+            return $this->error("Upgrade failed: Movement ($newMovement) exceeds the allowed limit ($maxMovement based on {$user->total_wins} wins and initial movement {$character->initial_movement}).", 400);
         }
 
         // Constraint 3: No negative attributes (already partially covered by min:0 in validation if increments are positive)
         // If the API implies absolute values, we check them. If it's increments, we check sums.
         // The original code was `$character->$stat += $value;` so they are increments.
         if ($newHp < 0 || $newAttack < 0 || $newDefense < 0 || $newMovement < 0) {
-             return response()->json([
-                'success' => false,
-                'message' => "Upgrade failed: Attributes cannot be negative.",
-            ], 400);
+             return $this->error("Upgrade failed: Attributes cannot be negative.", 400);
         }
 
         $character->update([
@@ -173,27 +128,19 @@ class ProfileController extends Controller
             'movement' => $newMovement,
         ]);
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Character upgraded.',
-            'success' => true,
-            'data' => $character,
-        ]);
+        return $this->success(new CharacterResource($character), 'Character upgraded.');
     }
 
     /**
      * @spec-link [[api_profile_character]]
      */
-    public function deleteCharacter(Request $request, string $id, string $characterId)
+    public function deleteCharacter(Request $request, string $characterId)
     {
-        $character = Character::where('player_id', $id)->findOrFail($characterId);
+        $user = $request->user();
+        $character = Character::findOrFail($characterId);
+        $this->authorize('delete', $character);
         $character->delete();
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Character deleted.',
-            'success' => true,
-            'data' => null,
-        ]);
+        return $this->success(null, 'Character deleted.');
     }
 }

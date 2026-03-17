@@ -1,0 +1,19 @@
+# .dockerignore for BattleUI
+node_modules
+vendor
+.git
+.env
+storage/*.key
+public/hot
+public/storage
+storage/framework/cache/data/*
+storage/framework/sessions/*
+storage/framework/testing/*
+storage/framework/views/*
+storage/logs/*
+phpunit.xml
+.phpunit.result.cache
+.vscode
+.devcontainer
+Dockerfile
+docker-compose*.yaml

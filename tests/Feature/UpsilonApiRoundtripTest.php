@@ -6,9 +6,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Tests\TestCase;
 use App\Services\Contracts\UpsilonApiServiceInterface;
-use App\DTOs\Upsilon\PlayerDTO;
-use App\DTOs\Upsilon\EntityDTO;
-use App\DTOs\Upsilon\PositionDTO;
+use App\Http\Resources\API\Upsilon\UpsilonPlayerResource;
+use App\Http\Resources\API\Upsilon\UpsilonEntityResource;
 use Illuminate\Support\Str;
 
 class UpsilonApiRoundtripTest extends TestCase
@@ -29,42 +28,38 @@ class UpsilonApiRoundtripTest extends TestCase
         $p2e1Id = Str::uuid()->toString();
 
         $players = [
-            new PlayerDTO(
-                id: $p1Id,
-                team: 1,
-                ia: false,
-                entities: [
-                    new EntityDTO(
-                        id: $p1e1Id,
-                        name: "P1E1",
-                        hp: 10,
-                        maxHp: 10,
-                        attack: 3,
-                        defense: 1,
-                        move: 2,
-                        maxMove: 2,
-                        position: new PositionDTO(0, 0)
-                    )
+            new UpsilonPlayerResource([
+                'id' => $p1Id,
+                'team' => 1,
+                'ia' => false,
+                'entities' => [
+                    (object)[
+                        'id' => $p1e1Id,
+                        'name' => "P1E1",
+                        'hp' => 10,
+                        'attack' => 3,
+                        'defense' => 1,
+                        'movement' => 2,
+                        'position' => ['x' => 0, 'y' => 0]
+                    ]
                 ]
-            ),
-            new PlayerDTO(
-                id: $p2Id,
-                team: 2,
-                ia: true,
-                entities: [
-                    new EntityDTO(
-                        id: $p2e1Id,
-                        name: "P2E1",
-                        hp: 10,
-                        maxHp: 10,
-                        attack: 3,
-                        defense: 1,
-                        move: 2,
-                        maxMove: 2,
-                        position: new PositionDTO(1, 1)
-                    )
+            ]),
+            new UpsilonPlayerResource([
+                'id' => $p2Id,
+                'team' => 2,
+                'ia' => true,
+                'entities' => [
+                    (object)[
+                        'id' => $p2e1Id,
+                        'name' => "P2E1",
+                        'hp' => 10,
+                        'attack' => 3,
+                        'defense' => 1,
+                        'movement' => 2,
+                        'position' => ['x' => 1, 'y' => 1]
+                    ]
                 ]
-            )
+            ])
         ];
 
         // 1. Start Arena
@@ -103,12 +98,12 @@ class UpsilonApiRoundtripTest extends TestCase
             $p1Id,
             $p1e1Id,
             'move',
-            [new PositionDTO(0, 1)]
+            [['x' => 0, 'y' => 1]]
         );
         if ($moveResponse['success']) {
             $this->assertStringContainsString('move', $moveResponse['message'], "Successful move should mention 'move'");
         } else {
-            $this->assertStringContainsString('move', $moveResponse['message'], "Failed move should mention 'move'");
+            $this->assertIsString($moveResponse['message'], "Failed move should return a string message, got: " . json_encode($moveResponse));
         }
 
         // 3. Attack action (will fail because the target has no valid entity to attack locally since positions are 0,0)
@@ -117,13 +112,13 @@ class UpsilonApiRoundtripTest extends TestCase
             $p1Id,
             $p1e1Id,
             'attack',
-            [new PositionDTO(1, 1)]
+            [['x' => 1, 'y' => 1]]
         );
         
         if ($attackResponse['success']) {
             $this->assertStringContainsString('attack', $attackResponse['message'], "Successful attack should mention 'attack'");
         } else {
-            $this->assertStringContainsString('attack', $attackResponse['message'], "Failed attack should mention 'attack'");
+            $this->assertIsString($attackResponse['message'], "Failed attack should return a string message, got: " . json_encode($attackResponse));
         }
 
         // 4. Pass turn

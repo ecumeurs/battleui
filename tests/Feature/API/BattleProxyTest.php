@@ -41,6 +41,7 @@ class BattleProxyTest extends TestCase
             'movement' => 2,
             'attack' => 3,
             'defense' => 1,
+            'initial_movement' => 2,
         ]);
 
         $this->match = GameMatch::create([

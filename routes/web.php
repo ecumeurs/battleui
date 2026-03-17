@@ -24,7 +24,7 @@ Route::get('/broadcast-test/{id}', function (Request $request, int $id) {
 
 require __DIR__.'/auth.php';
 
-
-
-
+Route::get('/{any}', function () {
+    return Inertia::render('App');
+})->where('any', '^(?!api\/).*');
 

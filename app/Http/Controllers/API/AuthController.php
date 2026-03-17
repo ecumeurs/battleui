@@ -8,105 +8,76 @@ use Illuminate\Http\Request;
 use App\Models\User;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\Auth;
+use App\Traits\ApiResponder;
 use Illuminate\Validation\ValidationException;
+use App\Http\Requests\API\Auth\LoginRequest;
+use App\Http\Requests\API\Auth\RegisterRequest;
+use App\Http\Requests\API\Auth\UpdateAccountRequest;
+use App\Http\Resources\UserResource;
 
 class AuthController extends Controller
 {
+    use ApiResponder;
     /**
      * @spec-link [[api_auth_login]]
      */
-    public function login(Request $request)
+    public function login(LoginRequest $request)
     {
-        $request->validate([
-            'email' => 'required|email',
-            'password' => 'required',
-        ]);
+        $validated = $request->validated();
 
-        $user = User::where('email', $request->email)->first();
+        $user = User::where('email', $validated['email'])->first();
 
-        if (! $user || ! Hash::check($request->password, $user->password_hash)) {
-            return response()->json([
-                'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-                'message' => 'Invalid credentials.',
-                'success' => false,
-                'data' => null,
-            ], 401);
+        if (! $user || ! Hash::check($validated['password'], $user->password_hash)) {
+            return $this->error('Invalid credentials.', 401);
         }
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token', expiresAt: now()->addMinutes(15))->plainTextToken;
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Login successful.',
-            'success' => true,
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-            ],
-        ]);
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+        ], 'Login successful.');
     }
 
     /**
      * @spec-link [[api_auth_register]]
      */
-    public function register(Request $request)
+    public function register(RegisterRequest $request)
     {
-        $request->validate([
-            'account_name' => 'required|string|max:255|unique:users',
-            'email' => 'required|string|email|max:255|unique:users',
-            'password' => 'required|string|min:8|confirmed',
-        ]);
+        $validated = $request->validated();
 
         $user = User::create([
-            'account_name' => $request->account_name,
-            'email' => $request->email,
-            'password_hash' => Hash::make($request->password),
+            'account_name' => $validated['account_name'],
+            'email' => $validated['email'],
+            'password_hash' => Hash::make($validated['password']),
         ]);
 
         \App\Models\Character::generateInitialRoster($user->id);
 
-        $token = $user->createToken('auth_token')->plainTextToken;
+        $token = $user->createToken('auth_token', expiresAt: now()->addMinutes(15))->plainTextToken;
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Registration successful.',
-            'success' => true,
-            'data' => [
-                'user' => $user,
-                'token' => $token,
-            ],
-        ], 201);
+        return $this->success([
+            'user' => new UserResource($user),
+            'token' => $token,
+        ], 'Registration successful.', 201);
     }
 
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Logged out.',
-            'success' => true,
-            'data' => null,
-        ]);
+        return $this->success(null, 'Logged out.');
     }
 
-    public function updateAccount(Request $request)
+    public function updateAccount(UpdateAccountRequest $request)
     {
         $user = $request->user();
         
-        $validated = $request->validate([
-            'account_name' => 'string|max:255|unique:users,account_name,' . $user->id,
-            'email' => 'string|email|max:255|unique:users,email,' . $user->id,
-        ]);
+        $validated = $request->validated();
 
         $user->update($validated);
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Account updated.',
-            'success' => true,
-            'data' => $user,
-        ]);
+        return $this->success(new UserResource($user), 'Account updated.');
     }
 
     public function deleteAccount(Request $request)
@@ -115,11 +86,6 @@ class AuthController extends Controller
         $user->tokens()->delete();
         $user->delete();
 
-        return response()->json([
-            'request_id' => $request->header('X-Request-ID', (string) str()->uuid()),
-            'message' => 'Account deleted.',
-            'success' => true,
-            'data' => null,
-        ]);
+        return $this->success(null, 'Account deleted.');
     }
 }

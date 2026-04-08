@@ -32,8 +32,12 @@ This project is a hybrid application combining a Laravel backend with an Inertia
 
 ### Frontend (Vue.js)
 The visual interface and player interactions are located in:
-- **[resources/js/Pages](file:///workspace/battleui/resources/js/Pages)**: Main page views (e.g., Battle Board, Dashboard).
-- **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements (e.g., Character cards, Action buttons).
+- **[resources/js/Pages](file:///workspace/battleui/resources/js/Pages)**: Main page views.
+    - **Welcome.vue**: The public landing page showcasing the Upsilon Battle world and providing entry points for survivors.
+    - **Auth/Login.vue**: A secure authentication interface for survivors to identify themselves using their credentials.
+    - **Auth/Register.vue**: The entity initialization portal for creating accounts and generating initial character rosters.
+    - **Dashboard.vue**: The tactical command hub for roster review and matchmaking (Under Construction).
+- **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements.
 - **[resources/js/Layouts](file:///workspace/battleui/resources/js/Layouts)**: Wrapper components for consistent UI structure.
 
 ### Backend (Laravel)

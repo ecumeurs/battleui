@@ -1,3 +1,4 @@
+<!-- @spec-link [[ui_dashboard]] -->
 <script setup>
 import { Head, Link, router } from '@inertiajs/vue3';
 import { logout, getAuthUser } from '@/services/auth';

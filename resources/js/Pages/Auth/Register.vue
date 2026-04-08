@@ -1,3 +1,7 @@
+<!-- 
+@spec-link [[ui_registration]]
+@spec-link [[ui_registration_minimal_form_fields]]
+-->
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';

@@ -1,3 +1,4 @@
+<!-- @spec-link [[ui_login]] -->
 <script setup>
 import { ref } from 'vue';
 import { Head, Link, router } from '@inertiajs/vue3';

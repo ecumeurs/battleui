@@ -1,3 +1,4 @@
+<!-- @spec-link [[ui_landing]] -->
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
 

@@ -38,6 +38,7 @@ Route::prefix("v1")->group(function () {
         // Character actions
         Route::post('/profile/character/{characterId}/reroll', [ProfileController::class, 'rerollCharacter']);
         Route::post('/profile/character/{characterId}/upgrade', [ProfileController::class, 'updateCharacter']);
+        Route::post('/profile/character/{characterId}/rename', [ProfileController::class, 'renameCharacter']);
         Route::delete('/profile/character/{characterId}', [ProfileController::class, 'deleteCharacter']);
 
         // Matchmaking

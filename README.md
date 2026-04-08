@@ -38,7 +38,15 @@ The visual interface and player interactions are located in:
     - **Auth/Register.vue**: The entity initialization portal for creating accounts and generating initial character rosters.
     - **Dashboard.vue**: The tactical command hub for roster review and matchmaking (Under Construction).
 - **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements.
+    - **TacticalHeader.vue**: The top navigation and session management bridge.
+    - **TacticalFooter.vue**: Terminal-style status bar for system telemetry.
+    - **CharacterRoster.vue**: Modular management interface for character stats and progression.
 - **[resources/js/Layouts](file:///workspace/battleui/resources/js/Layouts)**: Wrapper components for consistent UI structure.
+    - **TacticalLayout.vue**: The primary "Neon in the Dust" layout framework.
+- **Core Frontend Logic**:
+    - **[bootstrap.js](file:///workspace/battleui/resources/js/bootstrap.js)**: Initializes core browser-level utilities, including global Axios defaults and Laravel Echo.
+    - **[app.js](file:///workspace/battleui/resources/js/app.js)**: Inertia.js entry point bootstrapping the Vue 3 application and plugin ecosystem.
+    - **[services/auth.js](file:///workspace/battleui/resources/js/services/auth.js)**: Centralized authentication service and Axios interceptor for JWT management and token renewal.
 
 ### Backend (Laravel)
 The core logic, API endpoints, and data management are located in:

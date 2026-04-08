@@ -10,6 +10,7 @@ use Illuminate\Support\Facades\DB;
 use App\Traits\ApiResponder;
 use App\Http\Requests\API\Profile\UpdateProfileRequest;
 use App\Http\Requests\API\Profile\UpdateCharacterRequest;
+use App\Http\Requests\API\Profile\RenameCharacterRequest;
 use App\Http\Resources\UserResource;
 use App\Http\Resources\CharacterResource;
 
@@ -129,6 +130,24 @@ class ProfileController extends Controller
         ]);
 
         return $this->success(new CharacterResource($character), 'Character upgraded.');
+    }
+
+    /**
+     * @spec-link [[api_profile_character]]
+     * @spec-link [[rule_character_renaming]]
+     */
+    public function renameCharacter(RenameCharacterRequest $request, string $characterId)
+    {
+        $character = Character::findOrFail($characterId);
+        $this->authorize('update', $character);
+
+        $validated = $request->validated();
+
+        $character->update([
+            'name' => $validated['name'],
+        ]);
+
+        return $this->success(new CharacterResource($character), 'Character renamed.');
     }
 
     /**

@@ -1,6 +1,7 @@
 import axios from 'axios';
 import { v7 as uuidv7 } from 'uuid';
 
+/** @spec-link [[mechanic_mech_frontend_auth_bridge]] */
 const auth = axios.create({
     baseURL: '/api/v1',
     headers: {
@@ -28,8 +29,13 @@ auth.interceptors.request.use((config) => {
 auth.interceptors.response.use(
     (response) => {
         // All successful responses are wrapped in { data: { ... } } by Axios
-        // The Upsilon envelope is { data: { success, data, message, request_id } }
+        // The Upsilon envelope is { data: { success, data, message, request_id, meta } }
         const envelope = response.data;
+
+        // Automatically update renewed tokens [[req_security_token_ttl]]
+        if (envelope && envelope.meta && envelope.meta.token) {
+            localStorage.setItem('upsilon_token', envelope.meta.token);
+        }
 
         if (envelope && envelope.success) {
             return envelope.data; 

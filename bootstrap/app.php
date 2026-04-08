@@ -82,6 +82,10 @@ return Application::configure(basePath: dirname(__DIR__))
                     $message = 'Internal Server Error';
                 }
 
+                if (config('app.debug')) {
+                    $message = '-- DEBUG MODE -- ' . $message;
+                }
+
                 // 5. Return JSON Envelope [[api_standard_envelope]]
                 return response()->json([
                     'request_id' => $requestId,

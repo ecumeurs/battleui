@@ -14,6 +14,10 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    contentClass: {
+        type: String,
+        default: 'rounded-lg bg-white',
+    },
 });
 
 const emit = defineEmits(['close']);
@@ -112,8 +116,8 @@ const maxWidthClass = computed(() => {
             >
                 <div
                     v-show="show"
-                    class="mb-6 transform overflow-hidden rounded-lg bg-white shadow-xl transition-all sm:mx-auto sm:w-full"
-                    :class="maxWidthClass"
+                    class="mb-6 transform shadow-xl transition-all sm:mx-auto sm:w-full"
+                    :class="[maxWidthClass, contentClass]"
                 >
                     <slot v-if="showSlot" />
                 </div>

@@ -208,4 +208,27 @@ class MatchMakingController extends Controller
         return $this->success(null);
     }
 
+    /**
+     * @spec-link [[ui_dashboard_match_statistics]]
+     */
+    public function getWaitingStats(Request $request)
+    {
+        $count = \App\Models\MatchmakingQueue::distinct('user_id')->count();
+        return $this->success(['waiting_count' => $count], 'Waiting stats retrieved.');
+    }
+
+    /**
+     * @spec-link [[ui_dashboard_match_statistics]]
+     */
+    public function getActiveStats(Request $request)
+    {
+        $stats = $this->upsilonService->getActiveMatchStats();
+        
+        if (!($stats['success'] ?? false)) {
+             return $this->error($stats['message'] ?? 'Failed to retrieve active stats', 502);
+        }
+
+        return $this->success($stats['data'] ?? ['active_count' => 0], 'Active stats retrieved.');
+    }
+
 }

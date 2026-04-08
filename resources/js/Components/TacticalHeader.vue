@@ -1,13 +1,22 @@
 <script setup>
+/** @spec-link [[requirement_customer_user_id_privacy]] */
 import { Link } from '@inertiajs/vue3';
 import { logout } from '@/services/auth';
 import { router } from '@inertiajs/vue3';
+import { getTacticalId } from '@/services/tactical_id';
+import { onMounted, ref } from 'vue';
 
 const props = defineProps({
     user: {
         type: Object,
         required: true
     }
+});
+
+const tacticalId = ref('');
+
+onMounted(() => {
+    tacticalId.value = getTacticalId();
 });
 
 const handleLogout = async () => {
@@ -25,7 +34,7 @@ const handleLogout = async () => {
             <div class="h-8 w-px bg-upsilon-steel/30 hidden md:block"></div>
             <div class="hidden md:flex flex-col">
                 <span class="text-upsilon-cyan font-mono text-[10px] uppercase tracking-widest truncate w-40">ENTITY: {{ user.account_name }}</span>
-                <span class="text-upsilon-steel font-mono text-[8px] uppercase tracking-widest">ID: {{ user.id }}</span>
+                <span class="text-upsilon-lime font-mono text-[8px] uppercase tracking-widest">ID: {{ tacticalId }}</span>
             </div>
         </div>
 

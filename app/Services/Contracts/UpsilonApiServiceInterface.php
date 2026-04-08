@@ -16,15 +16,12 @@ interface UpsilonApiServiceInterface
      */
     public function startArena(string $matchId, string $callbackUrl, array $players): array;
 
-    /**
-     * Send an action to an active Arena in the Upsilon Engine.
-     *
-     * @param string $arenaId UUID of the active arena
-     * @param string $playerId Controller ID of the player
-     * @param string $entityId ID of the entity performing the action
-     * @param string $type The action type (Move, Attack, Pass, etc)
-     * @param array $targetCoords Array of PositionDTO objects (for targeting hexes)
-     * @return array The Go api_standard_envelope response
-     */
     public function sendAction(string $arenaId, string $playerId, string $entityId, string $type, array $targetCoords = []): array;
+
+    /**
+     * Get active match statistics from the Upsilon Engine.
+     * 
+     * @return array The Go api_standard_envelope response (containing ActiveMatchStatsResponse data)
+     */
+    public function getActiveMatchStats(): array;
 }

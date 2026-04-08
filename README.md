@@ -36,11 +36,15 @@ The visual interface and player interactions are located in:
     - **Welcome.vue**: The public landing page showcasing the Upsilon Battle world and providing entry points for survivors.
     - **Auth/Login.vue**: A secure authentication interface for survivors to identify themselves using their credentials.
     - **Auth/Register.vue**: The entity initialization portal for creating accounts and generating initial character rosters.
-    - **Dashboard.vue**: The tactical command hub for roster review and matchmaking (Under Construction).
+    - **Dashboard.vue**: The tactical command hub for roster review, matchmaking, and identity management.
 - **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements.
     - **TacticalHeader.vue**: The top navigation and session management bridge.
     - **TacticalFooter.vue**: Terminal-style status bar for system telemetry.
     - **CharacterRoster.vue**: Modular management interface for character stats and progression.
+    - **IdentitySection.vue**: Modular component for managing user personal data, credentials, and GDPR controls.
+    - **ModalBox.vue**: Themed base component for "Neon in the Dust" interactive dialogs and portals.
+    - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
+    - **Modals/ChangePasswordModal.vue**: Secure credential rotation interface for updating authentication keys.
 - **[resources/js/Layouts](file:///workspace/battleui/resources/js/Layouts)**: Wrapper components for consistent UI structure.
     - **TacticalLayout.vue**: The primary "Neon in the Dust" layout framework.
 - **Core Frontend Logic**:

@@ -5,15 +5,11 @@ import { getAuthUser } from '@/services/auth';
 import { ref, onMounted } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import CharacterRoster from '@/Components/CharacterRoster.vue';
+import IdentitySection from '@/Components/IdentitySection.vue';
+
+import axios from 'axios';
 
 const user = ref(null);
-
-onMounted(() => {
-    user.value = getAuthUser();
-    if (!user.value) {
-        router.visit('/login');
-    }
-});
 
 const globalStats = ref({
     waiting: '--',
@@ -27,14 +23,50 @@ const playerStats = ref({
     losses: 0
 });
 
-onMounted(() => {
-    if (user.value) {
-        playerStats.value = {
-            ratio: user.value.ratio || '0.0',
-            wins: user.value.total_wins || 0,
-            losses: user.value.total_losses || 0
-        };
+const fetchGlobalStats = async () => {
+    try {
+        const [waitingRes, activeRes] = await Promise.all([
+            axios.get('/api/v1/match/stats/waiting'),
+            axios.get('/api/v1/match/stats/active')
+        ]);
+
+        if (waitingRes.data.success) {
+            globalStats.value.waiting = waitingRes.data.data.waiting_count;
+        }
+        
+        if (activeRes.data.success) {
+            globalStats.value.active = activeRes.data.data.active_count;
+        }
+
+        globalStats.value.lastUpdate = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    } catch (error) {
+        console.error("Failed to fetch match statistics", error);
+        globalStats.value.lastUpdate = "Sync Error - Retrying...";
     }
+};
+
+let statsInterval = null;
+
+onMounted(() => {
+    user.value = getAuthUser();
+    if (!user.value) {
+        router.visit('/login');
+        return;
+    }
+
+    playerStats.value = {
+        ratio: user.value.ratio || '0.0',
+        wins: user.value.total_wins || 0,
+        losses: user.value.total_losses || 0
+    };
+
+    fetchGlobalStats();
+    statsInterval = setInterval(fetchGlobalStats, 60000);
+});
+
+import { onUnmounted } from 'vue';
+onUnmounted(() => {
+    if (statsInterval) clearInterval(statsInterval);
 });
 </script>
 
@@ -56,11 +88,11 @@ onMounted(() => {
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-4 bg-black/50 border border-upsilon-steel/20 text-center">
                         <div class="text-3xl font-scifi text-upsilon-lime">{{ globalStats.waiting }}</div>
-                        <div class="text-[8px] font-mono text-upsilon-steel uppercase tracking-tighter">Waiting Players</div>
+                        <div class="text-[8px] font-mono text-upsilon-lime uppercase tracking-tighter">Waiting Players</div>
                     </div>
                     <div class="p-4 bg-black/50 border border-upsilon-steel/20 text-center">
                         <div class="text-3xl font-scifi text-upsilon-cyan">{{ globalStats.active }}</div>
-                        <div class="text-[8px] font-mono text-upsilon-steel uppercase tracking-tighter">Active Matches</div>
+                        <div class="text-[8px] font-mono text-upsilon-lime uppercase tracking-tighter">Active Matches</div>
                     </div>
                 </div>
 
@@ -74,69 +106,37 @@ onMounted(() => {
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
                         <button class="group p-5 bg-black/60 border border-upsilon-lime/40 hover:border-upsilon-lime hover:bg-upsilon-lime/5 transition-all text-left relative overflow-hidden">
                             <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Solo / PVE</span>
-                            <span class="block font-mono text-[9px] text-upsilon-steel uppercase group-hover:text-upsilon-lime/70">Sector Exploration & AI Cleanup</span>
+                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-lime/70">Sector Exploration & AI Cleanup</span>
                         </button>
                         
                         <button class="group p-5 bg-black/60 border border-upsilon-magenta/40 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all text-left relative overflow-hidden">
                             <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">PVP / Ranked</span>
-                            <span class="block font-mono text-[9px] text-upsilon-steel uppercase group-hover:text-upsilon-magenta/70">1v1 High Stakes Territory Claim</span>
+                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-magenta/70">1v1 High Stakes Territory Claim</span>
                         </button>
 
                         <button class="group p-5 bg-black/60 border border-upsilon-lime/40 hover:border-upsilon-lime hover:bg-upsilon-lime/5 transition-all text-left relative overflow-hidden">
                             <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Co-op / PVE</span>
-                            <span class="block font-mono text-[9px] text-upsilon-steel uppercase group-hover:text-upsilon-lime/70">2 Players vs AI Overdrive</span>
+                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-lime/70">2 Players vs AI Overdrive</span>
                         </button>
 
                         <button class="group p-5 bg-black/60 border border-upsilon-magenta/40 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all text-left relative overflow-hidden">
                             <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Duo / PVP</span>
-                            <span class="block font-mono text-[9px] text-upsilon-steel uppercase group-hover:text-upsilon-magenta/70">2v2 Cooperative Combat Operations</span>
+                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-magenta/70">2v2 Cooperative Combat Operations</span>
                         </button>
                     </div>
                 </div>
 
                 <div class="text-center">
-                    <p class="text-[10px] font-mono text-upsilon-steel uppercase tracking-[0.4em] animate-pulse">Standing by for command input...</p>
+                    <p class="text-[10px] font-mono text-upsilon-lime uppercase tracking-[0.4em] animate-pulse">Standing by for command input...</p>
                 </div>
             </main>
 
-            <!-- Right Column: Profile & Combat Record -->
-            <aside class="lg:col-span-3 space-y-6">
-                <!-- Combat Performance -->
-                <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative">
-                    <h2 class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-[0.2em] mb-4">Combat Performance</h2>
-                    
-                    <div class="text-center mb-4">
-                        <div class="text-4xl font-scifi text-white">{{ playerStats.ratio }} <span class="text-[10px] text-upsilon-steel">W/L</span></div>
-                        
-                        <div class="w-full h-1 flex mt-4 border border-upsilon-steel/20 bg-black/40">
-                            <div class="bg-upsilon-lime h-full shadow-[0_0_5px_theme('colors.upsilon.lime')]" :style="{ width: (parseFloat(playerStats.ratio) / 4 * 100) + '%' }"></div>
-                            <div class="bg-upsilon-magenta h-full shadow-[0_0_5px_theme('colors.upsilon.magenta')]" :style="{ width: (100 - (parseFloat(playerStats.ratio) / 4 * 100)) + '%' }"></div>
-                        </div>
-                        
-                        <div class="flex justify-between mt-2 font-mono text-[8px] text-upsilon-steel uppercase">
-                            <span>Wins: {{ playerStats.wins }}</span>
-                            <span>Losses: {{ playerStats.losses }}</span>
-                        </div>
-                    </div>
-                </div>
-
-                <!-- Profile Management -->
-                <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative">
-                    <h2 class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-[0.2em] mb-4">Identity Management</h2>
-                    
-                    <div class="space-y-3">
-                        <button class="w-full text-left p-3 border border-upsilon-steel/20 bg-black/30 font-mono text-[9px] text-upsilon-steel uppercase hover:border-upsilon-cyan hover:text-white transition-all">
-                            Edit Identity Data
-                        </button>
-                        <button class="w-full text-left p-3 border border-upsilon-steel/20 bg-black/30 font-mono text-[9px] text-upsilon-steel uppercase hover:border-upsilon-cyan hover:text-white transition-all">
-                            GDPR Archive Export
-                        </button>
-                        <button class="w-full text-left p-3 border border-upsilon-magenta/30 bg-black/30 font-mono text-[9px] text-upsilon-magenta uppercase hover:bg-upsilon-magenta/10 transition-all">
-                            Termination Protocol
-                        </button>
-                    </div>
-                </div>
-            </aside>
+            <!-- Right Column: Identity & Combat Record -->
+            <IdentitySection 
+                class="lg:col-span-3" 
+                :user="user" 
+                :playerStats="playerStats" 
+            />
         </div>
     </TacticalLayout>
 </template>

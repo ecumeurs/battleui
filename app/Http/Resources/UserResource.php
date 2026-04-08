@@ -5,6 +5,9 @@ namespace App\Http\Resources;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @spec-link [[requirement_customer_user_id_privacy]]
+ */
 class UserResource extends JsonResource
 {
     /**
@@ -15,7 +18,6 @@ class UserResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
             'account_name' => $this->account_name,
             'email' => $this->email,
             'full_address' => $this->full_address,

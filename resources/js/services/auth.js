@@ -1,5 +1,6 @@
 import axios from 'axios';
 import { v7 as uuidv7 } from 'uuid';
+import { clearTacticalId } from '@/services/tactical_id';
 
 /** @spec-link [[mechanic_mech_frontend_auth_bridge]] */
 const auth = axios.create({
@@ -35,6 +36,11 @@ auth.interceptors.response.use(
         // Automatically update renewed tokens [[req_security_token_ttl]]
         if (envelope && envelope.meta && envelope.meta.token) {
             localStorage.setItem('upsilon_token', envelope.meta.token);
+        }
+
+        // Handle binary/file responses (no envelope)
+        if (envelope instanceof Blob) {
+            return envelope;
         }
 
         if (envelope && envelope.success) {
@@ -76,6 +82,7 @@ export const logout = async () => {
     } finally {
         localStorage.removeItem('upsilon_token');
         localStorage.removeItem('upsilon_user');
+        clearTacticalId();
     }
 };
 

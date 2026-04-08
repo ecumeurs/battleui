@@ -49,7 +49,7 @@ const submit = async () => {
                 <Link href="/" class="text-4xl font-scifi font-bold text-white uppercase tracking-tighter">
                     UPSILON<span class="text-upsilon-cyan italic">BATTLE</span>
                 </Link>
-                <div class="mt-2 text-upsilon-steel font-mono text-xs uppercase tracking-[.2em]">IDENTIFICATION_REQUIRED</div>
+                <div class="mt-2 text-upsilon-lime font-mono text-xs uppercase tracking-[.2em]">IDENTIFICATION_REQUIRED</div>
             </div>
 
             <form @submit.prevent="submit" class="space-y-6">
@@ -88,7 +88,7 @@ const submit = async () => {
                 </button>
 
                 <div class="text-center mt-8">
-                    <p class="text-upsilon-steel text-xs font-mono uppercase">
+                    <p class="text-upsilon-lime text-xs font-mono uppercase">
                         New survivor? 
                         <Link href="/register" class="text-upsilon-magenta hover:underline">Establish Link</Link>
                     </p>

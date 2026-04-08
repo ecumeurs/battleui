@@ -13,12 +13,15 @@ use Illuminate\Validation\ValidationException;
 use App\Http\Requests\API\Auth\LoginRequest;
 use App\Http\Requests\API\Auth\RegisterRequest;
 use App\Http\Requests\API\Auth\UpdateAccountRequest;
+use App\Http\Requests\API\Auth\ChangePasswordRequest;
 use App\Http\Resources\UserResource;
 
 /**
  * @spec-link [[api_auth_login]]
  * @spec-link [[api_auth_register]]
  * @spec-link [[rule_password_policy]]
+ * @spec-link [[customer_user_account]]
+ * @spec-link [[rule_gdpr_compliance]]
  */
 class AuthController extends Controller
 {
@@ -84,10 +87,12 @@ class AuthController extends Controller
         return $this->success(null, 'Logged out.');
     }
 
+    /**
+     * @spec-link [[customer_user_account]]
+     */
     public function updateAccount(UpdateAccountRequest $request)
     {
         $user = $request->user();
-        
         $validated = $request->validated();
 
         $user->update($validated);
@@ -95,12 +100,60 @@ class AuthController extends Controller
         return $this->success(new UserResource($user), 'Account updated.');
     }
 
+    /**
+     * @spec-link [[customer_user_account]]
+     */
+    public function changePassword(ChangePasswordRequest $request)
+    {
+        $user = $request->user();
+        $validated = $request->validated();
+
+        if (!Hash::check($validated['current_password'], $user->password_hash)) {
+            return $this->error('Current password does not match nuestro records.', 400);
+        }
+
+        $user->update([
+            'password_hash' => Hash::make($validated['password']),
+        ]);
+
+        return $this->success(null, 'Password changed successfully.');
+    }
+
+    /**
+     * @spec-link [[rule_gdpr_compliance]]
+     */
+    public function exportAccount(Request $request)
+    {
+        $user = $request->user()->load('characters');
+        
+        $data = [
+            'account' => new UserResource($user),
+            'characters' => \App\Http\Resources\CharacterResource::collection($user->characters),
+            'meta' => [
+                'export_date' => now()->toIso8601String(),
+                'system' => 'Upsilon Battle UI',
+            ]
+        ];
+
+        return response()->json($data, 200, [
+            'Content-Type' => 'application/json',
+            'Content-Disposition' => 'attachment; filename="upsilon_identity_export.json"'
+        ]);
+    }
+
+    /**
+     * @spec-link [[rule_gdpr_compliance]]
+     */
     public function deleteAccount(Request $request)
     {
         $user = $request->user();
+        
+        // Anonymize before soft delete per GDPR rule
+        $user->anonymize();
+        
         $user->tokens()->delete();
         $user->delete();
 
-        return $this->success(null, 'Account deleted.');
+        return $this->success(null, 'Account terminated and anonymized.');
     }
 }

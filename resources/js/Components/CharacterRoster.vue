@@ -118,10 +118,10 @@ onMounted(fetchCharacters);
 </script>
 
 <template>
-    <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative overflow-hidden group">
-        <div class="absolute top-0 left-0 w-2 h-2 border-t border-l border-upsilon-cyan"></div>
-        
-        <h2 class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-[0.2em] mb-4 flex justify-between">
+    <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative group">
+        <div class="absolute -top-px -left-px w-2 h-2 border-t border-l border-upsilon-cyan"></div>
+        <div class="absolute -bottom-px -right-px w-2 h-2 border-b border-r border-upsilon-cyan"></div>
+        <h2 class="font-scifi text-[10px] text-upsilon-lime uppercase tracking-[0.2em] mb-4 flex justify-between">
             Character Roster
             <span class="text-upsilon-lime" v-if="!loading">Ready</span>
             <span class="text-upsilon-cyan animate-pulse" v-else>Syncing...</span>
@@ -151,23 +151,23 @@ onMounted(fetchCharacters);
                     >
                         {{ char.name }}
                     </span>
-                    <span class="font-mono text-[9px] text-upsilon-steel uppercase">LVL {{ char.hp + char.attack + char.defense + char.movement - 9 }}</span>
+                    <span class="font-mono text-[9px] text-upsilon-lime uppercase">LVL {{ char.hp + char.attack + char.defense + char.movement - 9 }}</span>
                 </div>
                 
                 <div class="grid grid-cols-2 gap-2 font-mono text-[9px]">
-                    <div class="text-upsilon-steel uppercase flex justify-between group/stat">
+                    <div class="text-upsilon-lime uppercase flex justify-between group/stat">
                         HP <span class="text-white">{{ char.hp }}</span>
                         <button v-if="canUpgrade(char)" @click="handleUpgrade(char.id, 'hp')" class="hidden group-hover/stat:block text-upsilon-lime ml-1">+</button>
                     </div>
-                    <div class="text-upsilon-steel uppercase flex justify-between group/stat">
+                    <div class="text-upsilon-lime uppercase flex justify-between group/stat">
                         MOV <span class="text-white">{{ char.movement }}</span>
                         <button v-if="canUpgrade(char)" @click="handleUpgrade(char.id, 'movement')" class="hidden group-hover/stat:block text-upsilon-lime ml-1">+</button>
                     </div>
-                    <div class="text-upsilon-steel uppercase flex justify-between group/stat">
+                    <div class="text-upsilon-lime uppercase flex justify-between group/stat">
                         ATK <span class="text-white">{{ char.attack }}</span>
                         <button v-if="canUpgrade(char)" @click="handleUpgrade(char.id, 'attack')" class="hidden group-hover/stat:block text-upsilon-lime ml-1">+</button>
                     </div>
-                    <div class="text-upsilon-steel uppercase flex justify-between group/stat">
+                    <div class="text-upsilon-lime uppercase flex justify-between group/stat">
                         DEF <span class="text-white">{{ char.defense }}</span>
                         <button v-if="canUpgrade(char)" @click="handleUpgrade(char.id, 'defense')" class="hidden group-hover/stat:block text-upsilon-lime ml-1">+</button>
                     </div>

@@ -57,7 +57,7 @@ const submit = async () => {
                     <h1 class="text-3xl font-scifi font-bold text-white uppercase tracking-tighter">
                         Establish <span class="text-upsilon-magenta shadow-glow-magenta">Link</span>
                     </h1>
-                    <div class="mt-1 text-upsilon-steel font-mono text-[10px] uppercase tracking-[.2em]">NEW_ENTITY_CREATION</div>
+                    <div class="mt-1 text-upsilon-lime font-mono text-[10px] uppercase tracking-[.2em]">NEW_ENTITY_CREATION</div>
                 </div>
                 <div class="font-mono text-upsilon-cyan text-[10px] text-right">
                     SECURE_CH: v1.02<br />
@@ -149,7 +149,7 @@ const submit = async () => {
                     </button>
 
                     <div class="text-center">
-                        <p class="text-upsilon-steel text-xs font-mono uppercase">
+                        <p class="text-upsilon-lime text-xs font-mono uppercase">
                             Already established? 
                             <Link href="/login" class="text-upsilon-magenta hover:underline">Re-Authenticate</Link>
                         </p>

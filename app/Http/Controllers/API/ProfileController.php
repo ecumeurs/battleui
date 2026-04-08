@@ -16,27 +16,14 @@ use App\Http\Resources\CharacterResource;
 
 class ProfileController extends Controller
 {
-    use ApiResponder;
     /**
      * @spec-link [[api_profile_character]]
+     * @spec-link [[customer_player_profile]]
      */
     public function getProfile(Request $request)
     {
         $user = $request->user();
         return $this->success(new UserResource($user->load('characters')), 'Profile retrieved.');
-    }
-
-    /**
-     * @spec-link [[api_profile_character]]
-     */
-    public function updateProfile(UpdateProfileRequest $request)
-    {
-        $user = $request->user();
-        $validated = $request->validated();
-
-        $user->update($validated);
-
-        return $this->success(new UserResource($user), 'Profile updated.');
     }
 
     /**

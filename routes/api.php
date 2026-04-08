@@ -23,15 +23,21 @@ if (app()->environment('testing')) {
  */
 Route::prefix("v1")->group(function () {
 
+    /** @spec-link [[api_auth_user]] */
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/register', [AuthController::class, 'register']);
-    Route::post('/auth/logout', [AuthController::class, 'logout'])->middleware('auth:sanctum');
-    Route::post('/auth/update', [AuthController::class, 'updateAccount'])->middleware('auth:sanctum');
-    Route::delete('/auth/delete', [AuthController::class, 'deleteAccount'])->middleware('auth:sanctum');
 
     Route::middleware('auth:sanctum')->group(function() {
+        // Account Identity (Auth) - @spec-link [[api_auth_user]]
+        Route::post('/auth/logout', [AuthController::class, 'logout']);
+        Route::post('/auth/update', [AuthController::class, 'updateAccount']);
+        Route::post('/auth/password', [AuthController::class, 'changePassword']);
+        Route::get('/auth/export', [AuthController::class, 'exportAccount']);
+        Route::delete('/auth/delete', [AuthController::class, 'deleteAccount']);
+
+        // Player Profile & Meta-game (Profile)
+        // @spec-link [[api_profile_character]]
         Route::get('/profile', [ProfileController::class, 'getProfile']);
-        Route::post('/profile', [ProfileController::class, 'updateProfile']);
         Route::get('/profile/characters', [ProfileController::class, 'getCharacters']);
         Route::get('/profile/character/{characterId}', [ProfileController::class, 'getCharacter']);
         
@@ -46,6 +52,11 @@ Route::prefix("v1")->group(function () {
         Route::get('/matchmaking/status', [MatchMakingController::class, 'status']);
         Route::post('/matchmaking/join', [MatchMakingController::class, 'joinMatch']);
         Route::post('/matchmaking/leave', [MatchMakingController::class, 'leaveMatch']);
+
+        // Stats
+        // @spec-link [[ui_dashboard_match_statistics]]
+        Route::get('/match/stats/waiting', [MatchMakingController::class, 'getWaitingStats']);
+        Route::get('/match/stats/active', [MatchMakingController::class, 'getActiveStats']);
 
         // Game proxy
         Route::get('/game/{id}', [GameController::class, 'state']);

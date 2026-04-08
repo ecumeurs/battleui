@@ -23,8 +23,10 @@ class UpdateAccountRequest extends FormRequest
     {
         $user = $this->user();
         return [
-            'account_name' => 'string|max:255|unique:users,account_name,' . $user->id,
-            'email' => 'string|email|max:255|unique:users,email,' . $user->id,
+            'account_name' => 'sometimes|string|max:255|unique:users,account_name,' . $user->id,
+            'email' => 'sometimes|string|email|max:255|unique:users,email,' . $user->id,
+            'birth_date' => 'sometimes|date',
+            'full_address' => 'sometimes|string',
         ];
     }
 }

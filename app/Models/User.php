@@ -26,7 +26,13 @@ class User extends Authenticatable
         'total_wins',
         'total_losses',
         'ratio',
-        'reroll_count'
+        'reroll_count',
+        'full_address',
+        'birth_date'
+    ];
+
+    protected $casts = [
+        'birth_date' => 'date',
     ];
 
     protected $hidden = [

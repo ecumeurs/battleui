@@ -24,6 +24,10 @@ return Application::configure(basePath: dirname(__DIR__))
             \Illuminate\Http\Middleware\AddLinkHeadersForPreloadedAssets::class,
         ]);
 
+        $middleware->api(prepend: [
+            \App\Http\Middleware\StandardEnvelope::class,
+        ]);
+
         $middleware->api(append: [
             \App\Http\Middleware\SanctumTokenRenewal::class,
         ]);
@@ -69,7 +73,12 @@ return Application::configure(basePath: dirname(__DIR__))
 
                 // 4. Secure Message: no stack trace, simplified for 500s in non-debug
                 $message = $e->getMessage();
-                if ($statusCode >= 500 && !config('app.debug')) {
+                $meta = (object) [];
+
+                if ($statusCode === 422 && $e instanceof \Illuminate\Validation\ValidationException) {
+                    $message = 'Validation failed';
+                    $meta = ['errors' => $e->errors()];
+                } elseif ($statusCode >= 500 && !config('app.debug')) {
                     $message = 'Internal Server Error';
                 }
 
@@ -79,7 +88,7 @@ return Application::configure(basePath: dirname(__DIR__))
                     'message'    => $message,
                     'success'    => false,
                     'data'       => (object) [],
-                    'meta'       => (object) [],
+                    'meta'       => $meta,
                 ], $statusCode);
             }
         });

@@ -18,6 +18,8 @@ class UserResource extends JsonResource
             'id' => $this->id,
             'account_name' => $this->account_name,
             'email' => $this->email,
+            'full_address' => $this->full_address,
+            'birth_date' => $this->birth_date ? $this->birth_date->toDateString() : null,
             'total_wins' => $this->total_wins,
             'total_losses' => $this->total_losses,
             'ratio' => $this->ratio,

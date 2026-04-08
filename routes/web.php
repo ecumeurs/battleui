@@ -7,24 +7,29 @@ use Inertia\Inertia;
 use App\Events\BattleUpdated;
 use Illuminate\Support\Facades\Broadcast;
 
-Route::get('/event-test', function () {
-    return Inertia::render('EventTest');
+Route::get('/', function () {
+    return Inertia::render('Welcome');
 });
 
-Route::get('/broadcast-test/{id}', function (Request $request, int $id) {
-    $battleId = $id; 
-    $data = [
-        'message' => 'Hello from Laravel!',
-        'timestamp' => now()->toIso8601String(),
-    ];
+Route::get('/login', function () {
+    return Inertia::render('Auth/Login');
+})->name('login');
 
-    Broadcast::event(new BattleUpdated($data, $battleId));
-    return response()->json(['status' => 'event sent']);
+Route::get('/register', function () {
+    return Inertia::render('Auth/Register');
+})->name('register');
+
+Route::get('/dashboard', function () {
+    return Inertia::render('Dashboard');
+})->name('dashboard');
+
+Route::get('/event-test', function () {
+    return Inertia::render('EventTest');
 });
 
 require __DIR__.'/auth.php';
 
 Route::get('/{any}', function () {
-    return Inertia::render('App');
+    return Inertia::render('Welcome');
 })->where('any', '^(?!api\/).*');
 

@@ -16,7 +16,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
 
     public function __construct()
     {
-        $this->baseUrl = config('services.upsilon.url', 'http://localhost:8080/internal');
+        $this->baseUrl = config('services.upsilon.url', 'http://localhost:8081/internal');
     }
 
     /**

@@ -15,6 +15,11 @@ use App\Http\Requests\API\Auth\RegisterRequest;
 use App\Http\Requests\API\Auth\UpdateAccountRequest;
 use App\Http\Resources\UserResource;
 
+/**
+ * @spec-link [[api_auth_login]]
+ * @spec-link [[api_auth_register]]
+ * @spec-link [[rule_password_policy]]
+ */
 class AuthController extends Controller
 {
     use ApiResponder;
@@ -25,7 +30,15 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $user = User::where('email', $validated['email'])->first();
+        $query = User::query();
+        
+        if (isset($validated['account_name'])) {
+            $query->where('account_name', $validated['account_name']);
+        } else {
+            $query->where('email', $validated['email']);
+        }
+
+        $user = $query->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password_hash)) {
             return $this->error('Invalid credentials.', 401);
@@ -50,6 +63,8 @@ class AuthController extends Controller
             'account_name' => $validated['account_name'],
             'email' => $validated['email'],
             'password_hash' => Hash::make($validated['password']),
+            'full_address' => $validated['full_address'],
+            'birth_date' => $validated['birth_date'],
         ]);
 
         \App\Models\Character::generateInitialRoster($user->id);

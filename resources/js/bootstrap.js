@@ -18,4 +18,11 @@ window.Echo = new Echo({
     forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
     disableStats: true,
     enabledTransports: ['ws', 'wss'],
+    // Handle authorization for private channels (arena and user)
+    auth: {
+        headers: {
+            'Authorization': 'Bearer ' + localStorage.getItem('upsilon_token'),
+            'Accept': 'application/json'
+        }
+    }
 });

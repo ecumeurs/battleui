@@ -89,7 +89,7 @@ onMounted(() => {
             .listen('.match.found', (e) => {
                 console.log("Match Found via WebSocket!", e);
                 status.value = 'matched';
-                redirectToArena(e.matchId);
+                redirectToArena(e.match_id);
             });
     }
 });

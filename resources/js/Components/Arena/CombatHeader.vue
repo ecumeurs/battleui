@@ -13,6 +13,7 @@ const props = defineProps({
     enemyTotalChars: { type: Number, default: 3 },
     matchDuration: { type: String, default: '04:32' },
     shotClock: { type: Number, default: 23 },
+    isSocketConnected: { type: Boolean, default: false },
 });
 
 const allyHpPct = computed(() => Math.round((props.allyTeamHp / props.allyTeamMaxHp) * 100));
@@ -60,7 +61,10 @@ const shotClockClass = computed(() => {
 
         <!-- Center: timers -->
         <div class="combat-header__center">
-            <div class="combat-header__match-time">{{ matchDuration }}</div>
+            <div class="combat-header__match-time">
+                <span class="combat-header__socket-indicator" :class="{ 'combat-header__socket-indicator--online': isSocketConnected }"></span>
+                {{ matchDuration }}
+            </div>
             <div class="combat-header__divider"></div>
             <div class="combat-header__shot-clock" :class="shotClockClass">
                 ⏱ {{ String(shotClock).padStart(2, '0') }}
@@ -226,6 +230,30 @@ const shotClockClass = computed(() => {
     font-size: 16px;
     color: #e0e0e0;
     letter-spacing: 0.1em;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.combat-header__socket-indicator {
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: #ff2020;
+    box-shadow: 0 0 4px #ff2020;
+    transition: background 0.3s, box-shadow 0.3s;
+}
+
+.combat-header__socket-indicator--online {
+    background: #39ff13;
+    box-shadow: 0 0 8px #39ff13;
+    animation: beacon 2s infinite;
+}
+
+@keyframes beacon {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
 }
 
 .combat-header__divider {

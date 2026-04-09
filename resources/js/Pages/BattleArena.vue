@@ -20,6 +20,7 @@ const gameState = ref(null);
 const participants = ref([]);
 const matchStartedAt = ref(null);
 const isLoading = ref(true);
+const isSocketConnected = ref(false);
 
 const currentPlayerId = computed(() => {
     const participant = participants.value.find(p => p.nickname === user.value?.account_name);
@@ -46,6 +47,15 @@ onMounted(async () => {
             selectedPath.value = [];
             highlightedCells.value = [];
         });
+
+        // Listen for connection health
+        if (window.Echo && window.Echo.connector.pusher.connection) {
+            isSocketConnected.value = window.Echo.connector.pusher.connection.state === 'connected';
+            window.Echo.connector.pusher.connection.bind('state_change', (states) => {
+                isSocketConnected.value = states.current === 'connected';
+                console.log('[PusherState]', states.current);
+            });
+        }
 
     } catch (e) {
         console.error("Failed to load game state", e);
@@ -392,6 +402,7 @@ function calculateAttackRange() {
                 :enemy-total-chars="enemyEntities.length"
                 :match-duration="matchDuration"
                 :shot-clock="shotClock"
+                :is-socket-connected="isSocketConnected"
             />
 
             <!-- MAIN CONTENT: Rosters + Board -->

@@ -18,15 +18,15 @@ class MatchFound implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public string $userId,
-        public string $matchId,
+        public string $user_id,
+        public string $match_id,
         public array $data = []
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('user.' . $this->userId),
+            new PrivateChannel('user.' . $this->user_id),
         ];
     }
 

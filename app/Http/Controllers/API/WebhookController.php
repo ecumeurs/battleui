@@ -25,24 +25,24 @@ class WebhookController extends Controller
     public function handle(Request $request)
     {
         $payload = $request->all();
-        $matchId = $payload['data']['match_id'] ?? $payload['match_id'] ?? null;
+        $match_id = $payload['data']['match_id'] ?? $payload['match_id'] ?? null;
 
-        if (!$matchId) {
+        if (!$match_id) {
             Log::error("Webhook received with no match_id", $payload);
             return $this->error('Webhook received with no match_id', 400);
         }
 
-        $match = GameMatch::find($matchId);
+        $match = GameMatch::find($match_id);
         if ($match) {
             $match->update([
                 'game_state_cache' => $payload['data'] ?? $payload,
                 'turn' => $payload['data']['turn_counter'] ?? $match->turn,
             ]);
 
-            Log::info("Match {$matchId} state updated from webhook.");
+            Log::info("Match {$match_id} state updated from webhook.");
 
             // Broadcast the update
-            broadcast(new BoardUpdated($matchId, $payload['data'] ?? $payload));
+            broadcast(new BoardUpdated($match_id, $payload['data'] ?? $payload));
         }
 
         return $this->success(null, 'Webhook processed successfully.');

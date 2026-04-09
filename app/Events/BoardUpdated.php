@@ -10,6 +10,10 @@ use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Foundation\Events\Dispatchable;
 use Illuminate\Queue\SerializesModels;
 
+/**
+ * @spec-link [[api_websocket_game_events]]
+ * @spec-link [[api_battle_proxy]]
+ */
 class BoardUpdated implements ShouldBroadcast
 {
     /**
@@ -18,14 +22,14 @@ class BoardUpdated implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public string $matchId,
+        public string $match_id,
         public array $data
     ) {}
 
     public function broadcastOn(): array
     {
         return [
-            new PrivateChannel('arena.' . $this->matchId),
+            new PrivateChannel('arena.' . $this->match_id),
         ];
     }
 

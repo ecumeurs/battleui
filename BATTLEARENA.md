@@ -134,41 +134,189 @@ The current implementation uses hardcoded mock data mirroring the Go engine's `B
 
 ---
 
-## What Remains To Be Done
+## Live Architecture (Data Flow)
+
+```
+┌──────────────┐   HTTP webhook    ┌──────────────────┐   Reverb WS     ┌─────────────┐
+│  Go Engine   │ ─────────────────►│  Laravel Backend  │ ───────────────► │  Vue.js UI  │
+│  (port 8081) │                   │  (port 8000)      │                  │  (Vite HMR) │
+│              │◄────── HTTP ──────│                   │◄──── HTTP ───────│             │
+│  /internal/  │  startArena       │  WebhookController│  POST /game/     │ BattleArena │
+│  arena/start │  sendAction       │  GameController   │  {id}/action     │             │
+└──────────────┘                   └──────────────────┘                  └─────────────┘
+```
+
+**Data Flow:**
+1. Matchmaking creates a `GameMatch` → calls Go engine `startArena` (see `MatchMakingController`)
+2. Go engine sends webhook callbacks → `WebhookController` updates `GameMatch.game_state_cache` + broadcasts `BoardUpdated` via Reverb
+3. Vue client subscribes to `PrivateChannel('arena.{matchId}')` → receives `board.updated` events with full `BoardState`
+4. Player actions: Vue → `POST /api/v1/game/{id}/action` → Laravel `GameController` → Go engine → webhook → broadcast
+
+**Key files:**
+- Webhook receiver: `app/Http/Controllers/API/WebhookController.php`
+- Action proxy: `app/Http/Controllers/API/GameController.php`
+- API service: `app/Services/UpsilonApiService.php`
+- Events: `app/Events/BoardUpdated.php` (PrivateChannel `arena.{matchId}`, event name `.board.updated`)
+- Models: `app/Models/GameMatch.php` (has `game_state_cache` JSON column), `app/Models/MatchParticipant.php`
+- Frontend auth: `resources/js/services/auth.js` (axios with Sanctum token from localStorage)
+- Echo setup: `resources/js/bootstrap.js` (Reverb broadcaster already configured)
+
+### Go Engine `BoardState` Shape (from `upsilonapi/api/output.go`)
+
+```json
+{
+  "entities": [
+    { "id": "uuid", "player_id": "uuid", "name": "Vex-7", "hp": 12, "max_hp": 15,
+      "attack": 5, "defense": 3, "move": 3, "max_move": 5, "position": { "x": 1, "y": 2 } }
+  ],
+  "grid": { "width": 10, "height": 10, "cells": [[{"entity_id":"","obstacle":false}]] },
+  "turn": [ { "player_id": "uuid", "delay": 0, "entity_id": "uuid" } ],
+  "current_player_id": "uuid",
+  "current_entity_id": "uuid",
+  "timeout": "2026-04-09T08:05:00Z",
+  "start_time": "2026-04-09T07:55:00Z",
+  "winner_id": ""
+}
+```
+
+### Action Request Shape (from `upsilonapi/api/input.go`)
+
+```json
+POST /api/v1/game/{match_id}/action
+{
+  "player_id": "uuid",
+  "entity_id": "uuid",
+  "type": "move|attack|pass|forfeit",
+  "target_coords": [{"x": 1, "y": 2}, {"x": 1, "y": 3}]
+}
+```
+
+---
+
+## Implementation Plan — What Remains
 
 ### Phase 2 — Visual Polish (Design Iteration)
-- [ ] Fix isometric tile tessellation (tiles forming a proper uniform diamond grid)
+- [x] Fix isometric tile tessellation (2:1 SVG diamonds, done)
+- [x] Add zoom/pan controls (done)
+- [x] Fix text readability per ui_theme spec (done)
+
+### Phase 3 — Backend Completion + WebSocket Integration
+
+#### Backend Changes Required
+
+**`app/Http/Controllers/API/GameController.php` — Complete `state()` method:**
+```php
+public function state(Request $request, string $id)
+{
+    $match = \App\Models\GameMatch::findOrFail($id);
+    $participants = \App\Models\MatchParticipant::where('match_id', $id)
+        ->with('player:id,nickname')
+        ->get();
+
+    return $this->success([
+        'match_id' => $match->id,
+        'game_mode' => $match->game_mode,
+        'game_state' => $match->game_state_cache,
+        'participants' => $participants->map(fn($p) => [
+            'player_id' => $p->player_id,
+            'nickname' => $p->player?->nickname ?? 'Unknown',
+            'team' => $p->team,
+        ]),
+        'started_at' => $match->started_at?->toIso8601String(),
+        'concluded_at' => $match->concluded_at?->toIso8601String(),
+        'winning_team_id' => $match->winning_team_id,
+    ]);
+}
+```
+
+**`routes/channels.php` — Add arena channel auth:**
+```php
+Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
+    return \App\Models\MatchParticipant::where('match_id', $matchId)
+        ->where('player_id', $user->id)
+        ->exists();
+});
+```
+
+#### Frontend Changes Required
+
+**New file: `resources/js/services/game.js`** — Game API + WebSocket service:
+- `fetchGameState(matchId)` → `GET /api/v1/game/{matchId}` (uses `auth` axios instance from `services/auth.js`)
+- `sendAction(matchId, playerId, entityId, type, targetCoords?)` → `POST /api/v1/game/{matchId}/action`
+- `subscribeToBoard(matchId, callback)` → `window.Echo.private('arena.' + matchId).listen('.board.updated', callback)`
+- `unsubscribeFromBoard(matchId)` → `window.Echo.leave('arena.' + matchId)`
+
+**Modify: `BattleArena.vue`** — Replace mock data with live state:
+- On mount: read `match_id` from URL query param, fetch state via `game.fetchGameState(matchId)`
+- Subscribe to WebSocket `BoardUpdated` → replace reactive `gameState` on each event
+- Shot clock: compute from `gameState.timeout` (server timestamp) vs `Date.now()` — no client countdown needed
+- Turn detection: `gameState.current_player_id === authenticatedUser.id`
+- Group entities into ally/enemy by matching `entity.player_id` against `participants[].team`
+
+**Modify: `IsoBoardGrid.vue`** — Add `@tile-click` emit with `{x, y}`
+
+#### Checklist
+- [ ] Complete `GameController::state()` method
+- [ ] Add `arena.{matchId}` channel auth to `channels.php`
+- [ ] Create `services/game.js` (fetch, action, subscribe)
+- [ ] Rewrite `BattleArena.vue` script to use live data
+- [ ] Subscribe to `BoardUpdated` via Echo
+- [ ] Wire shot clock to `gameState.timeout`
+- [ ] Wire match timer to `gameState.start_time`
+- [ ] Handle turn transitions (active character highlight)
+
+### Phase 4 — Action Implementation
+
+**Move action flow:**
+1. Player clicks MOVE button → `selectedAction = 'move'`
+2. Board highlights reachable tiles (based on `entity.move` remaining, BFS avoiding obstacles)
+3. Player clicks tiles sequentially to build path → each click appends to `selectedPath[]`
+4. Confirm sends `POST /game/{id}/action` with `type: 'move'`, `target_coords: selectedPath`
+5. Go engine validates path, moves entity, sends webhook → board updates
+
+**Attack action flow:**
+1. Player clicks ATTACK → `selectedAction = 'attack'`
+2. Board highlights adjacent tiles containing enemies (range 1, melee only)
+3. Player clicks target → sends `POST /game/{id}/action` with `type: 'attack'`, `target_coords: [{x,y}]`
+
+**Pass/Forfeit:**
+- Pass: immediate `POST` with `type: 'pass'`
+- Forfeit: confirmation dialog first, then `POST` with `type: 'forfeit'`
+
+#### Checklist
+- [ ] Add `@tile-click` emit to `IsoBoardGrid.vue`
+- [ ] Implement move mode (BFS reachable tiles, path building)
+- [ ] Implement attack mode (adjacent enemy highlighting)
+- [ ] Wire Pass button to API
+- [ ] Wire Forfeit button with confirm dialog
+- [ ] Show delay cost preview on timeline (shadow positions)
+- [ ] Show action loading state in ActionPanel
+
+### Phase 5 — Game Flow
+- [ ] Detect end-of-game (`winner_id !== ""` in BoardState)
+- [ ] Display victory/defeat overlay
+- [ ] Match result screen with stats
+- [ ] Navigation back to dashboard
+
+### Phase 6 — ATD Finalization
+- [ ] Promote UI atoms from DRAFT → REVIEW → STABLE as features complete
+- [ ] Add `@spec-link` tags to all new service files
+- [ ] Run `atd_trace` verification on `ui_battle_arena`
+- [ ] Create `@test-link` annotations for integration tests
+
+### Phase 7 - Polish
 - [ ] Improve CharacterPawn 3D appearance (faceted cone sides, rotation)
 - [ ] Add dust/noise texture overlays to board tiles
 - [ ] Animate HP bar changes in CombatHeader on state updates
 - [ ] Add ambient board edge glow effects
 - [ ] Responsive scaling for different viewports
 
-### Phase 3 — WebSocket Integration
-- [ ] Replace mock data with real `BoardState` from Go engine via `/api/v1/game/{match_id}`
-- [ ] Subscribe to `BoardUpdated` Reverb channel for real-time state pushes
-- [ ] Wire shot clock to server-side `timeout` field
-- [ ] Wire match timer to server-side `start_time`
-- [ ] Handle turn transitions (active character highlight changes)
+---
 
-### Phase 4 — Action Implementation
-- [ ] Move action: click tile → highlight path → confirm → POST action
-- [ ] Attack action: highlight adjacent enemies → click target → POST action
-- [ ] Pass action: confirm dialog → POST action
-- [ ] Forfeit action: multi-step confirm → POST action
-- [ ] Display movement range (based on character's remaining `move` stat)
-- [ ] Display attack targets (adjacent cells with enemy entities)
-- [ ] Show delay cost preview in InitiativeTimeline (shadow positions)
+## Open Design Questions
 
-### Phase 5 — Game Flow
-- [ ] End-of-game detection (`winner_id` populated)
-- [ ] Victory/defeat overlay
-- [ ] Match result screen with stats
-- [ ] Return to dashboard navigation
+1. **Player ID Mapping**: The Go engine uses UUIDs for `player_id` (set during `startArena`). The Laravel `User.id` integer is used as `player_id` in `MatchParticipant`. Verify this maps correctly when comparing `gameState.current_player_id` to the authenticated user.
 
-### Phase 6 — ATD Finalization
-- [ ] Update `ui_board` atom to reference `ui_battle_arena` as its implementation
-- [ ] Promote atoms from DRAFT → REVIEW → STABLE as features complete
-- [ ] Add `@spec-link` tags to all implemented source files
-- [ ] Run `atd_trace` verification on all new atoms
-- [ ] Create `@test-link` annotations for integration tests
+2. **Movement Pathfinding**: The Go engine expects a full path array for moves. Recommended approach: **sequential click path building** — player clicks each tile in the path, confirm sends the entire array.
+
+3. **Attack Range**: Currently assumes melee-only (range=1, adjacent tiles). If ranged attacks exist, the attack highlight logic needs to account for range stats.

@@ -2,6 +2,7 @@
 <script setup>
 import { computed, ref } from 'vue';
 import CharacterPawn from './CharacterPawn.vue';
+import HoloObstacle from './HoloObstacle.vue';
 
 const props = defineProps({
     grid: { type: Object, required: true },
@@ -131,6 +132,7 @@ function onWheel(e) {
                                     'iso-tile--obstacle': isObstacle(col - 1, row - 1),
                                     'iso-tile--move': isCellHighlighted(col - 1, row - 1)?.type === 'move',
                                     'iso-tile--attack': isCellHighlighted(col - 1, row - 1)?.type === 'attack',
+                                    'iso-tile--active': entityAt(col - 1, row - 1)?.id === currentEntityId,
                                 }"
                                 :style="{
                                     left: tileToScreen(col - 1, row - 1).px + 'px',
@@ -166,6 +168,17 @@ function onWheel(e) {
                                     />
                                 </svg>
                             </div>
+
+                            <!-- Holo Obstacle at this position -->
+                            <HoloObstacle
+                                v-if="isObstacle(col - 1, row - 1)"
+                                :seed="(col - 1) + (row - 1)"
+                                :style="{
+                                    left: (tileToScreen(col - 1, row - 1).px + TILE_W / 2) + 'px',
+                                    top: (tileToScreen(col - 1, row - 1).py + TILE_H / 2) + 'px',
+                                    zIndex: (col - 1) + (row - 1) + 10,
+                                }"
+                            />
 
                             <!-- Character pawn at this position -->
                             <CharacterPawn
@@ -390,5 +403,19 @@ function onWheel(e) {
 @keyframes attack-stroke-pulse {
     0%, 100% { stroke: rgba(255, 0, 255, 0.6); }
     50% { stroke: rgba(255, 0, 255, 0.9); }
+}
+
+/* ─── ACTIVE TILE GLOW ─── */
+.iso-tile--active .iso-tile__top {
+    stroke: #39ff13;
+    stroke-width: 2;
+    fill: rgba(57, 255, 19, 0.08);
+    filter: drop-shadow(0 0 8px rgba(57, 255, 19, 0.5));
+    animation: active-tile-pulse 2s ease-in-out infinite;
+}
+
+@keyframes active-tile-pulse {
+    0%, 100% { stroke: rgba(57, 255, 19, 0.4); filter: drop-shadow(0 0 4px rgba(57, 255, 19, 0.2)); }
+    50% { stroke: rgba(57, 255, 19, 0.9); filter: drop-shadow(0 0 12px rgba(57, 255, 19, 0.7)); }
 }
 </style>

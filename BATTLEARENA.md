@@ -310,11 +310,12 @@ Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
 - [x] Create `@test-link` annotations for integration tests (skipped per user instruction)
 
 ### Phase 7 - Polish
-- [ ] Improve CharacterPawn 3D appearance (faceted cone sides, rotation)
+- [x] Improve CharacterPawn 3D appearance (faceted cone sides, rotation)
 - [ ] Add dust/noise texture overlays to board tiles
 - [ ] Animate HP bar changes in CombatHeader on state updates
 - [ ] Add ambient board edge glow effects
 - [ ] Responsive scaling for different viewports
+- [x] Ensure the character whose turn it is is visible. Cone should stop spinning and it's tile should glow (fading in and out) a bit (greenish) 
 
 ---
 

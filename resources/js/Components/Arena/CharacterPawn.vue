@@ -53,10 +53,13 @@ const pawnColor = computed(() => {
             <div class="pawn__direction" :style="{ background: pawnColor }"></div>
         </div>
 
-        <!-- Body (hexagonal cone shape) -->
-        <div class="pawn__body" :style="{ borderBottomColor: pawnColor + 'cc', filter: 'drop-shadow(0 0 6px ' + pawnColor + '60)' }">
-            <!-- Scanline overlay for holographic effect -->
-            <div class="pawn__scanlines"></div>
+        <!-- Body (faceted hexagonal pyramid) -->
+        <div class="pawn__body-container" :style="{ '--pawn-color': pawnColor }">
+            <div class="pawn__body">
+                <div v-for="i in 6" :key="i" class="pawn__face" :style="{ '--face-index': i-1 }">
+                    <div class="pawn__scanlines"></div>
+                </div>
+            </div>
         </div>
 
         <!-- Ground shadow -->
@@ -135,15 +138,43 @@ const pawnColor = computed(() => {
     opacity: 0.8;
 }
 
+.pawn__body-container {
+    width: 16px;
+    height: 30px;
+    perspective: 1000px;
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
 .pawn__body {
-    width: 0;
-    height: 0;
-    border-left: 8px solid transparent;
-    border-right: 8px solid transparent;
-    border-bottom: 18px solid;
     position: relative;
-    overflow: hidden;
-    animation: pawn-rotate 8s linear infinite;
+    width: 0;
+    height: 100%;
+    transform-style: preserve-3d;
+    animation: pawn-rotate 6s linear infinite;
+    animation-play-state: paused;
+    transform: translateY(2px) rotateY(30deg);
+}
+
+.pawn--active .pawn__body {
+    animation-play-state: running;
+}
+
+.pawn__face {
+    position: absolute;
+    bottom: 0;
+    left: -8px;
+    width: 16px;
+    height: 32px;
+    background: linear-gradient(to bottom, transparent, var(--pawn-color));
+    opacity: calc(0.25 + (var(--face-index) * 0.1));
+    clip-path: polygon(50% 0%, 0% 100%, 100% 100%);
+    transform-origin: 50% 100%;
+    transform: 
+        rotateY(calc(var(--face-index) * 60deg)) 
+        translateZ(5.8px) 
+        rotateX(10.5deg);
+    border-bottom: 1px solid var(--pawn-color);
 }
 
 .pawn__scanlines {
@@ -153,8 +184,8 @@ const pawnColor = computed(() => {
         0deg,
         transparent,
         transparent 1px,
-        rgba(0, 0, 0, 0.15) 1px,
-        rgba(0, 0, 0, 0.15) 2px
+        rgba(0, 0, 0, 0.1) 1px,
+        rgba(0, 0, 0, 0.1) 2px
     );
     pointer-events: none;
     animation: scanline-shift 0.1s linear infinite;

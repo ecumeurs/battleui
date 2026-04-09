@@ -176,7 +176,7 @@ function onWheel(e) {
                                 :style="{
                                     left: (tileToScreen(col - 1, row - 1).px + TILE_W / 2) + 'px',
                                     top: (tileToScreen(col - 1, row - 1).py + TILE_H / 2) + 'px',
-                                    zIndex: (col - 1) + (row - 1) + 10,
+                                    zIndex: ((col - 1) + (row - 1)) * 10 + 2,
                                 }"
                             />
 
@@ -190,7 +190,7 @@ function onWheel(e) {
                                 :style="{
                                     left: (tileToScreen(col - 1, row - 1).px + TILE_W / 2) + 'px',
                                     top: (tileToScreen(col - 1, row - 1).py) + 'px',
-                                    zIndex: (col - 1) + (row - 1) + 100,
+                                    zIndex: ((col - 1) + (row - 1)) * 10 + 5,
                                 }"
                             />
                         </template>

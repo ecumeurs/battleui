@@ -73,7 +73,7 @@ const pawnColor = computed(() => {
     transform: translate(-50%, -80%);
     z-index: 10;
     animation: holo-float 3s ease-in-out infinite;
-    cursor: pointer;
+    pointer-events: none;
 }
 
 .pawn--active {

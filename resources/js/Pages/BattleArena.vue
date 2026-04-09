@@ -21,7 +21,10 @@ const participants = ref([]);
 const matchStartedAt = ref(null);
 const isLoading = ref(true);
 
-const currentPlayerId = computed(() => user.value?.id ? String(user.value.id) : '');
+const currentPlayerId = computed(() => {
+    const participant = participants.value.find(p => p.nickname === user.value?.account_name);
+    return participant ? String(participant.player_id) : '';
+});
 
 let matchTimerInterval = null;
 let shotTimerInterval = null;
@@ -37,7 +40,7 @@ onMounted(async () => {
 
         game.subscribeToBoard(matchId.value, (event) => {
             console.log('[BoardUpdated]', event);
-            gameState.value = event;
+            gameState.value = event.data || event;
             // Clear pathfinding/selection on state update
             selectedAction.value = null;
             selectedPath.value = [];
@@ -86,6 +89,14 @@ const turnOrder = computed(() => {
 const currentEntityId = computed(() => gameState.value?.current_entity_id || '');
 const currentEntity = computed(() => allEntities.value.find(e => e.id === currentEntityId.value));
 const isPlayerTurn = computed(() => String(gameState.value?.current_player_id) === currentPlayerId.value);
+
+// The player whose character is currently acting (used in ActionPanel header)
+const activePlayerName = computed(() => {
+    const pid = String(gameState.value?.current_player_id || '');
+    if (!pid) return '';
+    const participant = participants.value.find(p => String(p.player_id) === pid);
+    return participant?.nickname ?? '';
+});
 
 const myTeam = computed(() => {
    const p = participants.value.find(p => String(p.player_id) === currentPlayerId.value);
@@ -183,6 +194,9 @@ const matchDuration = computed(() => {
     const s = matchSeconds.value % 60;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 });
+
+const canMove = computed(() => currentEntity.value?.move > 0);
+const canAttack = computed(() => currentEntity.value?.hp > 0); // or based on action points if implemented
 
 // ─── ACTION LOGIC ──────────────────────────────────────────
 const selectedAction = ref(null);
@@ -405,6 +419,10 @@ function calculateAttackRange() {
                         :is-player-turn="isPlayerTurn"
                         :is-processing="isProcessing"
                         :selected-action="selectedAction"
+                        :active-character="currentEntity"
+                        :active-player-name="activePlayerName"
+                        :can-move="canMove"
+                        :can-attack="canAttack"
                         @action="handleAction"
                     />
                 </div>

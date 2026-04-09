@@ -103,9 +103,14 @@ ARCHITECTURE LAYER
 
 ### 7. ActionPanel
 - **File:** [ActionPanel.vue](file:///workspace/battleui/resources/js/Components/Arena/ActionPanel.vue)
-- **ATD:** *(no dedicated atom — part of ui_battle_arena)*
-- **Description:** Contextual action buttons: Move (+20/tile), Attack (+100), Pass (+300), Forfeit. Each shows delay cost. Disabled when not the player's turn. Color-coded hover states.
-- **Props:** `isPlayerTurn`, `canMove`, `canAttack`, `moveCostPerTile`, `attackCost`, `passCost`
+- **ATD:** [ui_action_panel](file:///workspace/docs/ui_action_panel.atom.md)
+- **Description:** Fully boxed turn-state component with two visual modes:
+  - **YOUR TURN** — cyan border glow, pulsing status dot, all action buttons interactive.
+  - **WAITING** — desaturated/dimmed button row (`opacity: 0.28`, `filter: saturate(0.3)`), `pointer-events: none`, lock overlay text. Header shows which player currently holds the turn.
+  - **Header bar** (always visible): status pill `YOUR TURN | WAITING`, active character name + HP + MOV, and the active player's nickname when it is not your turn.
+  - **Lock overlay:** Shown below the header when `!isPlayerTurn`; text `Actions locked — awaiting your turn`.
+- **Props:** `isPlayerTurn`, `isProcessing`, `canMove`, `canAttack`, `moveCostPerTile`, `attackCost`, `passCost`, `selectedAction`, `activeCharacter` *(entity object)*, `activePlayerName` *(string)*
+- **Emits:** `action` with `'move' | 'attack' | 'pass' | 'forfeit'`
 
 ---
 

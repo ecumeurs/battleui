@@ -18,11 +18,30 @@ window.Echo = new Echo({
     forceTLS: import.meta.env.VITE_REVERB_SCHEME === 'https',
     disableStats: true,
     enabledTransports: ['ws', 'wss'],
-    // Handle authorization for private channels (arena and user)
-    auth: {
-        headers: {
-            'Authorization': 'Bearer ' + localStorage.getItem('upsilon_token'),
-            'Accept': 'application/json'
-        }
+    // Use a custom authorizer to ensure we always use the latest token from localStorage
+    authorizer: (channel, options) => {
+        return {
+            authorize: (socketId, callback) => {
+                window.axios.post('/broadcasting/auth', {
+                    socket_id: socketId,
+                    channel_name: channel.name
+                }, {
+                    headers: {
+                        'Authorization': 'Bearer ' + localStorage.getItem('upsilon_token'),
+                        'Accept': 'application/json'
+                    }
+                })
+                .then(response => {
+                    callback(false, response.data);
+                })
+                .catch(error => {
+                    // Check if it's a 401 and handle it if necessary
+                    if (error.response && error.response.status === 401) {
+                        console.error('Broadcasting auth failed: Unauthorized');
+                    }
+                    callback(true, error);
+                });
+            }
+        };
     }
 });

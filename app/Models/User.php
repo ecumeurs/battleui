@@ -10,7 +10,6 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
-use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @spec-link [[entity_player]]
@@ -18,7 +17,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasUuids, HasFactory, Notifiable, SoftDeletes;
+    use HasApiTokens, HasUuids, HasFactory, Notifiable;
 
     protected $fillable = [
         'account_name',

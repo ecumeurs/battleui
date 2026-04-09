@@ -256,14 +256,14 @@ Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
 **Modify: `IsoBoardGrid.vue`** — Add `@tile-click` emit with `{x, y}`
 
 #### Checklist
-- [ ] Complete `GameController::state()` method
-- [ ] Add `arena.{matchId}` channel auth to `channels.php`
-- [ ] Create `services/game.js` (fetch, action, subscribe)
-- [ ] Rewrite `BattleArena.vue` script to use live data
-- [ ] Subscribe to `BoardUpdated` via Echo
-- [ ] Wire shot clock to `gameState.timeout`
-- [ ] Wire match timer to `gameState.start_time`
-- [ ] Handle turn transitions (active character highlight)
+- [x] Complete `GameController::state()` method
+- [x] Add `arena.{matchId}` channel auth to `channels.php`
+- [x] Create `services/game.js` (fetch, action, subscribe)
+- [x] Rewrite `BattleArena.vue` script to use live data
+- [x] Subscribe to `BoardUpdated` via Echo
+- [x] Wire shot clock to `gameState.timeout`
+- [x] Wire match timer to `gameState.start_time`
+- [x] Handle turn transitions (active character highlight)
 
 ### Phase 4 — Action Implementation
 
@@ -284,25 +284,25 @@ Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
 - Forfeit: confirmation dialog first, then `POST` with `type: 'forfeit'`
 
 #### Checklist
-- [ ] Add `@tile-click` emit to `IsoBoardGrid.vue`
-- [ ] Implement move mode (BFS reachable tiles, path building)
-- [ ] Implement attack mode (adjacent enemy highlighting)
-- [ ] Wire Pass button to API
-- [ ] Wire Forfeit button with confirm dialog
-- [ ] Show delay cost preview on timeline (shadow positions)
-- [ ] Show action loading state in ActionPanel
+- [x] Add `@tile-click` emit to `IsoBoardGrid.vue`
+- [x] Implement move mode (BFS reachable tiles, path building)
+- [x] Implement attack mode (adjacent enemy highlighting)
+- [x] Wire Pass button to API
+- [x] Wire Forfeit button with confirm dialog
+- [x] Show delay cost preview on timeline (shadow positions)
+- [x] Show action loading state in ActionPanel
 
 ### Phase 5 — Game Flow
-- [ ] Detect end-of-game (`winner_id !== ""` in BoardState)
-- [ ] Display victory/defeat overlay
-- [ ] Match result screen with stats
-- [ ] Navigation back to dashboard
+- [x] Detect end-of-game (`winner_id !== ""` in BoardState)
+- [x] Display victory/defeat overlay
+- [x] Match result screen with stats
+- [x] Navigation back to dashboard
 
 ### Phase 6 — ATD Finalization
-- [ ] Promote UI atoms from DRAFT → REVIEW → STABLE as features complete
-- [ ] Add `@spec-link` tags to all new service files
-- [ ] Run `atd_trace` verification on `ui_battle_arena`
-- [ ] Create `@test-link` annotations for integration tests
+- [x] Promote UI atoms from DRAFT → REVIEW → STABLE as features complete
+- [x] Add `@spec-link` tags to all new service files
+- [x] Run `atd_trace` verification on `ui_battle_arena` (skipped per user instruction)
+- [x] Create `@test-link` annotations for integration tests (skipped per user instruction)
 
 ### Phase 7 - Polish
 - [ ] Improve CharacterPawn 3D appearance (faceted cone sides, rotation)
@@ -313,10 +313,8 @@ Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
 
 ---
 
-## Open Design Questions
+## Resolved Design Decisions
 
-1. **Player ID Mapping**: The Go engine uses UUIDs for `player_id` (set during `startArena`). The Laravel `User.id` integer is used as `player_id` in `MatchParticipant`. Verify this maps correctly when comparing `gameState.current_player_id` to the authenticated user.
-
-2. **Movement Pathfinding**: The Go engine expects a full path array for moves. Recommended approach: **sequential click path building** — player clicks each tile in the path, confirm sends the entire array.
-
-3. **Attack Range**: Currently assumes melee-only (range=1, adjacent tiles). If ranged attacks exist, the attack highlight logic needs to account for range stats.
+1. **Player ID Mapping**: The Go engine uses UUIDs for `player_id` but the Laravel `User.id` (integer) is safely cast/handled. We use the authenticated user's ID as the `player_id`.
+2. **Movement Pathfinding**: The UI implements client-side pathfinding (BFS avoiding obstacles). The user clicks the destination tile, and the UI calculates the shortest path and sends the full array of coordinates to the engine.
+3. **Attack Range**: Hardcoded to 1 (melee, adjacent tiles only) for now. The logic can easily scale if ranged attacks are added later.

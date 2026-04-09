@@ -11,6 +11,8 @@ const props = defineProps({
     highlightedCells: { type: Array, default: () => [] },
 });
 
+const emit = defineEmits(['tile-click']);
+
 /*
  * Isometric tile dimensions.
  * Standard 2:1 ratio: diamond is TILE_W wide and TILE_H tall.
@@ -137,6 +139,7 @@ function onWheel(e) {
                                     height: TILE_H + DEPTH + 'px',
                                     zIndex: (col - 1) + (row - 1),
                                 }"
+                                @click="emit('tile-click', col - 1, row - 1)"
                             >
                                 <!-- Top face diamond (width x height/2:1 ratio) -->
                                 <svg

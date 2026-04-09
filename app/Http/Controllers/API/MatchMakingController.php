@@ -142,7 +142,7 @@ class MatchMakingController extends Controller
 
             $this->upsilonService->startArena(
                 $match->id,
-                url('/api/webhook/upsilon'),
+                str_replace('localhost', '127.0.0.1', url('/api/webhook/upsilon')),
                 $players
             );
 

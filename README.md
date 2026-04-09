@@ -37,6 +37,7 @@ The visual interface and player interactions are located in:
     - **Auth/Login.vue**: A secure authentication interface for survivors to identify themselves using their credentials.
     - **Auth/Register.vue**: The entity initialization portal for creating accounts and generating initial character rosters.
     - **Dashboard.vue**: The tactical command hub for roster review, matchmaking, and identity management.
+    - **BattleArena.vue**: The real-time combat theater driven by the Go engine via WebSockets.
 - **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements.
     - **TacticalHeader.vue**: The top navigation and session management bridge.
     - **TacticalFooter.vue**: Terminal-style status bar for system telemetry.
@@ -45,12 +46,18 @@ The visual interface and player interactions are located in:
     - **ModalBox.vue**: Themed base component for "Neon in the Dust" interactive dialogs and portals.
     - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
     - **Modals/ChangePasswordModal.vue**: Secure credential rotation interface for updating authentication keys.
+- **[resources/js/Components/Arena](file:///workspace/battleui/resources/js/Components/Arena)**: Core battle UI mechanics.
+    - **IsoBoardGrid.vue**: The scalable 2:1 isometric grid mapped to engine coordinates.
+    - **ActionPanel.vue**: State-driven execution panel to proxy command inputs directly back to the API.
+    - **InitiativeTimeline.vue**: Visual representation of turn order dynamics.
+    - **CharacterBattleCard.vue** & **CharacterPawn.vue**: On-board and off-board entity representations.
 - **[resources/js/Layouts](file:///workspace/battleui/resources/js/Layouts)**: Wrapper components for consistent UI structure.
     - **TacticalLayout.vue**: The primary "Neon in the Dust" layout framework.
 - **Core Frontend Logic**:
     - **[bootstrap.js](file:///workspace/battleui/resources/js/bootstrap.js)**: Initializes core browser-level utilities, including global Axios defaults and Laravel Echo.
     - **[app.js](file:///workspace/battleui/resources/js/app.js)**: Inertia.js entry point bootstrapping the Vue 3 application and plugin ecosystem.
     - **[services/auth.js](file:///workspace/battleui/resources/js/services/auth.js)**: Centralized authentication service and Axios interceptor for JWT management and token renewal.
+    - **[services/game.js](file:///workspace/battleui/resources/js/services/game.js)**: Transport service proxying actions and Reverb WebSocket listeners to the Upsilon engine.
 
 ### Backend (Laravel)
 The core logic, API endpoints, and data management are located in:

@@ -23,7 +23,7 @@ class GameController extends Controller
     {
         $match = \App\Models\GameMatch::findOrFail($id);
         $participants = \App\Models\MatchParticipant::where('match_id', $id)
-            ->with('player:id,nickname')
+            ->with('player:id,account_name')
             ->get();
 
         return $this->success([
@@ -32,7 +32,7 @@ class GameController extends Controller
             'game_state' => $match->game_state_cache,
             'participants' => $participants->map(fn($p) => [
                 'player_id' => $p->player_id,
-                'nickname' => $p->player?->nickname ?? 'Unknown',
+                'nickname' => $p->player?->account_name ?? 'Unknown',
                 'team' => $p->team,
             ]),
             'started_at' => $match->started_at?->toIso8601String(),

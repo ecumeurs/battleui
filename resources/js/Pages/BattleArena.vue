@@ -5,6 +5,7 @@ import { Head } from '@inertiajs/vue3';
 import { ref, computed, onMounted, onUnmounted } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import { getAuthUser } from '@/services/auth';
+import { game } from '@/services/game';
 
 import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
@@ -13,105 +14,157 @@ import ActionPanel from '@/Components/Arena/ActionPanel.vue';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 
 const user = ref(getAuthUser());
-const matchId = ref(new URLSearchParams(window.location.search).get('match_id') || 'MOCK-ARENA-001');
+const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));
 
-// ─── MOCK DATA ──────────────────────────────────────────
-// Mirrors the Go engine's BoardState + enriched player data.
+const gameState = ref(null);
+const participants = ref([]);
+const matchStartedAt = ref(null);
+const isLoading = ref(true);
 
-const CURRENT_PLAYER_ID = 'p1';
+const currentPlayerId = computed(() => user.value?.id ? String(user.value.id) : '');
 
-const mockPlayers = ref({
-    ally: [
-        {
-            id: 'p1',
-            nickname: 'NeonWraith',
-            team: 1,
-            entities: [
-                { id: 'e1', player_id: 'p1', name: 'Vex-7', hp: 12, max_hp: 15, attack: 5, defense: 3, move: 3, max_move: 5, position: { x: 1, y: 2 }, _isActive: true },
-                { id: 'e2', player_id: 'p1', name: 'Kira', hp: 8, max_hp: 10, attack: 6, defense: 2, move: 4, max_move: 4, position: { x: 2, y: 4 }, _isActive: false },
-                { id: 'e3', player_id: 'p1', name: 'Bolt-9', hp: 18, max_hp: 20, attack: 3, defense: 5, move: 2, max_move: 3, position: { x: 0, y: 3 }, _isActive: false },
-            ]
-        },
-        {
-            id: 'p2',
-            nickname: 'DustRunner',
-            team: 1,
-            entities: [
-                { id: 'e7', player_id: 'p2', name: 'Ash-3', hp: 14, max_hp: 14, attack: 4, defense: 4, move: 3, max_move: 3, position: { x: 1, y: 6 }, _isActive: false },
-                { id: 'e8', player_id: 'p2', name: 'Flint', hp: 9, max_hp: 12, attack: 5, defense: 3, move: 5, max_move: 5, position: { x: 3, y: 5 }, _isActive: false },
-                { id: 'e9', player_id: 'p2', name: 'Pulse', hp: 11, max_hp: 11, attack: 3, defense: 5, move: 2, max_move: 4, position: { x: 2, y: 7 }, _isActive: false },
-            ]
-        }
-    ],
-    enemy: [
-        {
-            id: 'p3',
-            nickname: 'IronVeil',
-            team: 2,
-            entities: [
-                { id: 'e4', player_id: 'p3', name: 'Rex-4', hp: 6, max_hp: 14, attack: 4, defense: 4, move: 3, max_move: 3, position: { x: 8, y: 7 }, _isActive: false },
-                { id: 'e5', player_id: 'p3', name: 'Nova', hp: 10, max_hp: 10, attack: 7, defense: 1, move: 5, max_move: 5, position: { x: 7, y: 6 }, _isActive: false },
-                { id: 'e6', player_id: 'p3', name: 'Shard', hp: 0, max_hp: 12, attack: 3, defense: 6, move: 2, max_move: 2, position: { x: 9, y: 8 }, _isActive: false },
-            ]
-        },
-        {
-            id: 'p4',
-            nickname: 'GhostUnit',
-            team: 2,
-            entities: [
-                { id: 'e10', player_id: 'p4', name: 'Cinder', hp: 13, max_hp: 16, attack: 4, defense: 3, move: 4, max_move: 4, position: { x: 9, y: 3 }, _isActive: false },
-                { id: 'e11', player_id: 'p4', name: 'Glitch', hp: 7, max_hp: 9, attack: 6, defense: 2, move: 3, max_move: 5, position: { x: 8, y: 2 }, _isActive: false },
-                { id: 'e12', player_id: 'p4', name: 'Spike', hp: 10, max_hp: 13, attack: 5, defense: 4, move: 2, max_move: 3, position: { x: 7, y: 4 }, _isActive: false },
-            ]
-        }
-    ],
+let matchTimerInterval = null;
+let shotTimerInterval = null;
+
+onMounted(async () => {
+    if (!matchId.value) return;
+
+    try {
+        const response = await game.fetchGameState(matchId.value);
+        gameState.value = response.game_state || {};
+        participants.value = response.participants || [];
+        matchStartedAt.value = response.started_at;
+
+        game.subscribeToBoard(matchId.value, (event) => {
+            console.log('[BoardUpdated]', event);
+            gameState.value = event;
+            // Clear pathfinding/selection on state update
+            selectedAction.value = null;
+            selectedPath.value = [];
+            highlightedCells.value = [];
+        });
+
+    } catch (e) {
+        console.error("Failed to load game state", e);
+    } finally {
+        isLoading.value = false;
+    }
+
+    matchTimerInterval = setInterval(() => {
+        if (!matchStartedAt.value) return;
+        const start = new Date(matchStartedAt.value).getTime();
+        matchSeconds.value = Math.max(0, Math.floor((Date.now() - start) / 1000));
+    }, 1000);
+
+    shotTimerInterval = setInterval(() => {
+        if (!gameState.value?.timeout) return;
+        const to = new Date(gameState.value.timeout).getTime();
+        shotClock.value = Math.max(0, Math.ceil((to - Date.now()) / 1000));
+    }, 1000);
 });
 
-// Generate 10x10 grid with some obstacles
-function generateMockGrid(w, h) {
-    const cells = [];
-    const obstacles = [[3,3],[4,4],[5,5],[6,6],[3,7],[7,3],[5,2],[4,8],[6,1],[2,6]];
-    for (let x = 0; x < w; x++) {
-        cells[x] = [];
-        for (let y = 0; y < h; y++) {
-            cells[x][y] = {
-                entity_id: '',
-                obstacle: obstacles.some(o => o[0] === x && o[1] === y),
-            };
-        }
+onUnmounted(() => {
+    if (matchId.value) {
+        game.unsubscribeFromBoard(matchId.value);
     }
-    return { width: w, height: h, cells };
+    clearInterval(matchTimerInterval);
+    clearInterval(shotTimerInterval);
+});
+
+// ─── COMPUTED STATE ──────────────────────────────────────────
+
+const grid = computed(() => gameState.value?.grid || { width: 10, height: 10, cells: [] });
+const allEntities = computed(() => gameState.value?.entities || []);
+const turnOrder = computed(() => {
+   if (!gameState.value?.turn) return [];
+   return gameState.value.turn.map(t => {
+       const ent = allEntities.value.find(e => e.id === t.entity_id);
+       return { ...t, name: ent ? ent.name : 'Unknown' };
+   });
+});
+
+const currentEntityId = computed(() => gameState.value?.current_entity_id || '');
+const currentEntity = computed(() => allEntities.value.find(e => e.id === currentEntityId.value));
+const isPlayerTurn = computed(() => String(gameState.value?.current_player_id) === currentPlayerId.value);
+
+const myTeam = computed(() => {
+   const p = participants.value.find(p => String(p.player_id) === currentPlayerId.value);
+   return p ? p.team : 1;
+});
+
+const allyParticipants = computed(() => participants.value.filter(p => p.team === myTeam.value));
+const enemyParticipants = computed(() => participants.value.filter(p => p.team !== myTeam.value));
+
+const allyEntities = computed(() => allEntities.value.filter(e => allyParticipants.value.some(p => String(p.player_id) === String(e.player_id))));
+const enemyEntities = computed(() => allEntities.value.filter(e => enemyParticipants.value.some(p => String(p.player_id) === String(e.player_id))));
+
+function mapParticipantsToRoster(parts) {
+    // Note: AI players might not be explicitly in `participants` if they are handled purely in Golang.
+    // We will inject a virtual "AI" participant here if needed, but the UI expects a player list structure.
+    return parts.map(p => ({
+        id: String(p.player_id),
+        nickname: p.nickname,
+        team: p.team,
+        entities: allEntities.value.filter(e => String(e.player_id) === String(p.player_id)).map(e => ({
+            ...e,
+            _isActive: String(e.id) === currentEntityId.value
+        }))
+    }));
 }
 
-const mockGrid = ref(generateMockGrid(10, 10));
+const allyRoster = computed(() => mapParticipantsToRoster(allyParticipants.value));
+const enemyRoster = computed(() => mapParticipantsToRoster(enemyParticipants.value));
 
-// All entities flat list
-const allEntities = computed(() => {
-    const all = [];
-    mockPlayers.value.ally.forEach(p => all.push(...p.entities));
-    mockPlayers.value.enemy.forEach(p => all.push(...p.entities));
-    return all;
+const teamColors = computed(() => {
+    // ... logic remains
+    const colors = {};
+    const myPId = currentPlayerId.value;
+    
+    participants.value.forEach(p => {
+        const pIdStr = String(p.player_id);
+        if (pIdStr === myPId) {
+            colors[pIdStr] = '#00a8ff'; // Blue
+        } else if (p.team === myTeam.value) {
+            colors[pIdStr] = '#39ff13'; // Green
+        } else {
+            const enemies = enemyParticipants.value;
+            if (enemies[0] && String(enemies[0].player_id) === pIdStr) {
+                colors[pIdStr] = '#ff2020'; // Red
+            } else {
+                colors[pIdStr] = '#b030ff'; // Purple
+            }
+        }
+    });
+
+    allEntities.value.forEach(e => {
+        const ePlayerStr = String(e.player_id);
+        if (!colors[ePlayerStr]) {
+             if (allyEntities.value.some(ae => String(ae.id) === String(e.id))) {
+                 colors[ePlayerStr] = '#39ff13';
+             } else {
+                 colors[ePlayerStr] = '#ff2020';
+             }
+        }
+    });
+
+    return colors;
 });
 
-// Team colors mapping
-const teamColors = ref({
-    p1: '#00a8ff',  // Blue - current player
-    p2: '#39ff13',  // Green - ally
-    p3: '#ff2020',  // Red - enemy 1
-    p4: '#b030ff',  // Purple - enemy 2
+const isGameOver = computed(() => {
+    return gameState.value?.winner_id !== undefined && gameState.value?.winner_id !== '';
 });
 
-// Combat header computed values
-const allyEntities = computed(() => {
-    const ents = [];
-    mockPlayers.value.ally.forEach(p => ents.push(...p.entities));
-    return ents;
-});
-
-const enemyEntities = computed(() => {
-    const ents = [];
-    mockPlayers.value.enemy.forEach(p => ents.push(...p.entities));
-    return ents;
+const isVictory = computed(() => {
+    if (!isGameOver.value) return false;
+    // Assuming winner_id from engine represents the winning team or winning player_id.
+    // If it's a team ID:
+    if (String(gameState.value.winner_id) === String(myTeam.value)) return true;
+    
+    // If it's a player ID:
+    const winningParticipant = participants.value.find(p => String(p.player_id) === String(gameState.value.winner_id));
+    if (winningParticipant && winningParticipant.team === myTeam.value) return true;
+    
+    return false;
 });
 
 const allyTeamHp = computed(() => allyEntities.value.reduce((sum, e) => sum + e.hp, 0));
@@ -122,37 +175,8 @@ const enemyTeamHp = computed(() => enemyEntities.value.reduce((sum, e) => sum + 
 const enemyTeamMaxHp = computed(() => enemyEntities.value.reduce((sum, e) => sum + e.max_hp, 0));
 const enemyCharsRemaining = computed(() => enemyEntities.value.filter(e => e.hp > 0).length);
 
-// Initiative / turn order (sorted by delay)
-const turnOrder = ref([
-    { player_id: 'p1', entity_id: 'e1', delay: 0, name: 'Vex-7' },
-    { player_id: 'p3', entity_id: 'e4', delay: 45, name: 'Rex-4' },
-    { player_id: 'p2', entity_id: 'e7', delay: 60, name: 'Ash-3' },
-    { player_id: 'p4', entity_id: 'e10', delay: 80, name: 'Cinder' },
-    { player_id: 'p1', entity_id: 'e2', delay: 95, name: 'Kira' },
-    { player_id: 'p3', entity_id: 'e5', delay: 110, name: 'Nova' },
-    { player_id: 'p2', entity_id: 'e8', delay: 125, name: 'Flint' },
-    { player_id: 'p4', entity_id: 'e11', delay: 140, name: 'Glitch' },
-    { player_id: 'p1', entity_id: 'e3', delay: 155, name: 'Bolt-9' },
-    { player_id: 'p2', entity_id: 'e9', delay: 170, name: 'Pulse' },
-    { player_id: 'p4', entity_id: 'e12', delay: 200, name: 'Spike' },
-]);
-
-const currentEntityId = ref('e1');
-
-// Mock highlighted cells (move range for active character)
-const highlightedCells = ref([
-    { x: 1, y: 1, type: 'move' },
-    { x: 0, y: 2, type: 'move' },
-    { x: 2, y: 2, type: 'move' },
-    { x: 1, y: 3, type: 'move' },
-    { x: 2, y: 1, type: 'move' },
-    { x: 0, y: 1, type: 'move' },
-    { x: 2, y: 3, type: 'attack' },
-]);
-
-// Timers
-const matchSeconds = ref(272); // 4:32
-const shotClock = ref(23);
+const matchSeconds = ref(0);
+const shotClock = ref(0);
 
 const matchDuration = computed(() => {
     const m = Math.floor(matchSeconds.value / 60);
@@ -160,37 +184,187 @@ const matchDuration = computed(() => {
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
 });
 
-let matchTimer = null;
-let shotTimer = null;
+// ─── ACTION LOGIC ──────────────────────────────────────────
+const selectedAction = ref(null);
+const selectedPath = ref([]);
+const highlightedCells = ref([]);
+const isProcessing = ref(false);
 
-onMounted(() => {
-    // Tick match timer
-    matchTimer = setInterval(() => {
-        matchSeconds.value++;
-    }, 1000);
-
-    // Tick shot clock
-    shotTimer = setInterval(() => {
-        if (shotClock.value > 0) {
-            shotClock.value--;
+async function handleAction(type) {
+    if (!isPlayerTurn.value || isProcessing.value) return;
+    
+    if (type === 'pass') {
+        isProcessing.value = true;
+        try {
+            await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'pass');
+            selectedAction.value = null;
+            highlightedCells.value = [];
+        } catch (err) {
+            console.error("Pass action failed:", err);
+        } finally {
+            isProcessing.value = false;
         }
-    }, 1000);
-});
+        return;
+    }
 
-onUnmounted(() => {
-    clearInterval(matchTimer);
-    clearInterval(shotTimer);
-});
+    if (type === 'forfeit') {
+        if (confirm("Are you sure you want to forfeit? This will cause a loss for your entire team.")) {
+            isProcessing.value = true;
+            try {
+                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'forfeit');
+            } catch (err) {
+                console.error("Forfeit failed:", err);
+            } finally {
+                isProcessing.value = false;
+            }
+        }
+        return;
+    }
 
-function handleAction(type) {
-    console.log('[BattleArena] Action:', type);
+    selectedAction.value = type;
+    selectedPath.value = [];
+    
+    if (type === 'move') {
+        calculateMoveRange();
+    } else if (type === 'attack') {
+        calculateAttackRange();
+    }
+}
+
+function getNeighbors(x, y) {
+    const neighbors = [];
+    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    for (const d of dirs) {
+        const nx = x + d[0];
+        const ny = y + d[1];
+        if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
+            // Check for obstacle
+            const cell = grid.value.cells[nx] && grid.value.cells[nx][ny];
+            if (cell && !cell.obstacle) {
+                // Check if another entity is there (except current active)
+                const isOccupied = allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === nx && e.position.y === ny);
+                if (!isOccupied) {
+                    neighbors.push({ x: nx, y: ny });
+                }
+            }
+        }
+    }
+    return neighbors;
+}
+
+function findShortestPath(start, target, maxMove) {
+    const queue = [[start]];
+    const visited = new Set([`${start.x},${start.y}`]);
+    
+    while(queue.length > 0) {
+        const path = queue.shift();
+        const curr = path[path.length - 1]; // Current tail node
+        
+        if (curr.x === target.x && curr.y === target.y) {
+            return path.slice(1); // Return path excluding start node
+        }
+        
+        if (path.length - 1 < maxMove) {
+            for (const n of getNeighbors(curr.x, curr.y)) {
+                const key = `${n.x},${n.y}`;
+                if (!visited.has(key)) {
+                    visited.add(key);
+                    queue.push([...path, {x: n.x, y: n.y}]);
+                }
+            }
+        }
+    }
+    return null; // Not reachable
+}
+
+async function handleTileClick(x, y) {
+    if (!isPlayerTurn.value || !selectedAction.value || isProcessing.value) return;
+    
+    if (selectedAction.value === 'move') {
+        const path = findShortestPath(currentEntity.value.position, {x, y}, currentEntity.value.move);
+        if (path) {
+            selectedPath.value = path;
+            isProcessing.value = true;
+            try {
+                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'move', path);
+                selectedAction.value = null;
+                highlightedCells.value = [];
+            } catch (err) {
+                console.error("Move action failed:", err);
+            } finally {
+                isProcessing.value = false;
+            }
+        }
+    } else if (selectedAction.value === 'attack') {
+        const targetCell = highlightedCells.value.find(c => c.x === x && c.y === y && c.type === 'attack');
+        if (targetCell) {
+            isProcessing.value = true;
+            try {
+                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'attack', [{x, y}]);
+                selectedAction.value = null;
+                highlightedCells.value = [];
+            } catch (err) {
+                console.error("Attack failed:", err);
+            } finally {
+                isProcessing.value = false;
+            }
+        }
+    }
+}
+
+function calculateMoveRange() {
+    if (!currentEntity.value) return;
+    const start = currentEntity.value.position;
+    const maxMove = currentEntity.value.move;
+
+    const queue = [{ x: start.x, y: start.y, dist: 0 }];
+    const visited = new Set([`${start.x},${start.y}`]);
+    const highlighted = [];
+
+    while (queue.length > 0) {
+       const curr = queue.shift();
+       if (curr.x !== start.x || curr.y !== start.y) {
+           highlighted.push({ x: curr.x, y: curr.y, type: 'move' });
+       }
+       
+       if (curr.dist < maxMove) {
+           for (const n of getNeighbors(curr.x, curr.y)) {
+               const key = `${n.x},${n.y}`;
+               if (!visited.has(key)) {
+                    visited.add(key);
+                    queue.push({ x: n.x, y: n.y, dist: curr.dist + 1 });
+               }
+           }
+       }
+    }
+    highlightedCells.value = highlighted;
+}
+
+function calculateAttackRange() {
+    if (!currentEntity.value) return;
+    const start = currentEntity.value.position;
+    
+    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
+    const highlighted = [];
+    
+    for (const d of dirs) {
+        const nx = start.x + d[0];
+        const ny = start.y + d[1];
+        if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
+             const enemy = enemyEntities.value.find(e => e.position.x === nx && e.position.y === ny && e.hp > 0);
+             if (enemy) {
+                 highlighted.push({ x: nx, y: ny, type: 'attack' });
+             }
+        }
+    }
+    highlightedCells.value = highlighted;
 }
 </script>
 
 <template>
     <Head title="Battle Arena | Combat Engaged" />
 
-    <TacticalLayout v-if="user" :user="user">
+    <TacticalLayout v-if="user && !isLoading" :user="user">
         <div class="arena">
             <!-- COMBAT HEADER -->
             <CombatHeader
@@ -210,8 +384,8 @@ function handleAction(type) {
             <div class="arena__body">
                 <!-- LEFT ROSTER: Allied Forces -->
                 <TeamRosterPanel
-                    :players="mockPlayers.ally"
-                    :detailed-player-id="CURRENT_PLAYER_ID"
+                    :players="allyRoster"
+                    :detailed-player-id="currentPlayerId"
                     :team-colors="teamColors"
                     side="left"
                 />
@@ -219,22 +393,25 @@ function handleAction(type) {
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
                     <IsoBoardGrid
-                        :grid="mockGrid"
+                        :grid="grid"
                         :entities="allEntities"
                         :current-entity-id="currentEntityId"
                         :team-colors="teamColors"
                         :highlighted-cells="highlightedCells"
+                        @tile-click="handleTileClick"
                     />
 
                     <ActionPanel
-                        :is-player-turn="true"
+                        :is-player-turn="isPlayerTurn"
+                        :is-processing="isProcessing"
+                        :selected-action="selectedAction"
                         @action="handleAction"
                     />
                 </div>
 
                 <!-- RIGHT ROSTER: Hostile Forces -->
                 <TeamRosterPanel
-                    :players="mockPlayers.enemy"
+                    :players="enemyRoster"
                     detailed-player-id=""
                     :team-colors="teamColors"
                     side="right"
@@ -251,6 +428,21 @@ function handleAction(type) {
             <!-- Match ID watermark -->
             <div class="arena__watermark">
                 MATCH {{ matchId }}
+            </div>
+
+            <!-- GAME OVER OVERLAY -->
+            <div v-if="isGameOver" class="game-over-overlay">
+                <div class="game-over-content" :class="{ 'game-over--victory': isVictory, 'game-over--defeat': !isVictory }">
+                    <h1 class="game-over__title">
+                        {{ isVictory ? 'VICTORY' : 'DEFEAT' }}
+                    </h1>
+                    <p class="game-over__subtitle">
+                        {{ isVictory ? 'Opposing forces eliminated.' : 'Squad wiped out.' }}
+                    </p>
+                    <div class="game-over__actions">
+                        <a href="/dashboard" class="action-btn-back">RETURN TO DASHBOARD</a>
+                    </div>
+                </div>
             </div>
         </div>
     </TacticalLayout>
@@ -321,5 +513,85 @@ function handleAction(type) {
     color: rgba(74, 74, 79, 0.15);
     pointer-events: none;
     z-index: 50;
+}
+
+/* ─── GAME OVER OVERLAY ─── */
+.game-over-overlay {
+    position: absolute;
+    inset: 0;
+    z-index: 1000;
+    background: rgba(10, 10, 11, 0.85);
+    backdrop-filter: blur(8px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.game-over-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 100px;
+    background: rgba(22, 22, 28, 0.9);
+    border: 1px solid;
+    box-shadow: 0 0 40px rgba(0, 0, 0, 0.8);
+    position: relative;
+    overflow: hidden;
+}
+
+.game-over-content::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 4px;
+}
+
+.game-over--victory {
+    border-color: rgba(0, 242, 255, 0.4);
+}
+.game-over--victory::before { background: #00f2ff; box-shadow: 0 0 20px #00f2ff; }
+.game-over--victory .game-over__title { color: #00f2ff; text-shadow: 0 0 16px rgba(0, 242, 255, 0.6); }
+
+.game-over--defeat {
+    border-color: rgba(255, 32, 32, 0.4);
+}
+.game-over--defeat::before { background: #ff2020; box-shadow: 0 0 20px #ff2020; }
+.game-over--defeat .game-over__title { color: #ff2020; text-shadow: 0 0 16px rgba(255, 32, 32, 0.6); }
+
+.game-over__title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 64px;
+    font-weight: 800;
+    letter-spacing: 0.15em;
+    margin: 0 0 10px 0;
+}
+
+.game-over__subtitle {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 14px;
+    color: #e0e0e0;
+    margin: 0 0 40px 0;
+    letter-spacing: 0.05em;
+    opacity: 0.8;
+}
+
+.action-btn-back {
+    display: inline-block;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 14px;
+    letter-spacing: 0.1em;
+    color: #fff;
+    text-decoration: none;
+    padding: 12px 32px;
+    background: rgba(255, 255, 255, 0.05);
+    border: 1px solid rgba(255, 255, 255, 0.2);
+    transition: all 0.2s ease;
+}
+.action-btn-back:hover {
+    background: rgba(255, 255, 255, 0.1);
+    border-color: #fff;
+    box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
 </style>

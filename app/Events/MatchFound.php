@@ -18,7 +18,7 @@ class MatchFound implements ShouldBroadcast
     use Dispatchable, InteractsWithSockets, SerializesModels;
 
     public function __construct(
-        public int $userId,
+        public string $userId,
         public string $matchId,
         public array $data = []
     ) {}

@@ -2,20 +2,23 @@
 <script setup>
 const props = defineProps({
     isPlayerTurn: { type: Boolean, default: true },
+    isProcessing: { type: Boolean, default: false },
     canMove: { type: Boolean, default: true },
     canAttack: { type: Boolean, default: true },
     moveCostPerTile: { type: Number, default: 20 },
     attackCost: { type: Number, default: 100 },
     passCost: { type: Number, default: 300 },
+    selectedAction: { type: String, default: null },
 });
 
 const emit = defineEmits(['action']);
 </script>
 
 <template>
-    <div class="action-panel" :class="{ 'action-panel--disabled': !isPlayerTurn }">
+    <div class="action-panel" :class="{ 'action-panel--disabled': !isPlayerTurn || isProcessing }">
         <button
             class="action-btn action-btn--move"
+            :class="{ 'action-btn--selected': selectedAction === 'move' }"
             :disabled="!isPlayerTurn || !canMove"
             @click="emit('action', 'move')"
         >
@@ -26,6 +29,7 @@ const emit = defineEmits(['action']);
 
         <button
             class="action-btn action-btn--attack"
+            :class="{ 'action-btn--selected': selectedAction === 'attack' }"
             :disabled="!isPlayerTurn || !canAttack"
             @click="emit('action', 'attack')"
         >
@@ -162,5 +166,23 @@ const emit = defineEmits(['action']);
 
 .action-btn--forfeit:hover:not(:disabled) .action-btn__icon {
     color: #ff2020;
+}
+
+.action-btn--move.action-btn--selected {
+    background: rgba(0, 242, 255, 0.15);
+    border-color: #00f2ff;
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.4);
+}
+.action-btn--move.action-btn--selected .action-btn__icon {
+    color: #00f2ff;
+}
+
+.action-btn--attack.action-btn--selected {
+    background: rgba(255, 0, 255, 0.15);
+    border-color: #ff00ff;
+    box-shadow: 0 0 8px rgba(255, 0, 255, 0.4);
+}
+.action-btn--attack.action-btn--selected .action-btn__icon {
+    color: #ff00ff;
 }
 </style>

@@ -65,7 +65,17 @@ The core logic, API endpoints, and data management are located in:
 - **[app/Services](file:///workspace/battleui/app/Services)**: Contains specialized logic like the `UpsilonApiService` for game engine communication.
 - **[routes](file:///workspace/battleui/routes)**: Defines the web and API entry points.
 
-## Architecture & Integration
+## Testing & Verification
+ 
+ For rapid verification of API flows without using a browser, the [UpsilonCLI](file:///workspace/upsiloncli) is the recommended tool. It allows you to:
+ - **Simulate Player Journeys**: Run a full Register → Login → Matchmaking sequence interactively.
+ - **Debug Matchmaking**: Join the queue as multiple users using separate terminal sessions to verify queue logic and `MatchFound` event delivery.
+ - **Inspect Payloads**: Every action reveals the exact `curl` command and raw JSON response for deep troubleshooting.
+ - **Automated Audits**: Run `upsiloncli --auto` to perform a smoke test of all primary user flows in seconds.
+ 
+ ---
+ 
+ ## Architecture & Integration
 
 BattleUI acts as a bridge between the persistent database and the stateless game logic engine.
 

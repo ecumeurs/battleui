@@ -3,7 +3,8 @@
 use Illuminate\Support\Facades\Broadcast;
 
 // routes/channels.php
-Broadcast::channel('battle.{battleId}', function ($user, $battleId) {
-    // TODO: Implement actual authorization logic (check bearer token?)
-    return true;
+Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
+    return \App\Models\MatchParticipant::where('match_id', $matchId)
+        ->where('player_id', $user->id)
+        ->exists();
 });

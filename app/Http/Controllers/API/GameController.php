@@ -21,7 +21,24 @@ class GameController extends Controller
 
     public function state(Request $request, string $id)
     {
-        // Placeholder for GET /arena/{id} logic once it exists in engine
+        $match = \App\Models\GameMatch::findOrFail($id);
+        $participants = \App\Models\MatchParticipant::where('match_id', $id)
+            ->with('player:id,nickname')
+            ->get();
+
+        return $this->success([
+            'match_id' => $match->id,
+            'game_mode' => $match->game_mode,
+            'game_state' => $match->game_state_cache,
+            'participants' => $participants->map(fn($p) => [
+                'player_id' => $p->player_id,
+                'nickname' => $p->player?->nickname ?? 'Unknown',
+                'team' => $p->team,
+            ]),
+            'started_at' => $match->started_at?->toIso8601String(),
+            'concluded_at' => $match->concluded_at?->toIso8601String(),
+            'winning_team_id' => $match->winning_team_id,
+        ]);
     }
 
     /**

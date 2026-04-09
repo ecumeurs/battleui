@@ -122,22 +122,50 @@ class MatchMakingController extends Controller
 
             // Handle AI if needed
             if ($config['ai_count'] > 0) {
-                // Simplified AI addition
+                // Generate 3 properly rolled characters for AI to match player count
+                $aiEntities = [];
+                for ($i = 0; $i < 3; $i++) {
+                    $stats = \App\Models\Character::distributePoints(10);
+                    $aiEntities[] = (object)[
+                        'id' => (string) Str::uuid(),
+                        'name' => "AI Unit " . ($i + 1),
+                        'hp' => $stats['hp'],
+                        'max_hp' => $stats['hp'],
+                        'attack' => $stats['attack'],
+                        'defense' => $stats['defense'],
+                        'movement' => $stats['movement'],
+                        'max_movement' => $stats['movement']
+                    ];
+                }
+
+                $aiPlayerId = '00000000-0000-0000-0000-000000000001';
+                $aiUser = \App\Models\User::find($aiPlayerId);
+                if (!$aiUser) {
+                    $aiUser = new \App\Models\User();
+                    $aiUser->id = $aiPlayerId;
+                    $aiUser->account_name = 'AI_Opponent';
+                    $aiUser->email = 'ai@upsilon.battle';
+                    $aiUser->password_hash = \Illuminate\Support\Facades\Hash::make(Str::random(32));
+                    $aiUser->full_address = 'VIRTUAL_CORE';
+                    $aiUser->birth_date = '2026-01-01';
+                    $aiUser->save();
+                }
+
                 $players[] = new UpsilonPlayerResource([
-                    'id' => Str::uuid()->toString(),
+                    'id' => $aiPlayerId,
                     'team' => 2,
                     'ia' => true,
-                    'entities' => [
-                        (object)[
-                            'id' => Str::uuid()->toString(),
-                            'name' => "AI Unit 1",
-                            'hp' => 10,
-                            'attack' => 3,
-                            'defense' => 2,
-                            'movement' => 3
-                        ]
-                    ]
+                    'entities' => $aiEntities
                 ]);
+                
+                // Record AI participant so it appears in game state
+                \App\Models\MatchParticipant::create([
+                    'match_id' => $match->id,
+                    'player_id' => $aiPlayerId,
+                    'team' => 2,
+                ]);
+                
+                $participantIds[] = $aiPlayerId;
             }
 
             $this->upsilonService->startArena(

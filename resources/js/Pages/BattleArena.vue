@@ -151,7 +151,7 @@ const teamColors = computed(() => {
 });
 
 const isGameOver = computed(() => {
-    return gameState.value?.winner_id !== undefined && gameState.value?.winner_id !== '';
+    return !!gameState.value?.winner_id;
 });
 
 const isVictory = computed(() => {

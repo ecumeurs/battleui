@@ -5,6 +5,9 @@ namespace App\Http\Resources\API\Upsilon;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
+/**
+ * @spec-link [[entity_character]]
+ */
 class UpsilonEntityResource extends JsonResource
 {
     /**
@@ -19,11 +22,11 @@ class UpsilonEntityResource extends JsonResource
             'id' => $this->id,
             'name' => $this->name,
             'hp' => $this->hp,
-            'maxHp' => $this->hp,
+            'max_hp' => $this->hp,
             'attack' => $this->attack,
             'defense' => $this->defense,
             'move' => $this->movement,
-            'maxMove' => $this->movement,
+            'max_move' => $this->movement,
             'position' => $this->position ?? null,
         ];
     }

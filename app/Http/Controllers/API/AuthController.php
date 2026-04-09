@@ -33,15 +33,7 @@ class AuthController extends Controller
     {
         $validated = $request->validated();
 
-        $query = User::query();
-        
-        if (isset($validated['account_name'])) {
-            $query->where('account_name', $validated['account_name']);
-        } else {
-            $query->where('email', $validated['email']);
-        }
-
-        $user = $query->first();
+        $user = User::where('account_name', $validated['account_name'])->first();
 
         if (! $user || ! Hash::check($validated['password'], $user->password_hash)) {
             return $this->error('Invalid credentials.', 401);

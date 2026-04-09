@@ -22,7 +22,6 @@ class ActionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'player_id' => 'required|string',
             'entity_id' => 'required|string',
             'type' => 'required|string',
             'target_coords' => 'array',

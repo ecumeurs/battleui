@@ -55,7 +55,7 @@ class GameController extends Controller
         // 2. Call the UPSILON ENGINE via Service
         $response = $this->upsilonService->sendAction(
             $id,
-            $validated['player_id'],
+            $request->user()->id,
             $validated['entity_id'],
             $validated['type'],
             $validated['target_coords'] ?? []

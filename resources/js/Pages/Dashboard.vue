@@ -6,8 +6,9 @@ import { ref, onMounted } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import CharacterRoster from '@/Components/CharacterRoster.vue';
 import IdentitySection from '@/Components/IdentitySection.vue';
+import EngagementHub from '@/Components/EngagementHub.vue';
 
-import axios from 'axios';
+import auth from '@/services/auth';
 
 const user = ref(null);
 
@@ -25,17 +26,17 @@ const playerStats = ref({
 
 const fetchGlobalStats = async () => {
     try {
-        const [waitingRes, activeRes] = await Promise.all([
-            axios.get('/api/v1/match/stats/waiting'),
-            axios.get('/api/v1/match/stats/active')
+        const [waitingData, activeData] = await Promise.all([
+            auth.get('/match/stats/waiting'),
+            auth.get('/match/stats/active')
         ]);
 
-        if (waitingRes.data.success) {
-            globalStats.value.waiting = waitingRes.data.data.waiting_count;
+        if (waitingData) {
+            globalStats.value.waiting = waitingData.waiting_count;
         }
         
-        if (activeRes.data.success) {
-            globalStats.value.active = activeRes.data.data.active_count;
+        if (activeData) {
+            globalStats.value.active = activeData.active_count;
         }
 
         globalStats.value.lastUpdate = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit', second: '2-digit' });
@@ -97,38 +98,7 @@ onUnmounted(() => {
                 </div>
 
                 <!-- Action Hub -->
-                <div class="p-6 bg-upsilon-gunmetal/30 border border-upsilon-cyan/30 backdrop-blur-md relative">
-                    <div class="absolute -top-px -left-px w-6 h-6 border-t-2 border-l-2 border-upsilon-cyan"></div>
-                    <div class="absolute -bottom-px -right-px w-6 h-6 border-b-2 border-r-2 border-upsilon-cyan"></div>
-
-                    <h2 class="font-scifi text-[11px] text-upsilon-cyan uppercase tracking-[0.3em] mb-6 text-center">Initiate Engagement</h2>
-                    
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                        <button class="group p-5 bg-black/60 border border-upsilon-lime/40 hover:border-upsilon-lime hover:bg-upsilon-lime/5 transition-all text-left relative overflow-hidden">
-                            <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Solo / PVE</span>
-                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-lime/70">Sector Exploration & AI Cleanup</span>
-                        </button>
-                        
-                        <button class="group p-5 bg-black/60 border border-upsilon-magenta/40 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all text-left relative overflow-hidden">
-                            <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">PVP / Ranked</span>
-                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-magenta/70">1v1 High Stakes Territory Claim</span>
-                        </button>
-
-                        <button class="group p-5 bg-black/60 border border-upsilon-lime/40 hover:border-upsilon-lime hover:bg-upsilon-lime/5 transition-all text-left relative overflow-hidden">
-                            <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Co-op / PVE</span>
-                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-lime/70">2 Players vs AI Overdrive</span>
-                        </button>
-
-                        <button class="group p-5 bg-black/60 border border-upsilon-magenta/40 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all text-left relative overflow-hidden">
-                            <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">Duo / PVP</span>
-                            <span class="block font-mono text-[9px] text-upsilon-lime uppercase group-hover:text-upsilon-magenta/70">2v2 Cooperative Combat Operations</span>
-                        </button>
-                    </div>
-                </div>
-
-                <div class="text-center">
-                    <p class="text-[10px] font-mono text-upsilon-lime uppercase tracking-[0.4em] animate-pulse">Standing by for command input...</p>
-                </div>
+                <EngagementHub :user="user" />
             </main>
 
             <!-- Right Column: Identity & Combat Record -->

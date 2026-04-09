@@ -21,6 +21,8 @@ const props = defineProps({
         <div class="flex items-center gap-4">
             <span class="text-upsilon-magenta">Sector_Status: Minimal Risk</span>
             <span class="text-upsilon-lime">|</span>
+            <a href="/api-docs" class="hover:text-white transition-colors">API_DOCS</a>
+            <span class="text-upsilon-lime">|</span>
             <span class="text-upsilon-cyan">Upsilon_OS_v2.4</span>
         </div>
     </footer>

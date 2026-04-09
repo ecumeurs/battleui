@@ -8,6 +8,7 @@ use Illuminate\Support\Facades\Log;
 
 /**
  * @spec-link [[api_go_webhook_callback]]
+ * @spec-link [[api_websocket_game_events]]
  */
 use App\Models\GameMatch;
 use App\Events\BoardUpdated;

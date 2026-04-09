@@ -23,6 +23,9 @@ if (app()->environment('testing')) {
  */
 Route::prefix("v1")->group(function () {
 
+    /** @spec-link [[api_help_endpoint]] */
+    Route::get('/help', [\App\Http\Controllers\API\HelpController::class, 'index']);
+
     /** @spec-link [[api_auth_user]] */
     Route::post('/auth/login', [AuthController::class, 'login']);
     Route::post('/auth/register', [AuthController::class, 'register']);
@@ -51,7 +54,7 @@ Route::prefix("v1")->group(function () {
         // @spec-link [[api_matchmaking]]
         Route::get('/matchmaking/status', [MatchMakingController::class, 'status']);
         Route::post('/matchmaking/join', [MatchMakingController::class, 'joinMatch']);
-        Route::post('/matchmaking/leave', [MatchMakingController::class, 'leaveMatch']);
+        Route::delete('/matchmaking/leave', [MatchMakingController::class, 'leaveMatch']);
 
         // Stats
         // @spec-link [[ui_dashboard_match_statistics]]

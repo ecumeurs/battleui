@@ -2,11 +2,13 @@
 <script setup>
 import TacticalHeader from '@/Components/TacticalHeader.vue';
 import TacticalFooter from '@/Components/TacticalFooter.vue';
+import SessionExpiredModal from '@/Components/Modals/SessionExpiredModal.vue';
 
 const props = defineProps({
     user: {
         type: Object,
-        required: true
+        required: false,
+        default: null
     },
     lastUpdate: {
         type: String,
@@ -26,5 +28,7 @@ const props = defineProps({
         <slot />
 
         <TacticalFooter :lastUpdate="lastUpdate" />
+
+        <SessionExpiredModal />
     </div>
 </template>

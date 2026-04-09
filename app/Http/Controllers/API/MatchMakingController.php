@@ -15,6 +15,8 @@ use App\Http\Resources\API\Upsilon\UpsilonEntityResource;
 /**
  * @spec-link [[api_go_battle_start]]
  * @spec-link [[mech_matchmaking]]
+ * @spec-link [[rule_matchmaking_single_queue]]
+ * @spec-link [[api_websocket_game_events]]
  */
 class MatchMakingController extends Controller
 {
@@ -52,18 +54,29 @@ class MatchMakingController extends Controller
 
         $characterIds = $characters->pluck('id')->toArray();
 
-        // Check if already in queue
-        $queueEntry = \App\Models\MatchmakingQueue::where('user_id', $user->id)
-            ->where('game_mode', $gameMode)
-            ->first();
-
-        if (!$queueEntry) {
-            $queueEntry = \App\Models\MatchmakingQueue::create([
-                'user_id' => $user->id,
-                'game_mode' => $gameMode,
-                'character_ids' => $characterIds
-            ]);
+        /** @spec-link [[rule_matchmaking_single_queue]] */
+        // Check if already in ANY queue
+        $anyQueueEntry = \App\Models\MatchmakingQueue::where('user_id', $user->id)->first();
+        if ($anyQueueEntry) {
+            return $this->error('Conflict: You are already in a matchmaking queue.', 409);
         }
+
+        // Check if in an active match
+        $activeMatch = \App\Models\MatchParticipant::where('player_id', $user->id)
+            ->whereHas('match', function($q) {
+                $q->whereNull('concluded_at');
+            })
+            ->exists();
+        
+        if ($activeMatch) {
+            return $this->error('Conflict: You are currently participating in an active match.', 409);
+        }
+
+        $queueEntry = \App\Models\MatchmakingQueue::create([
+            'user_id' => $user->id,
+            'game_mode' => $gameMode,
+            'character_ids' => $characterIds
+        ]);
 
         // Check if threshold met
         $queue = \App\Models\MatchmakingQueue::where('game_mode', $gameMode)
@@ -74,11 +87,13 @@ class MatchMakingController extends Controller
         if ($queue->count() >= $config['required']) {
             // Match found!
             $match = \App\Models\GameMatch::create([
+                'id' => (string) Str::uuid(),
                 'game_mode' => $gameMode,
                 'started_at' => now(),
             ]);
 
             $players = [];
+            $participantIds = [];
             foreach ($queue as $index => $entry) {
                 $entryUser = \App\Models\User::find($entry->user_id);
                 $entryChars = \App\Models\Character::whereIn('id', $entry->character_ids)->get();
@@ -101,6 +116,8 @@ class MatchMakingController extends Controller
                     'player_id' => $entryUser->id,
                     'team' => $team,
                 ]);
+
+                $participantIds[] = $entryUser->id;
             }
 
             // Handle AI if needed
@@ -131,6 +148,11 @@ class MatchMakingController extends Controller
 
             // Cleanup queue
             \App\Models\MatchmakingQueue::whereIn('id', $queue->pluck('id'))->delete();
+
+            // Broadcast to participants
+            foreach ($participantIds as $pId) {
+                broadcast(new \App\Events\MatchFound($pId, $match->id));
+            }
 
             return $this->success([
                 'status' => 'matched',

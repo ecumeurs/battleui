@@ -74,5 +74,12 @@ BattleUI acts as a bridge between the persistent database and the stateless game
     - `@spec-link [[api_go_battle_action]]`
 - **Standardized Payloads**: Communication with the engine is wrapped in the `[[api_standard_envelope]]` format for consistent request tracking and logging across systems.
 
+### API-First Playability
+- **Requirement**: The system adheres to the `[[requirement_customer_api_first]]` standard, ensuring all game features are fully accessible via API.
+- **Discovery**: A machine-readable `[[api_help_endpoint]]` is available at `/api/v1/help`, providing JSON-formatted documentation for every endpoint (Verb, URI, Intent, Input, and Output).
+- **Synchronization**: API development and documentation are coupled. Any change to the Laravel API must be reflected in both the corresponding ATD atoms and the system help registry.
+
 ---
-*Note: The Upsilon API is typically found at `http://localhost:8081/internal`. Ensure it's running prior starting a battle.* 
+*Note: The Upsilon API is typically found at `http://localhost:8081/internal`. Ensure it's running prior starting a battle.*
+
+**Keep this help endpoint and doc front in sync when updating laravel api endpoints.**

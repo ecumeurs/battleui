@@ -1,8 +1,13 @@
 import axios from 'axios';
+import { ref } from 'vue';
 import { v7 as uuidv7 } from 'uuid';
 import { clearTacticalId } from '@/services/tactical_id';
 
-/** @spec-link [[mechanic_mech_frontend_auth_bridge]] */
+/** 
+ * @spec-link [[mechanic_mech_frontend_auth_bridge]]
+ * @spec-link [[req_ui_session_timeout]]
+ */
+export const isSessionExpired = ref(false);
 const auth = axios.create({
     baseURL: '/api/v1',
     headers: {
@@ -50,6 +55,14 @@ auth.interceptors.response.use(
         return Promise.reject(envelope);
     },
     (error) => {
+        // Handle 401 Unauthorized (Session Expired)
+        if (error.response && error.response.status === 401) {
+            isSessionExpired.value = true;
+            localStorage.removeItem('upsilon_token');
+            localStorage.removeItem('upsilon_user');
+            clearTacticalId();
+        }
+
         // Error handling for 4xx/5xx (already wrapped by Laravel exception handler)
         if (error.response && error.response.data) {
             return Promise.reject(error.response.data);

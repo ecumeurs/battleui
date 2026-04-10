@@ -17,7 +17,7 @@ class MatchParticipantResource extends JsonResource
         return [
             'id' => $this->id,
             'match_id' => $this->match_id,
-            'player_id' => $this->player_id,
+            'player_id' => $this->player_id ?? 'AI',
             'team' => $this->team,
             'status' => $this->status,
         ];

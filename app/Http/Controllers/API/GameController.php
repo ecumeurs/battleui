@@ -30,11 +30,28 @@ class GameController extends Controller
             'match_id' => $match->id,
             'game_mode' => $match->game_mode,
             'game_state' => $match->game_state_cache,
-            'participants' => $participants->map(fn($p) => [
-                'player_id' => $p->player_id,
-                'nickname' => $p->player?->account_name ?? 'Unknown',
-                'team' => $p->team,
-            ]),
+            'participants' => $participants->map(function ($p) use ($match) {
+                $nickname = $p->player?->account_name;
+                $playerId = $p->player_id;
+
+                if (!$nickname && is_null($p->player_id)) {
+                    // Search in game_state_cache for an AI player on this team
+                    $statePlayers = $match->game_state_cache['players'] ?? [];
+                    foreach ($statePlayers as $spId => $spData) {
+                        if (($spData['ia'] ?? false) && ($spData['team'] ?? 0) == $p->team) {
+                            $nickname = $spData['nickname'] ?? 'AI_Opponent';
+                            $playerId = $spId; 
+                            break;
+                        }
+                    }
+                }
+
+                return [
+                    'player_id' => $playerId ?? 'AI',
+                    'nickname' => $nickname ?? 'AI_Opponent',
+                    'team' => $p->team,
+                ];
+            }),
             'started_at' => $match->started_at?->toIso8601String(),
             'concluded_at' => $match->concluded_at?->toIso8601String(),
             'winning_team_id' => $match->winning_team_id,

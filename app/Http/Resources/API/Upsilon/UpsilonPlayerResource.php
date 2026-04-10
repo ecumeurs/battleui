@@ -17,6 +17,7 @@ class UpsilonPlayerResource extends JsonResource
         // $this is an array with 'user', 'team', 'ia', 'entities' or similar
         return [
             'id' => $this->resource['id'],
+            'nickname' => $this->resource['nickname'] ?? 'Unknown',
             'team' => $this->resource['team'],
             'ia' => $this->resource['ia'],
             'entities' => UpsilonEntityResource::collection($this->resource['entities']),

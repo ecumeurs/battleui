@@ -1,4 +1,6 @@
 <script setup>
+import { connection } from '@/services/connection';
+
 const props = defineProps({
     lastUpdate: {
         type: String,
@@ -13,17 +15,27 @@ const props = defineProps({
         <div class="flex items-center gap-4">
             <span class="flex items-center gap-2">
                 <div class="w-1.5 h-1.5 rounded-full bg-upsilon-lime animate-pulse"></div>
-                Global_Stats_Updated: {{ lastUpdate }}
+                Global_Stats: {{ lastUpdate }}
             </span>
             <span class="text-upsilon-lime">|</span>
-            <span>Connection: Stable [124.66.22.11]</span>
+            <span class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full transition-colors duration-500" 
+                    :class="connection.isPrivateLinked ? 'bg-upsilon-lime shadow-[0_0_5px_theme(\'colors.upsilon.lime\')]' : 'bg-upsilon-steel/30'"></div>
+                Link[Private]
+            </span>
+            <span class="text-upsilon-lime">|</span>
+            <span class="flex items-center gap-1.5">
+                <div class="w-1.5 h-1.5 rounded-full transition-colors duration-500" 
+                    :class="connection.isBoardLinked ? 'bg-upsilon-cyan shadow-[0_0_5px_theme(\'colors.upsilon.cyan\')]' : 'bg-upsilon-steel/30'"></div>
+                Link[Tactical]
+            </span>
         </div>
-        <div class="flex items-center gap-4">
+        <div class="flex items-center gap-4 text-upsilon-steel">
             <span class="text-upsilon-magenta">Sector_Status: Minimal Risk</span>
             <span class="text-upsilon-lime">|</span>
             <a href="/api-docs" class="hover:text-white transition-colors">API_DOCS</a>
             <span class="text-upsilon-lime">|</span>
-            <span class="text-upsilon-cyan">Upsilon_OS_v2.4</span>
+            <span class="text-upsilon-cyan">Upsilon_OS_v2.5</span>
         </div>
     </footer>
 </template>

@@ -6,6 +6,7 @@ import { ref, computed, onMounted, onUnmounted } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import { getAuthUser } from '@/services/auth';
 import { game } from '@/services/game';
+import { connection } from '@/services/connection';
 
 import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
@@ -42,6 +43,7 @@ onMounted(async () => {
         game.subscribeToBoard(matchId.value, (event) => {
             console.log('[BoardUpdated]', event);
             gameState.value = event.data || event;
+            connection.setBoardLinked(true);
             // Clear pathfinding/selection on state update
             selectedAction.value = null;
             selectedPath.value = [];
@@ -63,6 +65,26 @@ onMounted(async () => {
         isLoading.value = false;
     }
 
+    // Fallback polling for the initial board state if empty
+    const emergencyPoller = setInterval(async () => {
+        if (allEntities.value.length > 0 || isGameOver.value) {
+            clearInterval(emergencyPoller);
+            return;
+        }
+        console.log('[Arena] Board empty, attempting fallback sync...');
+        try {
+            const response = await game.fetchGameState(matchId.value);
+            if (response.game_state && response.game_state.entities && response.game_state.entities.length > 0) {
+                gameState.value = response.game_state;
+                participants.value = response.participants || [];
+                matchStartedAt.value = response.started_at;
+                clearInterval(emergencyPoller);
+            }
+        } catch (err) {
+            console.error('[Arena] Fallback sync failed', err);
+        }
+    }, 2000);
+
     matchTimerInterval = setInterval(() => {
         if (!matchStartedAt.value) return;
         const start = new Date(matchStartedAt.value).getTime();
@@ -79,6 +101,7 @@ onMounted(async () => {
 onUnmounted(() => {
     if (matchId.value) {
         game.unsubscribeFromBoard(matchId.value);
+        connection.setBoardLinked(false);
     }
     clearInterval(matchTimerInterval);
     clearInterval(shotTimerInterval);

@@ -138,7 +138,7 @@ class MatchMakingController extends Controller
                     'team' => $team,
                 ]);
 
-                $participantIds[] = $entryUser->id;
+                $participantIds[] = $entryUser->ws_channel_key;
             }
 
             // Handle AI if needed
@@ -201,18 +201,27 @@ class MatchMakingController extends Controller
                 }
             }
 
-            $this->upsilonService->startArena(
+            $callbackUrl = config('services.upsilon.webhook_url') ?: str_replace('localhost', '127.0.0.1', url('/api/webhook/upsilon'));
+
+            $arenaResponse = $this->upsilonService->startArena(
                 $match->id,
-                str_replace('localhost', '127.0.0.1', url('/api/webhook/upsilon')),
+                $callbackUrl,
                 $players
             );
+
+            // Synchronously cache the initial state to prevent race conditions in frontend load
+            if (isset($arenaResponse['data']['initial_state'])) {
+                $match->update([
+                    'game_state_cache' => $arenaResponse['data']['initial_state']
+                ]);
+            }
 
             // Cleanup queue
             \App\Models\MatchmakingQueue::whereIn('id', $queue->pluck('id'))->delete();
 
             // Broadcast to participants
-            foreach ($participantIds as $pId) {
-                broadcast(new \App\Events\MatchFound($pId, $match->id));
+            foreach ($participantIds as $channelKey) {
+                broadcast(new \App\Events\MatchFound($channelKey, $match->id));
             }
 
             return $this->success([

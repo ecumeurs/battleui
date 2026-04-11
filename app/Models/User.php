@@ -23,6 +23,7 @@ class User extends Authenticatable
         'account_name',
         'email',
         'password_hash',
+        'ws_channel_key',
         'total_wins',
         'total_losses',
         'ratio',
@@ -30,6 +31,15 @@ class User extends Authenticatable
         'full_address',
         'birth_date'
     ];
+
+    protected static function booted()
+    {
+        static::creating(function ($user) {
+            if (!$user->ws_channel_key) {
+                $user->ws_channel_key = (string) \Illuminate\Support\Str::uuid();
+            }
+        });
+    }
 
     protected $casts = [
         'birth_date' => 'date',

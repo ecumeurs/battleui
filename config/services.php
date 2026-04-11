@@ -35,4 +35,9 @@ return [
         ],
     ],
 
+    'upsilon' => [
+        'url' => env('UPSILON_API_URL', 'http://localhost:8081'),
+        'webhook_url' => env('UPSILON_WEBHOOK_URL'),
+    ],
+
 ];

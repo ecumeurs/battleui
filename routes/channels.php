@@ -11,8 +11,7 @@ Broadcast::channel('arena.{matchId}', function ($user, $matchId) {
         ->exists();
 });
 
-Broadcast::channel('user.{id}', function ($user, $id) {
-    // A user can only subscribe to their own notification channel.
-    // id can be UUID or account_name
-    return (string) $user->id === (string) $id || $user->account_name === $id;
+Broadcast::channel('user.{key}', function ($user, $key) {
+    // A user can only subscribe to their own notification channel using their private key.
+    return $user->ws_channel_key === $key;
 });

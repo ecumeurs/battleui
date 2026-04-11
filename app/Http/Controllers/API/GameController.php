@@ -31,24 +31,28 @@ class GameController extends Controller
             'game_mode' => $match->game_mode,
             'game_state' => $match->game_state_cache,
             'participants' => $participants->map(function ($p) use ($match) {
-                $nickname = $p->player?->account_name;
                 $playerId = $p->player_id;
+                $nickname = $p->player?->account_name;
 
-                if (!$nickname && is_null($p->player_id)) {
-                    // Search in game_state_cache for an AI player on this team
-                    $statePlayers = $match->game_state_cache['players'] ?? [];
-                    foreach ($statePlayers as $spId => $spData) {
-                        if (($spData['ia'] ?? false) && ($spData['team'] ?? 0) == $p->team) {
-                            $nickname = $spData['nickname'] ?? 'AI_Opponent';
-                            $playerId = $spId; 
+                // Attempt to enrich with data from engine cache (especially for AI names/IDs)
+                $cachedPlayers = $match->game_state_cache['players'] ?? [];
+                
+                if (!$playerId || !$nickname) {
+                    foreach ($cachedPlayers as $cp) {
+                        // For AI, match by team and absence of User ID in this participant slot
+                        if (($cp['ia'] ?? false) && ($cp['team'] ?? 0) == $p->team) {
+                            // Only pick this cached player if it's not already "claimed" by another participant
+                            // (Simplified: first AI found for this team)
+                            $playerId = $cp['id'] ?? $playerId;
+                            $nickname = $cp['nickname'] ?? $nickname;
                             break;
                         }
                     }
                 }
 
                 return [
-                    'player_id' => $playerId ?? 'AI',
-                    'nickname' => $nickname ?? 'AI_Opponent',
+                    'player_id' => $playerId ?? 'AI_Player',
+                    'nickname' => $nickname ?? 'AI Processor',
                     'team' => $p->team,
                 ];
             }),

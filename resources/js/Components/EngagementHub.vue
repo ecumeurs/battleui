@@ -4,6 +4,7 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import auth from '@/services/auth';
+import { connection } from '@/services/connection';
 
 const props = defineProps({
     user: {
@@ -84,20 +85,28 @@ onMounted(() => {
     statusInterval = setInterval(fetchStatus, 5000);
 
     // WebSocket listener
-    if (window.Echo) {
-        window.Echo.private(`user.${props.user.id}`)
+    if (window.Echo && props.user.ws_channel_key) {
+        window.Echo.private(`user.${props.user.ws_channel_key}`)
+            .subscribed(() => {
+                connection.setPrivateLinked(true);
+            })
             .listen('.match.found', (e) => {
                 console.log("Match Found via WebSocket!", e);
                 status.value = 'matched';
                 redirectToArena(e.match_id);
+            })
+            .error((err) => {
+                console.error("Private channel subscription error", err);
+                connection.setPrivateLinked(false);
             });
     }
 });
 
 onUnmounted(() => {
     if (statusInterval) clearInterval(statusInterval);
-    if (window.Echo) {
-        window.Echo.leave(`user.${props.user.id}`);
+    if (window.Echo && props.user.ws_channel_key) {
+        window.Echo.leave(`user.${props.user.ws_channel_key}`);
+        connection.setPrivateLinked(false);
     }
 });
 

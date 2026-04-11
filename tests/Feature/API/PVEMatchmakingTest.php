@@ -41,7 +41,13 @@ class PVEMatchmakingTest extends TestCase
                 ->andReturn([
                     'success' => true,
                     'message' => 'Arena started',
-                    'data' => ['arena_id' => 'engine-123']
+                    'data' => [
+                        'arena_id' => 'engine-123',
+                        'initial_state' => [
+                            'entities' => [],
+                            'players' => []
+                        ]
+                    ]
                 ]);
         });
 
@@ -116,7 +122,15 @@ class PVEMatchmakingTest extends TestCase
                     }
                     return true;
                 })
-                ->andReturn(['success' => true]);
+                ->andReturn([
+                    'success' => true,
+                    'data' => [
+                        'initial_state' => [
+                            'entities' => [],
+                            'players' => []
+                        ]
+                    ]
+                ]);
         });
 
         $this->actingAs($this->user)

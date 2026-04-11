@@ -18,6 +18,8 @@ export default defineConfig({
         }),
     ], server: {
         host: '0.0.0.0', // Écoute sur tout le réseau du container
+        port: 5173,      // Ensure this matches your docker-compose port
+        strictPort: true,
         hmr: {
             host: 'localhost', // Force le navigateur à utiliser localhost pour le hot reload
         },

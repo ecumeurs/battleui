@@ -8,23 +8,26 @@ Built with **Laravel**, **Vue.js**, and **Tailwind CSS**, it serves as the orche
 
 To run the complete BattleUI environment, you need to start three separate services. Ensure you are in the `battleui` directory before running these commands.
 
-### 1. Start the Laravel API
+### 1. Start the Laravel API (Port 8000)
 The Laravel backend handles authentication, matchmaking queues, and session persistence.
 ```bash
 php artisan serve
 ```
 
-### 2. Start the Reverb Server
+### 2. Start the Reverb Server (Port 8080)
 **Reverb** provides high-performance WebSocket communication, enabling real-time game state updates from the backend to the frontend.
 ```bash
 php artisan reverb:start
 ```
 
-### 3. Start the Vue.js Frontend
+### 3. Start the Vue.js Frontend (Port 5173)
 The frontend uses **Vite** for fast development and hot module replacement.
 ```bash
 npm run dev
 ```
+
+> [!NOTE]
+> **Production Deployment:** In a production environment, you don't run the Vite development server. Instead, you run `npm run build` once, and the resulting static assets are served directly by the Laravel API (via Apache, Nginx, or similar).
 
 ## Project Structure
 

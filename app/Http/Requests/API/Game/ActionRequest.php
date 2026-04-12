@@ -22,7 +22,7 @@ class ActionRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'entity_id' => 'required|string',
+            'entity_id' => 'nullable|string',
             'type' => 'required|string',
             'target_coords' => 'array',
         ];

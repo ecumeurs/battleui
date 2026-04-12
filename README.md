@@ -22,9 +22,13 @@ php artisan reverb:start
 
 ### 3. Start the Vue.js Frontend (Port 5173)
 The frontend uses **Vite** for fast development and hot module replacement.
+### 4. Administrative Setup (Seeding)
+To establish the initial system administrator, you must define a password and run the database seeder.
 ```bash
-npm run dev
+export ADMIN_INITIAL_PASSWORD="your_secure_password"
+php artisan db:seed
 ```
+This will create a default administrator at `admin@admin.com` with the `Admin` role.
 
 > [!NOTE]
 > **Production Deployment:** In a production environment, you don't run the Vite development server. Instead, you run `npm run build` once, and the resulting static assets are served directly by the Laravel API (via Apache, Nginx, or similar).

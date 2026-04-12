@@ -85,4 +85,19 @@ class GameController extends Controller
         // 3. Return Standard Envelope back
         return $this->success($response['data'] ?? $response, $response['message'] ?? 'Action processed', ($response['success'] ?? false) ? 200 : 400);
     }
+
+    /**
+     * @spec-link [[rule_forfeit_battle]]
+     */
+    public function forfeit(Request $request, string $id)
+    {
+        // Forfeiting is a player-level action, no entity_id required from frontend.
+        $response = $this->upsilonService->forfeit($id, $request->user()->id);
+
+        return $this->success(
+            $response['data'] ?? [], 
+            $response['message'] ?? 'Forfeit request processed', 
+            ($response['success'] ?? false) ? 200 : 400
+        );
+    }
 }

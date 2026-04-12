@@ -38,6 +38,16 @@ export const game = {
     },
 
     /**
+     * @spec-link [[rule_forfeit_battle]]
+     * @param {string} matchId 
+     * @returns {Promise<Object>}
+     */
+    async forfeit(matchId) {
+        const response = await auth.post(`/game/${matchId}/forfeit`);
+        return response;
+    },
+
+    /**
      * Subscribe to real-time board updates using Laravel Echo (Reverb).
      * @param {string} matchId 
      * @param {Function} callback 

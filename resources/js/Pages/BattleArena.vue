@@ -258,7 +258,7 @@ async function handleAction(type) {
         if (confirm("Are you sure you want to forfeit? This will cause a loss for your entire team.")) {
             isProcessing.value = true;
             try {
-                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'forfeit');
+                await game.forfeit(matchId.value);
             } catch (err) {
                 console.error("Forfeit failed:", err);
             } finally {

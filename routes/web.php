@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\AdminController;
 use Illuminate\Foundation\Application;
 use Illuminate\Support\Facades\Route;
 use Inertia\Inertia;
@@ -34,6 +35,17 @@ Route::get('/battlearena', function () {
 Route::get('/event-test', function () {
     return Inertia::render('EventTest');
 });
+
+Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
+    Route::get('/users', [AdminController::class, 'users'])->name('users');
+    Route::post('/users/{user}/anonymize', [AdminController::class, 'anonymize'])->name('users.anonymize');
+    Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
+});
+
+Route::get('/admin/login', function () {
+    return Inertia::render('Auth/Login', ['isAdmin' => true]);
+})->name('admin.login');
 
 require __DIR__.'/auth.php';
 

@@ -63,6 +63,20 @@ class UpsilonApiService implements UpsilonApiServiceInterface
     }
 
     /**
+     * @spec-link [[rule_forfeit_battle]]
+     */
+    public function forfeit(string $arenaId, string $playerId): array
+    {
+        $payload = [
+            'player_id' => $playerId,
+            'entity_id' => '', // Engine bridge now handles empty entity_id correctly
+            'type' => 'forfeit',
+        ];
+
+        return $this->sendEnvelopeRequest('POST', "/internal/arena/{$arenaId}/action", $payload, "Action: forfeit");
+    }
+
+    /**
      * Wraps requests in the api_standard_envelope format.
      * @spec-link [[api_standard_envelope]]
      */

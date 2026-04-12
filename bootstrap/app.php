@@ -32,6 +32,9 @@ return Application::configure(basePath: dirname(__DIR__))
             \App\Http\Middleware\SanctumTokenRenewal::class,
         ]);
 
+        $middleware->alias([
+            'admin' => \App\Http\Middleware\AdminMiddleware::class,
+        ]);
     })
     ->withExceptions(function (Exceptions $exceptions): void {
         $exceptions->shouldRenderJsonWhen(function (Request $request, Throwable $e) {

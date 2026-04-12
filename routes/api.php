@@ -64,5 +64,6 @@ Route::prefix("v1")->group(function () {
         // Game proxy
         Route::get('/game/{id}', [GameController::class, 'state']);
         Route::post('/game/{id}/action', [GameController::class, 'action']);
+        Route::post('/game/{id}/forfeit', [GameController::class, 'forfeit']);
     });
 });

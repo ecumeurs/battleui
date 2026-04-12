@@ -10,6 +10,7 @@ use Illuminate\Database\Eloquent\Concerns\HasUuids;
 
 use Laravel\Sanctum\HasApiTokens;
 use Illuminate\Notifications\Notifiable;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 /**
  * @spec-link [[entity_player]]
@@ -17,12 +18,13 @@ use Illuminate\Notifications\Notifiable;
  */
 class User extends Authenticatable
 {
-    use HasApiTokens, HasUuids, HasFactory, Notifiable;
+    use HasApiTokens, HasUuids, HasFactory, Notifiable, SoftDeletes;
 
     protected $fillable = [
         'account_name',
         'email',
         'password_hash',
+        'role',
         'ws_channel_key',
         'total_wins',
         'total_losses',
@@ -55,12 +57,20 @@ class User extends Authenticatable
         return 'password_hash';
     }
 
+    public function isAdmin(): bool
+    {
+        return $this->role === 'Admin';
+    }
+
     public function anonymize()
     {
         $this->update([
+            'email' => 'anonymized_' . $this->id . '@example.com',
             'full_address' => 'ANONYMIZED',
             'birth_date' => '1900-01-01',
         ]);
+        
+        $this->delete(); // Ensure soft-delete is triggered if not already
     }
 
     public function characters()

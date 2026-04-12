@@ -35,8 +35,17 @@ const handleLogout = async () => {
             <div class="h-8 w-px bg-upsilon-steel/30 hidden md:block"></div>
             <div class="hidden md:flex flex-col">
                 <span class="text-upsilon-cyan font-mono text-[10px] uppercase tracking-widest truncate w-40">ENTITY: {{ user ? user.account_name : 'GUEST' }}</span>
-                <span class="text-upsilon-lime font-mono text-[8px] uppercase tracking-widest">ID: {{ tacticalId || 'ANONYMOUS' }}</span>
+                <span class="text-upsilon-lime font-mono text-[8px] uppercase tracking-widest">ROLE: {{ user ? user.role : 'GUEST' }}</span>
             </div>
+            <div v-if="user && user.role === 'Admin'" class="h-8 w-px bg-upsilon-steel/30 hidden md:block"></div>
+            <Link 
+                v-if="user && user.role === 'Admin'"
+                href="/admin/dashboard" 
+                class="hidden md:flex flex-col group"
+            >
+                <span class="text-upsilon-magenta font-mono text-[10px] uppercase tracking-widest group-hover:text-white transition-colors">Admin Terminal</span>
+                <span class="text-upsilon-magenta/60 font-mono text-[8px] uppercase tracking-widest group-hover:text-upsilon-magenta/100 transition-colors">System Management</span>
+            </Link>
         </div>
 
         <button 

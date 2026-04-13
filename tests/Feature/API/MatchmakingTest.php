@@ -63,6 +63,8 @@ class MatchmakingTest extends TestCase
                     'empty_slots' => 1
                 ]
             ]);
+        
+        $response->assertJsonMissing(['data' => ['user_id' => $this->user1->id]]);
 
         $this->assertDatabaseHas('matchmaking_queues', [
             'user_id' => $this->user1->id
@@ -78,7 +80,7 @@ class MatchmakingTest extends TestCase
         ]);
 
         $response = $this->actingAs($this->user1)
-            ->postJson('/api/v1/matchmaking/leave');
+            ->deleteJson('/api/v1/matchmaking/leave');
 
         $response->assertStatus(200);
         $this->assertDatabaseMissing('matchmaking_queues', [
@@ -146,6 +148,8 @@ class MatchmakingTest extends TestCase
                     'expected_participants' => 2
                 ]
             ]);
+
+        $response->assertJsonMissing(['data' => ['user_id' => $this->user1->id]]);
     }
 
     public function test_user_receives_idle_status_when_not_in_queue()

@@ -30,7 +30,7 @@ const props = defineProps({
                 Link[Tactical]
             </span>
         </div>
-        <div class="flex items-center gap-4 text-upsilon-steel">
+        <div class="flex items-center gap-4 text-upsilon-cyan/60">
             <span class="text-upsilon-magenta">Sector_Status: Minimal Risk</span>
             <span class="text-upsilon-lime">|</span>
             <a href="/api-docs" class="hover:text-white transition-colors">API_DOCS</a>

@@ -39,8 +39,8 @@ Route::get('/event-test', function () {
 Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/dashboard', [AdminController::class, 'index'])->name('dashboard');
     Route::get('/users', [AdminController::class, 'users'])->name('users');
-    Route::post('/users/{user}/anonymize', [AdminController::class, 'anonymize'])->name('users.anonymize');
-    Route::delete('/users/{user}', [AdminController::class, 'destroy'])->name('users.destroy');
+    Route::post('/users/{user:account_name}/anonymize', [AdminController::class, 'anonymize'])->name('users.anonymize');
+    Route::delete('/users/{user:account_name}', [AdminController::class, 'destroy'])->name('users.destroy');
 });
 
 Route::get('/admin/login', function () {

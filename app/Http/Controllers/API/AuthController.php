@@ -72,6 +72,9 @@ class AuthController extends Controller
         ], 'Registration successful.', 201);
     }
 
+    /**
+     * @spec-link [[api_auth_logout]]
+     */
     public function logout(Request $request)
     {
         $request->user()->currentAccessToken()->delete();

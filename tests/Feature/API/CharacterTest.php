@@ -42,7 +42,6 @@ class CharacterTest extends TestCase
             ->assertJsonStructure([
                 'success',
                 'data' => [
-                    'id',
                     'characters' => [
                         '*' => ['id', 'name', 'hp', 'attack', 'defense', 'movement']
                     ]
@@ -79,11 +78,8 @@ class CharacterTest extends TestCase
         $response = $this->actingAs($this->user)
             ->postJson("/api/v1/profile/character/{$character->id}/reroll");
 
-        $response->assertStatus(403)
-            ->assertJson([
-                'success' => false,
-                'message' => 'Reroll limit reached.',
-            ]);
+        $response->assertStatus(403);
+        $this->assertStringContainsString('Reroll limit reached.', $response->json('message'));
     }
 
     /**

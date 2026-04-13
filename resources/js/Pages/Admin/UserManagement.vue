@@ -8,15 +8,15 @@ const props = defineProps({
     users: Array,
 });
 
-const handleAnonymize = (id) => {
+const handleAnonymize = (account_name) => {
     if (confirm('CAUTION: This will anonymize address and birth date data. This action is IRREVERSIBLE. Proceed?')) {
-        router.post(route('admin.users.anonymize', id));
+        router.post(route('admin.users.anonymize', account_name));
     }
 };
 
-const handleDelete = (id) => {
+const handleDelete = (account_name) => {
     if (confirm('SOFT DELETE: The account will be deactivated but data remains for auditing. Proceed?')) {
-        router.delete(route('admin.users.destroy', id));
+        router.delete(route('admin.users.destroy', account_name));
     }
 };
 
@@ -77,14 +77,14 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                             <td class="px-4 py-4 text-right">
                                 <div class="flex justify-end gap-2" v-if="!target.deleted_at && target.id !== user.id">
                                     <button 
-                                        @click="handleAnonymize(target.id)"
+                                        @click="handleAnonymize(target.account_name)"
                                         class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-[9px] hover:bg-upsilon-magenta hover:text-white transition-colors"
                                         title="GDPR Right to be Forgotten"
                                     >
                                         Anonymize
                                     </button>
                                     <button 
-                                        @click="handleDelete(target.id)"
+                                        @click="handleDelete(target.account_name)"
                                         class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-[9px] hover:bg-upsilon-magenta hover:text-white transition-colors"
                                     >
                                         Delete

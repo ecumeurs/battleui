@@ -23,8 +23,8 @@ class AuthTest extends TestCase
         $response = $this->postJson('/api/v1/auth/register', [
             'account_name' => 'TestPlayer',
             'email' => 'test@example.com',
-            'password' => 'password1234567',
-            'password_confirmation' => 'password1234567',
+            'password' => 'Password1234567!',
+            'password_confirmation' => 'Password1234567!',
             'full_address' => '123 Test Street, Test City',
             'birth_date' => '1990-01-01',
         ], [
@@ -37,7 +37,7 @@ class AuthTest extends TestCase
                 'message',
                 'success',
                 'data' => [
-                    'user' => ['id', 'account_name', 'email', 'full_address', 'birth_date'],
+                    'user' => ['account_name', 'email', 'full_address', 'birth_date'],
                     'token'
                 ]
             ]);
@@ -62,7 +62,7 @@ class AuthTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/v1/auth/login', [
-            'email' => 'login@example.com',
+            'account_name' => 'LoginPlayer',
             'password' => 'password123',
         ]);
 
@@ -87,7 +87,7 @@ class AuthTest extends TestCase
         ]);
 
         $response = $this->postJson('/api/v1/auth/login', [
-            'email' => 'fail@example.com',
+            'account_name' => 'FailPlayer',
             'password' => 'wrongpassword',
         ]);
 

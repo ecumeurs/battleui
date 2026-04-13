@@ -52,6 +52,9 @@ class MatchMakingController extends Controller
         '2v2_PVE' => ['required' => 2, 'ai_count' => 1], // 1 AI team
     ];
 
+    /**
+     * @spec-link [[api_matchmaking]]
+     */
     public function joinMatch(JoinMatchRequest $request)
     {
         $user = auth()->user();
@@ -240,6 +243,9 @@ class MatchMakingController extends Controller
         ]);
     }
 
+    /**
+     * @spec-link [[api_matchmaking]]
+     */
     public function status(Request $request)
     {
         $user = auth()->user();
@@ -288,6 +294,9 @@ class MatchMakingController extends Controller
         ], 'Not in queue');
     }
 
+    /**
+     * @spec-link [[api_matchmaking]]
+     */
     public function leaveMatch(Request $request)
     {
         $user = auth()->user();

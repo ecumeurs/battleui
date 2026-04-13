@@ -24,7 +24,7 @@ export default {
                 }
             },
             fontFamily: {
-                sans: ['Figtree', ...defaultTheme.fontFamily.sans],
+                sans: ['Inter', ...defaultTheme.fontFamily.sans],
                 scifi: ['Orbitron', 'sans-serif'],
                 mono: ['JetBrains Mono', 'monospace'],
             },

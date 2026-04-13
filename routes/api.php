@@ -4,10 +4,12 @@ use App\Http\Controllers\API\AuthController;
 use App\Http\Controllers\API\ProfileController;
 use App\Http\Controllers\API\MatchMakingController;
 use App\Http\Controllers\API\GameController;
+use App\Http\Controllers\API\AdminController as ApiAdminController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\WebhookController;
+use App\Http\Controllers\API\LeaderboardController;
 
 Route::post('/webhook/upsilon', [WebhookController::class, 'handle']);
 
@@ -28,6 +30,7 @@ Route::prefix("v1")->group(function () {
 
     /** @spec-link [[api_auth_user]] */
     Route::post('/auth/login', [AuthController::class, 'login']);
+    Route::post('/auth/admin/login', [ApiAdminController::class, 'login']);
     Route::post('/auth/register', [AuthController::class, 'register']);
 
     Route::middleware('auth:sanctum')->group(function() {
@@ -61,9 +64,20 @@ Route::prefix("v1")->group(function () {
         Route::get('/match/stats/waiting', [MatchMakingController::class, 'getWaitingStats']);
         Route::get('/match/stats/active', [MatchMakingController::class, 'getActiveStats']);
 
+        // Leaderboard
+        // @spec-link [[api_leaderboard]]
+        Route::get('/leaderboard', [LeaderboardController::class, 'index']);
+
         // Game proxy
         Route::get('/game/{id}', [GameController::class, 'state']);
         Route::post('/game/{id}/action', [GameController::class, 'action']);
         Route::post('/game/{id}/forfeit', [GameController::class, 'forfeit']);
+
+        // Administrative Layer
+        Route::middleware('admin')->prefix('admin')->group(function() {
+            Route::get('/users', [ApiAdminController::class, 'users']);
+            Route::post('/users/{user:account_name}/anonymize', [ApiAdminController::class, 'anonymize']);
+            Route::delete('/users/{user:account_name}', [ApiAdminController::class, 'destroy']);
+        });
     });
 });

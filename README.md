@@ -30,6 +30,16 @@ php artisan db:seed
 ```
 This will create a default administrator at `admin@admin.com` with the `Admin` role.
 
+#### Competitive Feed Population (Leaderboard Seeding)
+To populate the system with realistic tactical telemetry for testing the competitive feed:
+```bash
+php artisan db:seed --class=LeaderboardSeeder
+```
+This seeder generates:
+- **200 Combatants**: Unique user accounts with randomized names and credentials.
+- **400 Matches**: 100 historical matches per battle mode (`1v1_PVP`, `2v2_PVP`, `1v1_PVE`, `2v2_PVE`).
+- **Temporal Alignment**: All matches are conclused within the current weekly cycle (starting Sunday 00:01 UTC) to ensure the leaderboard is populated for active session testing.
+
 > [!NOTE]
 > **Production Deployment:** In a production environment, you don't run the Vite development server. Instead, you run `npm run build` once, and the resulting static assets are served directly by the Laravel API (via Apache, Nginx, or similar).
 
@@ -51,6 +61,8 @@ The visual interface and player interactions are located in:
     - **CharacterRoster.vue**: Modular management interface for character stats and progression.
     - **IdentitySection.vue**: Modular component for managing user personal data, credentials, and GDPR controls.
     - **ModalBox.vue**: Themed base component for "Neon in the Dust" interactive dialogs and portals.
+    - **LeaderboardComponent.vue**: Modular competitive feed displaying global rankings, categorical splits (1v1/2v2), and the current user's neural signature.
+    - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
     - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
     - **Modals/ChangePasswordModal.vue**: Secure credential rotation interface for updating authentication keys.
 - **[resources/js/Components/Arena](file:///workspace/battleui/resources/js/Components/Arena)**: Core battle UI mechanics.
@@ -69,6 +81,7 @@ The visual interface and player interactions are located in:
 ### Backend (Laravel)
 The core logic, API endpoints, and data management are located in:
 - **[app/Http/Controllers](file:///workspace/battleui/app/Http/Controllers)**: Handles request routing and business logic.
+    - **API/LeaderboardController.php**: Manages competitive rankings with temporal filtering (weekly reset) and categorical mode aggregation.
 - **[app/Services](file:///workspace/battleui/app/Services)**: Contains specialized logic like the `UpsilonApiService` for game engine communication.
 - **[routes](file:///workspace/battleui/routes)**: Defines the web and API entry points.
 
@@ -96,6 +109,7 @@ BattleUI acts as a bridge between the persistent database and the stateless game
     - `@spec-link [[api_go_battle_engine]]`
     - `@spec-link [[api_go_battle_start]]`
     - `@spec-link [[api_go_battle_action]]`
+    - `@spec-link [[api_leaderboard]]`
 - **Standardized Payloads**: Communication with the engine is wrapped in the `[[api_standard_envelope]]` format for consistent request tracking and logging across systems.
 
 ### API-First Playability

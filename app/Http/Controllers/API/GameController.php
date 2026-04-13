@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Services\Contracts\UpsilonApiServiceInterface;
 use App\Traits\ApiResponder;
 use App\Http\Requests\API\Game\ActionRequest;
+use App\Http\Resources\BoardStateResource;
 
 /**
  * @spec-link [[api_go_battle_action]]
@@ -22,6 +23,10 @@ class GameController extends Controller
     public function state(Request $request, string $id)
     {
         $match = \App\Models\GameMatch::findOrFail($id);
+        
+        // Ensure only participants or Admins can view the state
+        $this->authorize('view', $match);
+
         $participants = \App\Models\MatchParticipant::where('match_id', $id)
             ->with('player:id,account_name')
             ->get();
@@ -29,8 +34,8 @@ class GameController extends Controller
         return $this->success([
             'match_id' => $match->id,
             'game_mode' => $match->game_mode,
-            'game_state' => $match->game_state_cache,
-            'participants' => $participants->map(function ($p) use ($match) {
+            'game_state' => new BoardStateResource($match->game_state_cache),
+            'participants' => $participants->map(function ($p) use ($match, $request) {
                 $playerId = $p->player_id;
                 $nickname = $p->player?->account_name;
 
@@ -51,7 +56,7 @@ class GameController extends Controller
                 }
 
                 return [
-                    'player_id' => $playerId ?? 'AI_Player',
+                    'is_self' => $playerId === $request->user()?->id,
                     'nickname' => $nickname ?? 'AI Processor',
                     'team' => $p->team,
                 ];
@@ -68,16 +73,33 @@ class GameController extends Controller
      */
     public function action(ActionRequest $request, string $id)
     {
+        $match = \App\Models\GameMatch::findOrFail($id);
+
+        // 1. Authorize: Only participants can send actions
+        $this->authorize('action', $match);
+
         $frontendRequestId = $request->header('X-Request-ID', (string) str()->uuid());
 
-        // 1. Validate payload from frontend
+        // 2. Validate payload from frontend
         $validated = $request->validated();
 
-        // 2. Call the UPSILON ENGINE via Service
+        // 3. Ownership Verification: Ensure the user owns the entity they are acting with
+        $user = $request->user();
+        $entityId = $validated['entity_id'];
+        
+        $ownsEntity = \App\Models\Character::where('id', $entityId)
+            ->where('player_id', $user->id)
+            ->exists();
+
+        if (!$ownsEntity) {
+            return $this->error('Forbidden: You do not own the entity specified in this action.', 403);
+        }
+
+        // 4. Call the UPSILON ENGINE via Service
         $response = $this->upsilonService->sendAction(
             $id,
-            $request->user()->id,
-            $validated['entity_id'],
+            $user->id,
+            $entityId,
             $validated['type'],
             $validated['target_coords'] ?? []
         );
@@ -91,6 +113,11 @@ class GameController extends Controller
      */
     public function forfeit(Request $request, string $id)
     {
+        $match = \App\Models\GameMatch::findOrFail($id);
+        
+        // Only participants can forfeit
+        $this->authorize('forfeit', $match);
+
         // Forfeiting is a player-level action, no entity_id required from frontend.
         $response = $this->upsilonService->forfeit($id, $request->user()->id);
 

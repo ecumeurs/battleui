@@ -48,6 +48,12 @@ class BattleProxyTest extends TestCase
             'game_mode' => '1v1_PVP',
             'started_at' => now(),
         ]);
+
+        \App\Models\MatchParticipant::create([
+            'match_id' => $this->match->id,
+            'player_id' => $this->user->id,
+            'team' => 1,
+        ]);
     }
 
     /**
@@ -108,7 +114,49 @@ class BattleProxyTest extends TestCase
         $this->assertEquals(5, $this->match->fresh()->turn);
 
         Event::assertDispatched(BoardUpdated::class, function ($event) {
-            return $event->matchId === $this->match->id && $event->data['turn_counter'] === 5;
+            return $event->match_id === $this->match->id && $event->data['turn_counter'] === 5;
         });
+    }
+
+    public function test_user_cannot_act_with_unowned_entity()
+    {
+        $otherUser = User::create([
+            'account_name' => 'OtherPlayer',
+            'email' => 'other@example.com',
+            'password_hash' => bcrypt('password'),
+        ]);
+
+        $otherCharacter = Character::create([
+            'player_id' => $otherUser->id,
+            'name' => 'Enemy',
+            'hp' => 10,
+            'attack' => 5,
+            'defense' => 2,
+            'movement' => 2,
+            'initial_movement' => 2,
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/v1/game/{$this->match->id}/action", [
+                'entity_id' => $otherCharacter->id,
+                'type' => 'Move',
+                'target_coords' => [1, 1]
+            ]);
+
+        $response->assertStatus(403);
+    }
+
+    public function test_user_cannot_view_unauthorized_match()
+    {
+        $intruder = User::create([
+            'account_name' => 'Intruder',
+            'email' => 'spy@example.com',
+            'password_hash' => bcrypt('password'),
+        ]);
+
+        $response = $this->actingAs($intruder)
+            ->getJson("/api/v1/game/{$this->match->id}");
+
+        $response->assertStatus(403);
     }
 }

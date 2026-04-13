@@ -5,6 +5,7 @@ import { ref, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import auth from '@/services/auth';
 import { connection } from '@/services/connection';
+import LeaderboardComponent from '@/Components/LeaderboardComponent.vue';
 
 const props = defineProps({
     user: {

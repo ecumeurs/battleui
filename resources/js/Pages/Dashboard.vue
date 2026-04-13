@@ -7,6 +7,7 @@ import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import CharacterRoster from '@/Components/CharacterRoster.vue';
 import IdentitySection from '@/Components/IdentitySection.vue';
 import EngagementHub from '@/Components/EngagementHub.vue';
+import LeaderboardComponent from '@/Components/LeaderboardComponent.vue';
 
 import auth from '@/services/auth';
 
@@ -99,6 +100,9 @@ onUnmounted(() => {
 
                 <!-- Action Hub -->
                 <EngagementHub :user="user" />
+
+                <!-- Competitive Rank Feed -->
+                <LeaderboardComponent :user="user" />
             </main>
 
             <!-- Right Column: Identity & Combat Record -->

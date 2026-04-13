@@ -37,4 +37,35 @@ class BoardUpdated implements ShouldBroadcast
     {
         return 'board.updated';
     }
+
+    public function broadcastWith(): array
+    {
+        $payload = $this->data;
+
+        // Custom masking logic for WebSocket (similar to BoardStateResource)
+        unset($payload['current_player_id']);
+        unset($payload['winner_id']);
+
+        if (isset($payload['entities']) && is_array($payload['entities'])) {
+            foreach ($payload['entities'] as &$entity) {
+                unset($entity['player_id']);
+            }
+        }
+
+        if (isset($payload['players']) && is_array($payload['players'])) {
+            foreach ($payload['players'] as &$player) {
+                unset($player['id']);
+                if (isset($player['entities']) && is_array($player['entities'])) {
+                    foreach ($player['entities'] as &$entity) {
+                        unset($entity['player_id']);
+                    }
+                }
+            }
+        }
+
+        return [
+            'match_id' => $this->match_id,
+            'data' => $payload
+        ];
+    }
 }

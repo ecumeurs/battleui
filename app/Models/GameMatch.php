@@ -30,4 +30,9 @@ class GameMatch extends Model
         'started_at' => 'datetime',
         'concluded_at' => 'datetime',
     ];
+
+    public function participants()
+    {
+        return $this->hasMany(MatchParticipant::class, 'match_id');
+    }
 }

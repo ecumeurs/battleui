@@ -25,7 +25,7 @@ const props = defineProps({
             </div>
 
             <CharacterBattleCard
-                v-for="char in player.entities"
+                v-for="char in player.entities.filter(e => !e.dead)"
                 :key="char.id"
                 :character="char"
                 :compact="player.id !== detailedPlayerId"

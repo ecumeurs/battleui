@@ -10,6 +10,14 @@ use Illuminate\Http\Resources\Json\JsonResource;
 
 class BoardStateResource extends JsonResource
 {
+    protected $forcedUser = null;
+
+    public function __construct($resource, $user = null)
+    {
+        parent::__construct($resource);
+        $this->forcedUser = $user;
+    }
+
     /**
      * Transform the resource into an array.
      *
@@ -23,40 +31,53 @@ class BoardStateResource extends JsonResource
             return [];
         }
 
-        // Mask current_player_id -> We should provide the team instead if possible, 
-        // but for now let's just strip it if we can't map it.
-        // Actually, the engine seems to provide team IDs in the players array.
+        $user = $this->forcedUser ?? $request->user();
+        $userId = $user ? $user->id : null;
+
+        // 1. Mask Global Turn Logic
+        $data['current_player_is_self'] = ($data['current_player_id'] ?? null) === $userId;
         unset($data['current_player_id']);
-        unset($data['winner_id']);
-
-        // Mask entities
-        if (isset($data['entities']) && is_array($data['entities'])) {
-            foreach ($data['entities'] as &$entity) {
-                unset($entity['player_id']);
-                // id remains for characters/entities (Character ID)
-            }
+        
+        $data['game_finished'] = isset($data['winner_id']) && $data['winner_id'] !== "";
+        if ($data['game_finished']) {
+            $data['winner_is_self'] = $data['winner_id'] === $userId;
+            unset($data['winner_id']);
+        } else {
+            $data['winner_is_self'] = false;
         }
 
-        // Mask turn sequence
-        if (isset($data['turn']) && is_array($data['turn'])) {
-            foreach ($data['turn'] as &$turn) {
-                unset($turn['player_id']);
-            }
-        }
-
-        // Mask players array
+        // 2. Process Players (The new Source of Truth)
         if (isset($data['players']) && is_array($data['players'])) {
             foreach ($data['players'] as &$player) {
-                unset($player['id']); // User ID
+                $player['is_self'] = ($player['id'] ?? null) === $userId;
+                unset($player['id']); // User ID Masking
 
-                // Entities nested in players
                 if (isset($player['entities']) && is_array($player['entities'])) {
                     foreach ($player['entities'] as &$entity) {
+                        $entity['is_self'] = $player['is_self'];
+                        $entity['dead'] = ($entity['hp'] ?? 1) <= 0;
                         unset($entity['player_id']);
+                        // Note: entity['team'] is now provided by the engine in Entity DTO
                     }
                 }
             }
         }
+
+        // 3. Process Turn Sequence
+        if (isset($data['turn']) && is_array($data['turn'])) {
+            foreach ($data['turn'] as &$turn) {
+                $turn['is_self'] = ($turn['player_id'] ?? null) === $userId;
+                // Team is typically known by looking up the player_id in the engine, 
+                // but we can also inject it here if needed. 
+                // For now, mapping via player_teams passed from controller.
+                $turn['team'] = $data['players_teams'][$turn['player_id'] ?? ''] ?? 0;
+                unset($turn['player_id']);
+            }
+        }
+
+        // 4. Remove Redundant Flat Entities Array (Consolidation)
+        unset($data['entities']);
+        unset($data['players_teams']);
 
         return $data;
     }

@@ -19,7 +19,7 @@ class GameMatchResource extends JsonResource
             'game_mode' => $this->game_mode,
             'started_at' => $this->started_at?->toIso8601String(),
             'concluded_at' => $this->concluded_at?->toIso8601String(),
-            'winning_team_id' => $this->winning_team_id,
+            'winner_team_id' => $this->winning_team_id,
         ];
     }
 }

@@ -18,7 +18,8 @@ function tokenPosition(delay) {
 }
 
 function tokenColor(turn) {
-    return props.teamColors[turn.player_id] || '#00f2ff';
+    if (turn.is_self) return '#00a8ff';
+    return props.teamColors[turn.team] || '#ff00ff';
 }
 </script>
 

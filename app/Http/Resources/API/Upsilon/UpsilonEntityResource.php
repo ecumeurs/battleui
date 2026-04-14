@@ -18,6 +18,12 @@ class UpsilonEntityResource extends JsonResource
     public function toArray(Request $request): array
     {
         // $this is the Character model or an array/object matching the structure
+        /**
+         * NOTE: This resource is used primarily to transmit baseline character data TOWARD the Upsilon engine.
+         * The 'hp' field in the database represents a character's maximum potential (Max HP). 
+         * Since current HP is a consumable stat managed during battle and not persisted in the database roster, 
+         * we map both 'hp' and 'max_hp' to this baseline value for engine initialization.
+         */
         return [
             'id' => $this->id,
             'name' => $this->name,

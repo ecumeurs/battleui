@@ -27,43 +27,19 @@ class GameController extends Controller
         // Ensure only participants or Admins can view the state
         $this->authorize('view', $match);
 
-        $participants = \App\Models\MatchParticipant::where('match_id', $id)
-            ->with('player:id,account_name')
-            ->get();
+        $participants = \App\Models\MatchParticipant::where('match_id', $id)->get();
+        $playerTeams = $participants->pluck('team', 'player_id')->toArray();
+        
+        $gameState = $match->game_state_cache;
+        $gameState['players_teams'] = $playerTeams;
 
         return $this->success([
             'match_id' => $match->id,
             'game_mode' => $match->game_mode,
-            'game_state' => new BoardStateResource($match->game_state_cache),
-            'participants' => $participants->map(function ($p) use ($match, $request) {
-                $playerId = $p->player_id;
-                $nickname = $p->player?->account_name;
-
-                // Attempt to enrich with data from engine cache (especially for AI names/IDs)
-                $cachedPlayers = $match->game_state_cache['players'] ?? [];
-                
-                if (!$playerId || !$nickname) {
-                    foreach ($cachedPlayers as $cp) {
-                        // For AI, match by team and absence of User ID in this participant slot
-                        if (($cp['ia'] ?? false) && ($cp['team'] ?? 0) == $p->team) {
-                            // Only pick this cached player if it's not already "claimed" by another participant
-                            // (Simplified: first AI found for this team)
-                            $playerId = $cp['id'] ?? $playerId;
-                            $nickname = $cp['nickname'] ?? $nickname;
-                            break;
-                        }
-                    }
-                }
-
-                return [
-                    'is_self' => $playerId === $request->user()?->id,
-                    'nickname' => $nickname ?? 'AI Processor',
-                    'team' => $p->team,
-                ];
-            }),
+            'game_state' => (new BoardStateResource($gameState))->resolve(),
             'started_at' => $match->started_at?->toIso8601String(),
             'concluded_at' => $match->concluded_at?->toIso8601String(),
-            'winning_team_id' => $match->winning_team_id,
+            'winner_team_id' => $match->winning_team_id,
         ]);
     }
 

@@ -110,7 +110,8 @@ BattleUI acts as a bridge between the persistent database and the stateless game
     - `@spec-link [[api_go_battle_start]]`
     - `@spec-link [[api_go_battle_action]]`
     - `@spec-link [[api_leaderboard]]`
-- **Standardized Payloads**: Communication with the engine is wrapped in the `[[api_standard_envelope]]` format for consistent request tracking and logging across systems.
+- **Standardized Payloads**: ALL communication with the engine (HTTP and WebSocket) MUST be wrapped in the `[[api_standard_envelope]]` format for consistent request tracking and logging across systems.
+- **Board State Standard**: Tactical payloads (returned by `GET /api/v1/game/{id}` and via `board.updated` WebSocket events) follow the standard envelope. For API, the board is in `data.game_state`. For WebSocket, the board is in `data`.
 
 ### API-First Playability
 - **Requirement**: The system adheres to the `[[requirement_customer_api_first]]` standard, ensuring all game features are fully accessible via API.

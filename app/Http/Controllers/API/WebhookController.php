@@ -39,10 +39,21 @@ class WebhookController extends Controller
                 'turn' => $payload['data']['turn_counter'] ?? $match->turn,
             ]);
 
-            Log::info("Match {$match_id} state updated from webhook.");
+            Log::info("Match {$match_id} state updated from webhook. Broadcasting to " . $match->participants->count() . " participants.");
 
-            // Broadcast the update
-            broadcast(new BoardUpdated($match_id, $payload['data'] ?? $payload));
+            // Broadcast the update to each participant
+            foreach ($match->participants as $participant) {
+                $user = $participant->player;
+                if ($user && $user->ws_channel_key) {
+                    Log::debug("Broadcasting board.updated for match {$match_id} to user key {$user->ws_channel_key}");
+                    broadcast(new BoardUpdated(
+                        $user->ws_channel_key, 
+                        $match_id, 
+                        $payload['data'] ?? $payload,
+                        $user
+                    ));
+                }
+            }
         }
 
         return $this->success(null, 'Webhook processed successfully.');

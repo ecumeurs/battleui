@@ -7,6 +7,7 @@ import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import { getAuthUser } from '@/services/auth';
 import { game } from '@/services/game';
 import { connection } from '@/services/connection';
+import { tactical } from '@/services/tactical';
 
 import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
@@ -18,15 +19,12 @@ const user = ref(getAuthUser());
 const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));
 
 const gameState = ref(null);
-const participants = ref([]);
 const matchStartedAt = ref(null);
 const isLoading = ref(true);
 const isSocketConnected = ref(false);
 
-const currentPlayerId = computed(() => {
-    const participant = participants.value.find(p => p.nickname === user.value?.account_name);
-    return participant ? String(participant.player_id) : '';
-});
+const myPlayer = computed(() => tactical.myPlayer(gameState.value));
+const currentPlayerId = computed(() => myPlayer.value?.nickname || ''); // We use nickname as a stable display ID
 
 let matchTimerInterval = null;
 let shotTimerInterval = null;
@@ -36,13 +34,12 @@ onMounted(async () => {
 
     try {
         const response = await game.fetchGameState(matchId.value);
-        gameState.value = response.game_state || {};
-        participants.value = response.participants || [];
+        gameState.value = response || {};
         matchStartedAt.value = response.started_at;
 
         game.subscribeToBoard(matchId.value, (event) => {
             console.log('[BoardUpdated]', event);
-            gameState.value = event.data || event;
+            gameState.value = event.data;
             connection.setBoardLinked(true);
             // Clear pathfinding/selection on state update
             selectedAction.value = null;
@@ -74,9 +71,8 @@ onMounted(async () => {
         console.log('[Arena] Board empty, attempting fallback sync...');
         try {
             const response = await game.fetchGameState(matchId.value);
-            if (response.game_state && response.game_state.entities && response.game_state.entities.length > 0) {
-                gameState.value = response.game_state;
-                participants.value = response.participants || [];
+            if (response && response.players && response.players.length > 0) {
+                gameState.value = response;
                 matchStartedAt.value = response.started_at;
                 clearInterval(emergencyPoller);
             }
@@ -110,7 +106,11 @@ onUnmounted(() => {
 // ─── COMPUTED STATE ──────────────────────────────────────────
 
 const grid = computed(() => gameState.value?.grid || { width: 10, height: 10, cells: [] });
-const allEntities = computed(() => gameState.value?.entities || []);
+const allEntities = computed(() => {
+    if (!gameState.value?.players) return [];
+    return gameState.value.players.flatMap(p => p.entities || []);
+});
+
 const turnOrder = computed(() => {
    if (!gameState.value?.turn) return [];
    return gameState.value.turn.map(t => {
@@ -120,27 +120,19 @@ const turnOrder = computed(() => {
 });
 
 const currentEntityId = computed(() => gameState.value?.current_entity_id || '');
-const currentEntity = computed(() => allEntities.value.find(e => e.id === currentEntityId.value));
-const isPlayerTurn = computed(() => String(gameState.value?.current_player_id) === currentPlayerId.value);
+const currentEntity = computed(() => tactical.currentCharacter(gameState.value));
+const isPlayerTurn = computed(() => !!gameState.value?.current_player_is_self);
 
 // The player whose character is currently acting (used in ActionPanel header)
-const activePlayerName = computed(() => {
-    const pid = String(gameState.value?.current_player_id || '');
-    if (!pid) return '';
-    const participant = participants.value.find(p => String(p.player_id) === pid);
-    return participant?.nickname ?? '';
-});
+const activePlayerName = computed(() => tactical.currentPlayer(gameState.value)?.nickname || '');
 
-const myTeam = computed(() => {
-   const p = participants.value.find(p => String(p.player_id) === currentPlayerId.value);
-   return p ? p.team : 1;
-});
+const myTeam = computed(() => myPlayer.value?.team || 1);
 
-const allyParticipants = computed(() => participants.value.filter(p => p.team === myTeam.value));
-const enemyParticipants = computed(() => participants.value.filter(p => p.team !== myTeam.value));
+const allyParticipants = computed(() => tactical.myAllies(gameState.value).concat(myPlayer.value ? [myPlayer.value] : []));
+const enemyParticipants = computed(() => tactical.myFoes(gameState.value));
 
-const allyEntities = computed(() => allEntities.value.filter(e => allyParticipants.value.some(p => String(p.player_id) === String(e.player_id))));
-const enemyEntities = computed(() => allEntities.value.filter(e => enemyParticipants.value.some(p => String(p.player_id) === String(e.player_id))));
+const allyEntities = computed(() => tactical.myCharacters(gameState.value).concat(tactical.myAlliesCharacters(gameState.value)));
+const enemyEntities = computed(() => tactical.myFoesCharacters(gameState.value));
 
 function mapParticipantsToRoster(parts) {
     // Note: AI players might not be explicitly in `participants` if they are handled purely in Golang.
@@ -156,38 +148,40 @@ function mapParticipantsToRoster(parts) {
     }));
 }
 
-const allyRoster = computed(() => mapParticipantsToRoster(allyParticipants.value));
-const enemyRoster = computed(() => mapParticipantsToRoster(enemyParticipants.value));
+const allyRoster = computed(() => allyParticipants.value.map(p => ({
+    nickname: p.nickname,
+    team: p.team,
+    entities: (p.entities || []).map(e => ({
+        ...e,
+        _isActive: e.id === currentEntityId.value
+    }))
+})));
+const enemyRoster = computed(() => enemyParticipants.value.map(p => ({
+    nickname: p.nickname,
+    team: p.team,
+    entities: (p.entities || []).map(e => ({
+        ...e,
+        _isActive: e.id === currentEntityId.value
+    }))
+})));
 
 const teamColors = computed(() => {
-    // ... logic remains
     const colors = {};
-    const myPId = currentPlayerId.value;
-    
-    participants.value.forEach(p => {
-        const pIdStr = String(p.player_id);
-        if (pIdStr === myPId) {
-            colors[pIdStr] = '#00a8ff'; // Blue
-        } else if (p.team === myTeam.value) {
-            colors[pIdStr] = '#39ff13'; // Green
-        } else {
-            const enemies = enemyParticipants.value;
-            if (enemies[0] && String(enemies[0].player_id) === pIdStr) {
-                colors[pIdStr] = '#ff2020'; // Red
-            } else {
-                colors[pIdStr] = '#b030ff'; // Purple
-            }
-        }
-    });
+    if (!gameState.value?.players) return colors;
 
-    allEntities.value.forEach(e => {
-        const ePlayerStr = String(e.player_id);
-        if (!colors[ePlayerStr]) {
-             if (allyEntities.value.some(ae => String(ae.id) === String(e.id))) {
-                 colors[ePlayerStr] = '#39ff13';
-             } else {
-                 colors[ePlayerStr] = '#ff2020';
-             }
+    gameState.value.players.forEach(p => {
+        const pKey = p.nickname;
+        if (p.is_self) {
+            colors[pKey] = '#00a8ff'; // Blue
+        } else if (p.team === myTeam.value) {
+            colors[pKey] = '#39ff13'; // Green
+        } else {
+            const foes = enemyParticipants.value;
+            if (foes[0] && foes[0].nickname === pKey) {
+                colors[pKey] = '#ff2020'; // Red
+            } else {
+                colors[pKey] = '#b030ff'; // Purple
+            }
         }
     });
 
@@ -195,19 +189,13 @@ const teamColors = computed(() => {
 });
 
 const isGameOver = computed(() => {
-    return !!gameState.value?.winner_id;
+    return !!gameState.value?.game_finished;
 });
 
 const isVictory = computed(() => {
     if (!isGameOver.value) return false;
-    // Assuming winner_id from engine represents the winning team or winning player_id.
-    // If it's a team ID:
-    if (String(gameState.value.winner_id) === String(myTeam.value)) return true;
-    
-    // If it's a player ID:
-    const winningParticipant = participants.value.find(p => String(p.player_id) === String(gameState.value.winner_id));
-    if (winningParticipant && winningParticipant.team === myTeam.value) return true;
-    
+    if (gameState.value.winner_is_self) return true;
+    if (gameState.value.winner_team_id === myTeam.value) return true;
     return false;
 });
 
@@ -243,7 +231,7 @@ async function handleAction(type) {
     if (type === 'pass') {
         isProcessing.value = true;
         try {
-            await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'pass');
+            await game.sendAction(matchId.value, currentEntityId.value, 'pass');
             selectedAction.value = null;
             highlightedCells.value = [];
         } catch (err) {
@@ -333,7 +321,7 @@ async function handleTileClick(x, y) {
             selectedPath.value = path;
             isProcessing.value = true;
             try {
-                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'move', path);
+                await game.sendAction(matchId.value, currentEntityId.value, 'move', path);
                 selectedAction.value = null;
                 highlightedCells.value = [];
             } catch (err) {
@@ -347,7 +335,7 @@ async function handleTileClick(x, y) {
         if (targetCell) {
             isProcessing.value = true;
             try {
-                await game.sendAction(matchId.value, currentPlayerId.value, currentEntityId.value, 'attack', [{x, y}]);
+                await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{x, y}]);
                 selectedAction.value = null;
                 highlightedCells.value = [];
             } catch (err) {

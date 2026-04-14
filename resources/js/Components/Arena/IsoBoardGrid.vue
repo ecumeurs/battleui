@@ -70,7 +70,7 @@ function isCellHighlighted(col, row) {
 }
 
 function entityAt(col, row) {
-    return props.entities.find(e => e.position.x === col && e.position.y === row);
+    return props.entities.find(e => e.position.x === col && e.position.y === row && !e.dead);
 }
 
 function isObstacle(col, row) {
@@ -79,8 +79,8 @@ function isObstacle(col, row) {
 }
 
 function entityShadeOffset(entity) {
-    const samePlayer = props.entities.filter(e => e.player_id === entity.player_id);
-    return samePlayer.indexOf(entity);
+    const members = props.entities.filter(e => e.team === entity.team && e.is_self === entity.is_self);
+    return members.indexOf(entity);
 }
 
 function onWheel(e) {
@@ -184,7 +184,7 @@ function onWheel(e) {
                             <CharacterPawn
                                 v-if="entityAt(col - 1, row - 1)"
                                 :entity="entityAt(col - 1, row - 1)"
-                                :team-color="teamColors[entityAt(col - 1, row - 1).player_id] || '#00a8ff'"
+                                :team-color="entityAt(col - 1, row - 1).is_self ? '#39ff13' : (props.teamColors[entityAt(col - 1, row - 1).team] || '#ff2020')"
                                 :is-active="entityAt(col - 1, row - 1).id === currentEntityId"
                                 :shade-offset="entityShadeOffset(entityAt(col - 1, row - 1))"
                                 :style="{

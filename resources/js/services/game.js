@@ -22,9 +22,8 @@ export const game = {
      * @param {Array<{x: number, y: number}>} targetCoords 
      * @returns {Promise<Object>}
      */
-    async sendAction(matchId, playerId, entityId, type, targetCoords = []) {
+    async sendAction(matchId, entityId, type, targetCoords = []) {
         const payload = {
-            player_id: playerId,
             entity_id: entityId,
             type,
         };
@@ -49,6 +48,7 @@ export const game = {
 
     /**
      * Subscribe to real-time board updates using Laravel Echo (Reverb).
+     * Now uses the user's private channel to ensure tactical privacy.
      * @param {string} matchId 
      * @param {Function} callback 
      */
@@ -58,13 +58,20 @@ export const game = {
             return;
         }
 
-        const token = localStorage.getItem('upsilon_token');
-        if (token) {
-            window.axios.defaults.headers.common['Authorization'] = `Bearer ${token}`;
+        const user = this.getAuthUser();
+        if (!user || !user.ws_channel_key) {
+            console.error('User WebSocket channel key not found.');
+            return;
         }
         
-        return window.Echo.private(`arena.${matchId}`)
-            .listen('.board.updated', callback);
+        // Listen on the private user channel for tactical updates
+        return window.Echo.private(`user.${user.ws_channel_key}`)
+            .listen('.board.updated', (event) => {
+                // Filter events to ensure they belong to the current match
+                if (event.match_id === matchId) {
+                    callback(event);
+                }
+            });
     },
 
     /**
@@ -73,7 +80,16 @@ export const game = {
      */
     unsubscribeFromBoard(matchId) {
         if (!window.Echo) return;
-        window.Echo.leave(`arena.${matchId}`);
+        const user = this.getAuthUser();
+        if (user && user.ws_channel_key) {
+            window.Echo.leave(`user.${user.ws_channel_key}`);
+        }
+    },
+
+    /** Helper to get current user */
+    getAuthUser() {
+        const user = localStorage.getItem('upsilon_user');
+        return user ? JSON.parse(user) : null;
     }
 };
 

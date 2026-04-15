@@ -29,7 +29,7 @@ class WebhookRequest extends FormRequest
         return [
             'data' => 'required|array',
             'data.match_id' => 'required|uuid|exists:game_matches,id',
-            'data.version' => 'required|integer',
+            'data.version' => 'required|numeric',
             'data.event_type' => 'required|string',
             'data.data' => 'required|array', // The actual BoardState
         ];

@@ -38,12 +38,10 @@ class BoardStateResource extends JsonResource
         $data['current_player_is_self'] = ($data['current_player_id'] ?? null) === $userId;
         unset($data['current_player_id']);
         
-        $data['game_finished'] = isset($data['winner_id']) && $data['winner_id'] !== "";
+        $data['game_finished'] = (isset($data['winner_id']) && $data['winner_id'] !== "") || (isset($data['winner_team_id']) && $data['winner_team_id'] != 0);
         if ($data['game_finished']) {
-            $data['winner_is_self'] = $data['winner_id'] === $userId;
+            $data['winner_team_id'] ??= 0;
             unset($data['winner_id']);
-        } else {
-            $data['winner_is_self'] = false;
         }
 
         // 2. Process Players (The new Source of Truth)

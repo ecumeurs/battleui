@@ -16,6 +16,28 @@ export const tactical = {
     },
 
     /**
+     * Resolves the team ID for the current authenticated user.
+     * @param {Object} gameState
+     * @returns {number}
+     */
+    myTeam(gameState) {
+        const me = this.myPlayer(gameState);
+        return me ? me.team || 0 : 0;
+    },
+
+    /**
+     * Checks if the current authenticated user belongs to the winning team.
+     * @param {Object} gameState
+     * @returns {boolean}
+     */
+    isWinner(gameState) {
+        if (!gameState || !gameState.game_finished) return false;
+        const winnerTeamID = gameState.winner_team_id || 0;
+        if (winnerTeamID === 0) return false;
+        return this.myTeam(gameState) === winnerTeamID;
+    },
+
+    /**
      * Resolves the player object for the player whose turn it currently is.
      * @param {Object} gameState
      * @returns {Object|null}

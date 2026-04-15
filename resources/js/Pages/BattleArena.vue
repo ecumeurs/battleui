@@ -2,7 +2,7 @@
 <!-- @spec-link [[req_ui_look_and_feel]] -->
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted } from 'vue';
+import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import { getAuthUser } from '@/services/auth';
 import { game } from '@/services/game';
@@ -14,6 +14,7 @@ import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
 import IsoBoardGrid from '@/Components/Arena/IsoBoardGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
+import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
 
 const user = ref(getAuthUser());
 const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));
@@ -22,6 +23,9 @@ const gameState = ref(null);
 const matchStartedAt = ref(null);
 const isLoading = ref(true);
 const isSocketConnected = ref(false);
+const lastAction = ref(null);
+const showActionReport = ref(false);
+let actionTimeout = null;
 
 const myPlayer = computed(() => tactical.myPlayer(gameState.value));
 const currentPlayerId = computed(() => myPlayer.value?.nickname || ''); // We use nickname as a stable display ID
@@ -56,6 +60,18 @@ onMounted(async () => {
                 console.log('[PusherState]', states.current);
             });
         }
+
+        // Watch for actions to trigger feedback
+        watch(() => gameState.value?.action, (newAction) => {
+            if (newAction && newAction.type) {
+                lastAction.value = newAction;
+                showActionReport.value = true;
+                if (actionTimeout) clearTimeout(actionTimeout);
+                actionTimeout = setTimeout(() => {
+                    showActionReport.value = false;
+                }, 3000);
+            }
+        }, { deep: true });
 
     } catch (e) {
         console.error("Failed to load game state", e);
@@ -194,10 +210,7 @@ const isGameOver = computed(() => {
 });
 
 const isVictory = computed(() => {
-    if (!isGameOver.value) return false;
-    if (gameState.value.winner_is_self) return true;
-    if (gameState.value.winner_team_id === myTeam.value) return true;
-    return false;
+    return tactical.isWinner(gameState.value);
 });
 
 const allyTeamHp = computed(() => allyEntities.value.reduce((sum, e) => sum + e.hp, 0));
@@ -415,6 +428,12 @@ function calculateAttackRange() {
                 :match-duration="matchDuration"
                 :shot-clock="shotClock"
                 :is-socket-connected="isSocketConnected"
+            />
+
+            <!-- ACTION REPORT OVERLAY -->
+            <TacticalActionReport
+                :action="lastAction"
+                :show="showActionReport"
             />
 
             <!-- MAIN CONTENT: Rosters + Board -->

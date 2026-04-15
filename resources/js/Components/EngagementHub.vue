@@ -93,8 +93,9 @@ onMounted(() => {
             })
             .listen('.match.found', (e) => {
                 console.log("Match Found via WebSocket!", e);
+                const matchId = e.data?.match_id || e.match_id; // Robust check
                 status.value = 'matched';
-                redirectToArena(e.match_id);
+                redirectToArena(matchId);
             })
             .error((err) => {
                 console.error("Private channel subscription error", err);

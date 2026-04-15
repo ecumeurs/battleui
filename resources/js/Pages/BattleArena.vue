@@ -38,8 +38,9 @@ onMounted(async () => {
         matchStartedAt.value = response.started_at;
 
         game.subscribeToBoard(matchId.value, (event) => {
-            console.log('[BoardUpdated]', event);
-            gameState.value = event.data;
+            console.log('[BoardUpdated] Received payload:', event);
+            // 'event' is already unwrapped by the game service [[api_standard_envelope]]
+            gameState.value = event;
             connection.setBoardLinked(true);
             // Clear pathfinding/selection on state update
             selectedAction.value = null;

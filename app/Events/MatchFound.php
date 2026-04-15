@@ -34,4 +34,20 @@ class MatchFound implements ShouldBroadcast
     {
         return 'match.found';
     }
+
+    /**
+     * @spec-link [[api_standard_envelope]]
+     */
+    public function broadcastWith(): array
+    {
+        return [
+            'request_id' => (string) \Illuminate\Support\Str::uuid7(),
+            'message' => 'Match Found',
+            'success' => true,
+            'data' => [
+                'match_id' => $this->match_id,
+            ],
+            'meta' => (object) []
+        ];
+    }
 }

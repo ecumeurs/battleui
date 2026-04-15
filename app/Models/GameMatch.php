@@ -18,6 +18,7 @@ class GameMatch extends Model
         'game_state_cache',
         'grid_cache',
         'turn',
+        'version',
         'started_at',
         'concluded_at',
         'winning_team_id',

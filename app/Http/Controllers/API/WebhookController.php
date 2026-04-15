@@ -13,7 +13,13 @@ use Illuminate\Support\Facades\Log;
 use App\Models\GameMatch;
 use App\Events\BoardUpdated;
 use App\Traits\ApiResponder;
+use App\Http\Requests\API\Webhook\WebhookRequest;
 
+/**
+ * @spec-link [[api_go_webhook_callback]]
+ * @spec-link [[api_websocket_game_events]]
+ * @spec-link [[api_standard_envelope]]
+ */
 class WebhookController extends Controller
 {
     use ApiResponder;
@@ -21,41 +27,53 @@ class WebhookController extends Controller
     /**
      * @spec-link [[api_battle_proxy]]
      * @spec-link [[api_go_webhook_callback]]
+     * @spec-link [[mech_game_state_versioning]]
+     * @spec-link [[battleui_api_dtos]]
      */
-    public function handle(Request $request)
+    public function handle(WebhookRequest $request)
     {
-        $payload = $request->all();
-        $match_id = $payload['data']['match_id'] ?? $payload['match_id'] ?? null;
+        // Strictly use validated data from WebhookRequest
+        $arenaEvent = $request->validated()['data'];
+        $match_id = $arenaEvent['match_id'];
+        $incomingVersion = $arenaEvent['version'];
+        $boardState = $arenaEvent['data']; // Extract core board state
 
-        if (!$match_id) {
-            Log::error("Webhook received with no match_id", $payload);
-            return $this->error('Webhook received with no match_id', 400);
-        }
-
-        $match = GameMatch::find($match_id);
+        // Eager load participants and their players so masking logic in BoardUpdated has data ready
+        $match = GameMatch::with(['participants.player'])->find($match_id);
+        
         if ($match) {
+            // Logic Detail: [[mech_game_state_versioning]]
+            // Only accept updates with a higher version than currently stored.
+            // Version 0 is accepted as the initial state of a match.
+            if ($match->version > 0 && $incomingVersion <= $match->version) {
+                 Log::debug("Ignoring duplicate or stale state for match {$match_id}. Incoming: v{$incomingVersion}, Stored: v{$match->version}");
+                 return $this->success(['match_id' => $match_id], 'State ignored (stale version).');
+            }
+
+            // Unify Turn State: [[mech_game_state_versioning]]
+            // version/sequence is the single source of truth for progression.
             $match->update([
-                'game_state_cache' => $payload['data'] ?? $payload,
-                'turn' => $payload['data']['turn_counter'] ?? $match->turn,
+                'game_state_cache' => $boardState,
+                'version' => $incomingVersion,
+                'turn' => $incomingVersion, // Unified progression marker
             ]);
 
-            Log::info("Match {$match_id} state updated from webhook. Broadcasting to " . $match->participants->count() . " participants.");
+            Log::info("Match {$match_id} state updated to version {$incomingVersion}. Broadcasting to " . $match->participants->count() . " participants.");
 
-            // Broadcast the update to each participant
+            // Broadcast the validated update
             foreach ($match->participants as $participant) {
                 $user = $participant->player;
                 if ($user && $user->ws_channel_key) {
-                    Log::debug("Broadcasting board.updated for match {$match_id} to user key {$user->ws_channel_key}");
                     broadcast(new BoardUpdated(
                         $user->ws_channel_key, 
                         $match_id, 
-                        $payload['data'] ?? $payload,
+                        $boardState,
                         $user
                     ));
                 }
             }
         }
 
-        return $this->success(null, 'Webhook processed successfully.');
+        return $this->success(['match_id' => $match_id, 'version' => $incomingVersion], 'Webhook processed successfully.');
     }
 }

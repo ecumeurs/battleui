@@ -26,7 +26,8 @@ class BoardUpdated implements ShouldBroadcast
         public string $user_channel_key,
         public string $match_id,
         public array $data,
-        public $recipient = null
+        public $recipient = null,
+        protected string $eventName = 'board.updated'
     ) {}
 
     public function broadcastOn(): array
@@ -38,7 +39,7 @@ class BoardUpdated implements ShouldBroadcast
 
     public function broadcastAs(): string
     {
-        return 'board.updated';
+        return $this->eventName;
     }
 
     public function broadcastWith(): array

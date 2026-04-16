@@ -42,6 +42,8 @@ class WebhookController extends Controller
         $match = GameMatch::with(['participants.player'])->find($match_id);
         
         if ($match) {
+            $eventName = $arenaEvent['event_type'] ?? 'board.updated';
+            
             // Logic Detail: [[mech_game_state_versioning]]
             // Only accept updates with a higher version than currently stored.
             // Version 0 is accepted as the initial state of a match.
@@ -58,7 +60,7 @@ class WebhookController extends Controller
                 'turn' => $incomingVersion, // Unified progression marker
             ]);
 
-            Log::info("Match {$match_id} state updated to version {$incomingVersion}. Broadcasting to " . $match->participants->count() . " participants.");
+            Log::info("Match {$match_id} state updated to version {$incomingVersion} ($eventName). Broadcasting to " . $match->participants->count() . " participants.");
 
             // Broadcast the validated update
             foreach ($match->participants as $participant) {
@@ -68,7 +70,8 @@ class WebhookController extends Controller
                         $user->ws_channel_key, 
                         $match_id, 
                         $boardState,
-                        $user
+                        $user,
+                        $eventName
                     ));
                 }
             }

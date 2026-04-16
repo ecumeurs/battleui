@@ -42,15 +42,14 @@ COPY . .
 # Ensure storage and bootstrap/cache are writable
 RUN chown -R www-data:www-data storage bootstrap/cache
 
-# Note: Composer install and npm build should be done before or handled via volumes/multistage if needed.
-# For this MVP, we assume local builds or volume binds during dev-prod testing.
-# But for a "standard" Dockerfile, we'll assume the code is already built or we can install composer here.
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
-# (Optional) Run composer install if vendor doesn't exist
-# RUN composer install --no-dev --optimize-autoloader
+# Install PHP dependencies
+RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Ensure curl is available for Docker healthchecks
+RUN which curl || apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*
 
 EXPOSE 80
 

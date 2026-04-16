@@ -45,12 +45,28 @@ class WebhookController extends Controller
             $eventName = $arenaEvent['event_type'] ?? 'board.updated';
             
             // Logic Detail: [[mech_game_state_versioning]]
-            // Only accept updates with a higher version than currently stored.
-            // Version 0 is accepted as the initial state of a match.
-            if ($match->version > 0 && $incomingVersion <= $match->version) {
-                 Log::debug("Ignoring duplicate or stale state for match {$match_id}. Incoming: v{$incomingVersion}, Stored: v{$match->version}");
-                 return $this->success(['match_id' => $match_id], 'State ignored (stale version).');
+            // Only accept updates with a higher version than currently stored,
+            // OR the same version if the event type is different (e.g., Board Updated followed by Turn Started).
+            $storedVersion = $match->version;
+            $lastEventType = $match->game_state_cache['_atd_meta']['last_event_type'] ?? null;
+
+            if ($match->version > 0) {
+                if ($incomingVersion < $storedVersion) {
+                    Log::debug("Ignoring stale state for match {$match_id}. Incoming: v{$incomingVersion}, Stored: v{$storedVersion}");
+                    return $this->success(['match_id' => $match_id], 'State ignored (stale version).');
+                }
+                
+                if ($incomingVersion == $storedVersion && $eventName === $lastEventType) {
+                    Log::debug("Ignoring duplicate event for match {$match_id}. Incoming: v{$incomingVersion} ($eventName)");
+                    return $this->success(['match_id' => $match_id], 'State ignored (duplicate event).');
+                }
             }
+
+            // Inject metadata to track the last event type for this version
+            $boardState['_atd_meta'] = [
+                'last_event_type' => $eventName,
+                'processed_at' => now()->toIso8601String(),
+            ];
 
             // Unify Turn State: [[mech_game_state_versioning]]
             // version/sequence is the single source of truth for progression.

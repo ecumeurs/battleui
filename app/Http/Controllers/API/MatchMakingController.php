@@ -101,6 +101,14 @@ class MatchMakingController extends Controller
             'character_ids' => $characterIds
         ]);
 
+        // Cleanup zombie entries where user was deleted
+        $zombies = \App\Models\MatchmakingQueue::whereNotExists(function ($query) {
+            $query->select(\Illuminate\Support\Facades\DB::raw(1))
+                  ->from('users')
+                  ->whereColumn('matchmaking_queues.user_id', 'users.id')
+                  ->whereNull('users.deleted_at');
+        })->delete();
+
         // Check if threshold met
         $queue = \App\Models\MatchmakingQueue::where('game_mode', $gameMode)
             ->orderBy('created_at', 'asc')

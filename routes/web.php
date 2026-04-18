@@ -49,7 +49,8 @@ Route::get('/admin/login', function () {
 
 require __DIR__.'/auth.php';
 
+/** @spec-link [[mech_web_catchall_router]] */
 Route::get('/{any}', function () {
     return Inertia::render('Welcome');
-})->where('any', '^(?!api\/).*');
+})->where('any', '^(?!api\/|up$).*');
 

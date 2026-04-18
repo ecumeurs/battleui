@@ -118,7 +118,23 @@ BattleUI acts as a bridge between the persistent database and the stateless game
 - **Discovery**: A machine-readable `[[api_help_endpoint]]` is available at `/api/v1/help`, providing JSON-formatted documentation for every endpoint (Verb, URI, Intent, Input, and Output).
 - **Synchronization**: API development and documentation are coupled. Any change to the Laravel API must be reflected in both the corresponding ATD atoms and the system help registry.
 
+## Health Checks & Networking
+
+### Framework Health Endpoint (`/up`)
+BattleUI implements the standard Laravel health check endpoint at `/up`. This is used by Docker orchestration and CI pipelines to verify that the application has successfully booted and is ready to accept HTTP traffic.
+- **Spec**: `[[api_laravel_health_check]]`
+- **Usage**: `curl -f http://localhost:8000/up`
+
+### Routing Constraints
+Because this project uses a catch-all router for the SPA (Inertia), special care is taken to avoid intercepting system routes. The catch-all regex in `routes/web.php` explicitly excludes:
+- `/api/*` (handled by `api.php`)
+- `/up` (handled by framework health logic)
+
+Failure to exclude `/up` from the catch-all will result in 500 errors during health checks if front-end assets are not compiled (common in CI environments).
+- **Spec**: `[[mech_web_catchall_router]]`
+
 ---
 *Note: The Upsilon API is typically found at `http://localhost:8081/internal`. Ensure it's running prior starting a battle.*
+
 
 **Keep this help endpoint and doc front in sync when updating laravel api endpoints.**

@@ -43,6 +43,33 @@ This seeder generates:
 > [!NOTE]
 > **Production Deployment:** In a production environment, you don't run the Vite development server. Instead, you run `npm run build` once, and the resulting static assets are served directly by the Laravel API (via Apache, Nginx, or similar).
 
+## Administrative Management
+
+### System Setup
+The application includes a specialized administrative layer for system maintenance. To initialize the default administrator:
+
+1. **Define Password**: Set the `ADMIN_INITIAL_PASSWORD` in your `.env` or as an environment variable.
+2. **Seed Database**: Run the seeder to create the `admin` account.
+   ```bash
+   export ADMIN_INITIAL_PASSWORD="YourSecurePassword"
+   php artisan db:seed
+   ```
+   **Default Credentials:**
+   - **Handle:** `admin`
+   - **Email:** `admin@admin.com`
+
+### Accessing the Terminal
+The administrative UI is restricted to users with the `Admin` role. To access the management tools:
+
+1. Navigate to **`/admin/login`**.
+2. Authenticate using the administrator handle and password.
+3. Upon success, you will be redirected to the **Administrative Dashboard** (`/admin/dashboard`).
+
+### Key Administrative Tools
+- **User Registry**: Audit player handles and emails. Includes tools for **GDPR Anonymization** and account deactivation.
+- **History Audit**: Review tactical logs of all concluded matches.
+- **Maintenance**: Manually trigger a **History Purge** to remove match data older than 90 days, maintaining database performance.
+
 ## Project Structure
 
 This project is a hybrid application combining a Laravel backend with an Inertia.js-driven Vue.js frontend.
@@ -54,6 +81,9 @@ The visual interface and player interactions are located in:
     - **Auth/Login.vue**: A secure authentication interface for survivors to identify themselves using their credentials.
     - **Auth/Register.vue**: The entity initialization portal for creating accounts and generating initial character rosters.
     - **Dashboard.vue**: The tactical command hub for roster review, matchmaking, and identity management.
+    - **Admin/Dashboard.vue**: High-level administrative hub for system maintenance.
+    - **Admin/UserManagement.vue**: Administrative registry with keyword search and manual pagination (ISS-053).
+    - **Admin/History.vue**: Tactical match history audit and purge maintenance terminal (ISS-051).
     - **BattleArena.vue**: The real-time combat theater driven by the Go engine via WebSockets.
 - **[resources/js/Components](file:///workspace/battleui/resources/js/Components)**: Reusable UI elements.
     - **TacticalHeader.vue**: The top navigation and session management bridge.

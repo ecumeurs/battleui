@@ -11,6 +11,7 @@ export default {
     ],
 
     theme: {
+        // @spec-link [[ui_theme]]
         extend: {
             colors: {
                 upsilon: {

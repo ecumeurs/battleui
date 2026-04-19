@@ -70,6 +70,8 @@ class LeaderboardController extends Controller
 
         $sorted = $results->sortByDesc(function ($row) {
             // Sort by Wins first, then Score
+            // @spec-link [[ui_leaderboard_primary_sorting]]
+            // @spec-link [[ui_leaderboard_secondary_sorting]]
             return sprintf('%010d.%010d', $row->wins, (int)($row->score * 1000000));
         })->values();
 

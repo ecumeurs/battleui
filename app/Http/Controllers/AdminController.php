@@ -16,15 +16,39 @@ class AdminController extends Controller
     }
 
     /** @spec-link [[uc_admin_user_management]] */
-    public function users()
+    public function users(Request $request)
     {
-        // Select only non-sensitive fields to protect UUIDs (though admins see some)
-        // We use account_name as the primary handle
+        $query = User::withTrashed()
+                       ->select('id', 'account_name', 'email', 'role', 'deleted_at', 'created_at', 'updated_at');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('account_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $users = $query->orderBy('updated_at', 'desc')
+                       ->limit(51)
+                       ->get();
+
+        $hasMore = $users->count() > 50;
+        if ($hasMore) {
+            $users->pop();
+        }
+
         return Inertia::render('Admin/UserManagement', [
-            'users' => User::withTrashed()
-                           ->select('id', 'account_name', 'email', 'role', 'deleted_at', 'created_at')
-                           ->get()
+            'users' => $users,
+            'initialHasMore' => $hasMore,
+            'initialNextCursor' => $hasMore ? $users->last()->updated_at->toISOString() : null
         ]);
+    }
+
+    /** @spec-link [[uc_admin_history_management]] */
+    public function history()
+    {
+        return Inertia::render('Admin/History');
     }
 
     /** @spec-link [[uc_admin_user_management]] */

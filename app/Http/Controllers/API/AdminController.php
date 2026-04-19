@@ -5,7 +5,9 @@ namespace App\Http\Controllers\API;
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use App\Models\User;
+use App\Models\GameMatch;
 use App\Http\Resources\UserResource;
+use App\Http\Resources\GameMatchResource;
 use App\Traits\ApiResponder;
 use Illuminate\Support\Facades\Hash;
 use App\Http\Requests\API\Auth\LoginRequest;
@@ -13,6 +15,7 @@ use App\Http\Requests\API\Auth\LoginRequest;
 /**
  * @spec-link [[uc_admin_login]]
  * @spec-link [[uc_admin_user_management]]
+ * @spec-link [[uc_admin_history_management]]
  * @api-tag Admin
  */
 class AdminController extends Controller
@@ -51,12 +54,91 @@ class AdminController extends Controller
      * @spec-link [[uc_admin_user_management]]
      * @api-output [[UserListResponse]]
      * 
-     * List all users for auditing
+     * List all users for auditing with manual pagination and search (ISS-053)
      */
-    public function users()
+    public function users(Request $request)
     {
-        $users = User::withTrashed()->get();
-        return $this->success(UserResource::collection($users), 'User registry retrieved.');
+        $query = User::withTrashed();
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('account_name', 'like', "%{$search}%")
+                  ->orWhere('email', 'like', "%{$search}%");
+            });
+        }
+
+        $cursor = $request->input('cursor');
+        if ($cursor) {
+            $query->where('updated_at', '<', $cursor);
+        }
+
+        $users = $query->orderBy('updated_at', 'desc')
+                       ->limit(51)
+                       ->get();
+
+        $hasMore = $users->count() > 50;
+        if ($hasMore) {
+            $users->pop();
+        }
+
+        return $this->success([
+            'items' => UserResource::collection($users),
+            'next_cursor' => $hasMore ? $users->last()->updated_at->toISOString() : null,
+            'has_more' => $hasMore
+        ], 'User registry retrieved.');
+    }
+
+    /**
+     * @spec-link [[uc_admin_history_management]]
+     * 
+     * List match history with manual pagination and search (ISS-051, ISS-053)
+     */
+    public function history(Request $request)
+    {
+        $query = GameMatch::with('participants.player');
+
+        if ($request->filled('search')) {
+            $search = $request->input('search');
+            $query->where(function($q) use ($search) {
+                $q->where('id', 'like', "%{$search}%")
+                  ->orWhereHas('participants.player', function($pq) use ($search) {
+                      $pq->where('account_name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        $cursor = $request->input('cursor');
+        if ($cursor) {
+            $query->where('updated_at', '<', $cursor);
+        }
+
+        $matches = $query->orderBy('updated_at', 'desc')
+                         ->limit(51)
+                         ->get();
+
+        $hasMore = $matches->count() > 50;
+        if ($hasMore) {
+            $matches->pop();
+        }
+
+        return $this->success([
+            'items' => GameMatchResource::collection($matches),
+            'next_cursor' => $hasMore ? $matches->last()->updated_at->toISOString() : null,
+            'has_more' => $hasMore
+        ], 'Match history retrieved.');
+    }
+
+    /**
+     * @spec-link [[uc_admin_history_management]]
+     * 
+     * Purge history older than 90 days (ISS-051)
+     */
+    public function purge()
+    {
+        $count = GameMatch::where('concluded_at', '<', now()->subDays(90))->delete();
+
+        return $this->success(['purged_count' => $count], "Purge complete: {$count} records removed.");
     }
 
     /**

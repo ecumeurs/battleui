@@ -49,9 +49,10 @@ class ProfileController extends Controller
         return $this->success(CharacterResource::collection($characters), 'Characters retrieved.');
     }
 
-    /**
+     /**
      * @spec-link [[api_profile_character]]
      * @spec-link [[mech_character_reroll_limit]]
+     * @spec-link [[mech_character_reroll_effect]]
      */
     public function rerollCharacter(Request $request, string $characterId)
     {

@@ -41,6 +41,7 @@ Route::middleware(['auth', 'admin'])->prefix('admin')->name('admin.')->group(fun
     Route::get('/users', [AdminController::class, 'users'])->name('users');
     Route::post('/users/{user:account_name}/anonymize', [AdminController::class, 'anonymize'])->name('users.anonymize');
     Route::delete('/users/{user:account_name}', [AdminController::class, 'destroy'])->name('users.destroy');
+    Route::get('/history', [AdminController::class, 'history'])->name('history');
 });
 
 Route::get('/admin/login', function () {

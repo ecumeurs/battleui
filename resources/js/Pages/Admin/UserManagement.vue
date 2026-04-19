@@ -1,16 +1,69 @@
 <script setup>
 /** @spec-link [[uc_admin_user_management]] */
+import { ref, onMounted } from 'vue';
 import { Head, router } from '@inertiajs/vue3';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
+import axios from 'axios';
 
 const props = defineProps({
     user: Object,
     users: Array,
+    initialHasMore: Boolean,
+    initialNextCursor: String,
 });
+
+const userList = ref([...props.users]);
+const hasMore = ref(props.initialHasMore);
+const nextCursor = ref(props.initialNextCursor);
+const searchQuery = ref('');
+const isSearching = ref(false);
+const isLoadingMore = ref(false);
+
+const handleSearch = async () => {
+    isSearching.value = true;
+    try {
+        const response = await axios.get('/api/v1/admin/users', {
+            params: { search: searchQuery.value }
+        });
+        userList.value = response.data.data.items;
+        hasMore.value = response.data.data.has_more;
+        nextCursor.value = response.data.data.next_cursor;
+    } catch (error) {
+        console.error('Search failed:', error);
+    } finally {
+        isSearching.value = false;
+    }
+};
+
+const loadMore = async () => {
+    if (isLoadingMore.value || !hasMore.value) return;
+    
+    isLoadingMore.value = true;
+    try {
+        const response = await axios.get('/api/v1/admin/users', {
+            params: { 
+                search: searchQuery.value,
+                cursor: nextCursor.value
+            }
+        });
+        userList.value = [...userList.value, ...response.data.data.items];
+        hasMore.value = response.data.data.has_more;
+        nextCursor.value = response.data.data.next_cursor;
+    } catch (error) {
+        console.error('Load more failed:', error);
+    } finally {
+        isLoadingMore.value = false;
+    }
+};
 
 const handleAnonymize = (account_name) => {
     if (confirm('CAUTION: This will anonymize address and birth date data. This action is IRREVERSIBLE. Proceed?')) {
-        router.post(route('admin.users.anonymize', account_name));
+        router.post(route('admin.users.anonymize', account_name), {}, {
+            onSuccess: () => {
+                // Refresh local state if needed or let Inertia handle it
+                // router.reload preserves state by default
+            }
+        });
     }
 };
 
@@ -37,9 +90,32 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                         Registry Audit // GDPR Compliance Terminal
                     </p>
                 </div>
-                <div class="flex gap-4">
+                <div class="flex items-center gap-6">
+                    <!-- Search Bar -->
+                    <div class="relative">
+                        <input 
+                            v-model="searchQuery"
+                            @keyup.enter="handleSearch"
+                            type="text" 
+                            placeholder="SEARCH BY HANDLE / EMAIL..."
+                            class="bg-black/60 border border-upsilon-magenta/30 px-4 py-2 text-[10px] font-mono text-upsilon-magenta placeholder:text-upsilon-magenta/30 focus:outline-none focus:border-upsilon-magenta w-64 uppercase tracking-widest"
+                        />
+                        <button 
+                            @click="handleSearch"
+                            class="absolute right-2 top-1/2 -translate-y-1/2 text-upsilon-magenta/60 hover:text-upsilon-magenta"
+                        >
+                            <svg v-if="!isSearching" xmlns="http://www.w3.org/2000/svg" class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+                            </svg>
+                            <svg v-else class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                            </svg>
+                        </button>
+                    </div>
+
                     <div class="px-3 py-1 bg-upsilon-magenta/10 border border-upsilon-magenta/20 text-[10px] font-mono text-upsilon-magenta uppercase">
-                        Active Entities: {{ users.filter(u => !u.deleted_at).length }}
+                        Entities: {{ userList.length }}{{ hasMore ? '+' : '' }}
                     </div>
                 </div>
             </div>
@@ -58,7 +134,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                         </tr>
                     </thead>
                     <tbody class="divide-y divide-upsilon-steel/10">
-                        <tr v-for="target in users" :key="target.id" 
+                        <tr v-for="target in userList" :key="target.id" 
                             :class="target.deleted_at ? 'opacity-50 grayscale bg-red-900/10' : 'hover:bg-upsilon-cyan/5'"
                             class="transition-colors group"
                         >
@@ -94,15 +170,39 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                                 <span v-else class="text-[9px] text-upsilon-steel uppercase px-3 py-1">—</span>
                             </td>
                         </tr>
+                        <tr v-if="userList.length === 0 && !isSearching">
+                            <td colspan="6" class="px-4 py-12 text-center text-upsilon-steel/40 uppercase tracking-widest text-[10px]">
+                                No entities found matching current search criteria.
+                            </td>
+                        </tr>
                     </tbody>
                 </table>
+            </div>
+
+            <!-- Pagination -->
+            <div v-if="hasMore" class="flex justify-center pt-4">
+                <button 
+                    @click="loadMore"
+                    :disabled="isLoadingMore"
+                    class="group relative px-8 py-3 bg-black/40 border border-upsilon-magenta/30 text-upsilon-magenta font-mono text-[10px] uppercase tracking-[0.3em] overflow-hidden hover:border-upsilon-magenta transition-all active:scale-95 disabled:opacity-50"
+                >
+                    <span v-if="!isLoadingMore">Load More Entities</span>
+                    <span v-else class="flex items-center gap-2">
+                        <svg class="animate-spin h-3 w-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                          <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                          <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                        </svg>
+                        Accessing Database...
+                    </span>
+                    <div class="absolute bottom-0 left-0 h-0.5 w-0 bg-upsilon-magenta transition-all group-hover:w-full"></div>
+                </button>
             </div>
 
             <div class="flex items-center gap-2 text-[8px] font-mono text-upsilon-steel uppercase tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-upsilon-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>
-                Caution: Logged actions are audit-tracked. Anonymization bypasses recovery protocols.
+                Caution: Logged actions are audit-tracked. Manual pagination active to maintain terminal performance.
             </div>
         </div>
     </TacticalLayout>

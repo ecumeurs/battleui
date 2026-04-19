@@ -41,23 +41,25 @@ const props = defineProps({
                     <div class="absolute bottom-0 left-0 h-1 w-0 bg-upsilon-magenta group-hover:w-full transition-all duration-700"></div>
                 </Link>
 
-                <!-- History Audit Tile (Placeholder for now) -->
-                <div 
-                    class="group grayscale opacity-50 relative p-8 bg-black/40 border border-upsilon-steel/30 cursor-not-allowed"
+                <!-- History Audit Tile -->
+                <Link 
+                    href="/admin/history"
+                    class="group relative p-8 bg-black/40 border border-upsilon-magenta/30 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all duration-500 overflow-hidden"
                 >
-                    <div class="absolute top-0 right-0 p-2 text-[8px] font-mono text-upsilon-steel/40 uppercase">UC-09</div>
+                    <div class="absolute top-0 right-0 p-2 text-[8px] font-mono text-upsilon-magenta/40 uppercase">UC-09</div>
                     <div class="relative z-10 flex flex-col items-center text-center space-y-4">
-                        <div class="w-16 h-16 rounded-full border border-upsilon-steel/40 flex items-center justify-center">
-                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-upsilon-steel" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <div class="w-16 h-16 rounded-full border border-upsilon-magenta/40 flex items-center justify-center group-hover:scale-110 group-hover:bg-upsilon-magenta/10 transition-all duration-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-upsilon-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2m-3 7h3m-3 4h3m-6-4h.01M9 16h.01" />
                             </svg>
                         </div>
                         <div>
-                            <h2 class="text-xl font-scifi text-upsilon-steel uppercase tracking-tight">History Audit</h2>
-                            <p class="text-[10px] font-mono text-upsilon-steel/60 uppercase tracking-widest mt-1">Match Logs & Maintenance</p>
+                            <h2 class="text-xl font-scifi text-white uppercase tracking-tight">History Audit</h2>
+                            <p class="text-[10px] font-mono text-upsilon-magenta/60 uppercase tracking-widest mt-1">Match Logs & Maintenance</p>
                         </div>
                     </div>
-                </div>
+                    <div class="absolute bottom-0 left-0 h-1 w-0 bg-upsilon-magenta group-hover:w-full transition-all duration-700"></div>
+                </Link>
             </div>
 
             <div class="mt-12 text-[8px] font-mono text-upsilon-magenta/30 uppercase tracking-[0.3em] animate-pulse">

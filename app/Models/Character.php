@@ -31,6 +31,7 @@ class Character extends Model
     }
 
     /**
+     * @spec-link [[rule_character_create_character]]
      * @spec-link [[entity_character_allocate_hp]]
      * @spec-link [[uc_player_registration_generate_characters]]
      */
@@ -52,6 +53,7 @@ class Character extends Model
 
     /**
      * @spec-link [[mech_character_reroll]]
+     * @spec-link [[mech_character_reroll_effect]]
      */
     public function rerollStats()
     {

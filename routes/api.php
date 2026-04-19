@@ -78,6 +78,9 @@ Route::prefix("v1")->group(function () {
             Route::get('/users', [ApiAdminController::class, 'users']);
             Route::post('/users/{user:account_name}/anonymize', [ApiAdminController::class, 'anonymize']);
             Route::delete('/users/{user:account_name}', [ApiAdminController::class, 'destroy']);
+
+            Route::get('/history', [ApiAdminController::class, 'history']);
+            Route::post('/history/purge', [ApiAdminController::class, 'purge']);
         });
     });
 });

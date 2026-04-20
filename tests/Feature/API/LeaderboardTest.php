@@ -13,6 +13,9 @@ use Tests\TestCase;
  * @spec-link [[api_leaderboard]]
  * @spec-link [[rule_leaderboard_score_calculation]]
  * @spec-link [[rule_leaderboard_cycle]]
+ * @test-link [[api_leaderboard]]
+ * @test-link [[rule_leaderboard_score_calculation]]
+ * @test-link [[rule_leaderboard_cycle]]
  */
 class LeaderboardTest extends TestCase
 {

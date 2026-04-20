@@ -10,6 +10,7 @@ use Tests\TestCase;
 
 /**
  * @spec-link [[rule_gdpr_compliance]]
+ * @test-link [[rule_gdpr_compliance]]
  */
 class GdprTest extends TestCase
 {
@@ -17,6 +18,7 @@ class GdprTest extends TestCase
 
     /**
      * @spec-link [[rule_gdpr_compliance]]
+     * @test-link [[rule_gdpr_compliance]]
      */
     public function test_user_account_soft_delete_and_anonymization()
     {
@@ -61,6 +63,7 @@ class GdprTest extends TestCase
 
     /**
      * @spec-link [[rule_gdpr_compliance]]
+     * @test-link [[rule_gdpr_compliance]]
      */
     public function test_user_hard_delete_cascades_to_characters()
     {

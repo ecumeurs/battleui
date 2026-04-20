@@ -22,6 +22,7 @@ php artisan reverb:start
 
 ### 3. Start the Vue.js Frontend (Port 5173)
 The frontend uses **Vite** for fast development and hot module replacement.
+
 ### 4. Administrative Setup (Seeding)
 To establish the initial system administrator, you must define a password and run the database seeder.
 ```bash

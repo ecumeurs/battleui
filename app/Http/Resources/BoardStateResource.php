@@ -69,7 +69,8 @@ class BoardStateResource extends JsonResource
             }
         }
 
-        // 4. Remove Redundant Flat Entities Array (Consolidation)
+        // 4. Remove internal metadata and redundant flat arrays (Consolidation)
+        unset($data['_atd_meta']);
         unset($data['entities']);
         unset($data['players_teams']);
 

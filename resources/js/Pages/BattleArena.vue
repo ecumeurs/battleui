@@ -150,11 +150,11 @@ const allEntities = computed(() => {
 });
 
 const turnOrder = computed(() => {
-   if (!gameState.value?.turn) return [];
-   return gameState.value.turn.map(t => {
-       const ent = allEntities.value.find(e => e.id === t.entity_id);
-       return { ...t, name: ent ? ent.name : 'Unknown' };
-   });
+    if (!gameState.value?.turn) return [];
+    return gameState.value.turn.map(t => {
+        const ent = allEntities.value.find(e => e.id === t.entity_id);
+        return { ...t, name: ent ? ent.name : 'Unknown' };
+    });
 });
 
 const currentEntityId = computed(() => gameState.value?.current_entity_id || '');
@@ -262,7 +262,7 @@ const isProcessing = ref(false);
 
 async function handleAction(type) {
     if (!isPlayerTurn.value || isProcessing.value) return;
-    
+
     if (type === 'pass') {
         isProcessing.value = true;
         try {
@@ -284,7 +284,7 @@ async function handleAction(type) {
 
     selectedAction.value = type;
     selectedPath.value = [];
-    
+
     if (type === 'move') {
         calculateMoveRange();
     } else if (type === 'attack') {
@@ -303,7 +303,7 @@ function getNeighbors(x, y) {
             const cell = grid.value.cells[nx] && grid.value.cells[nx][ny];
             if (cell && !cell.obstacle) {
                 // Check if another entity is there (except current active)
-                const isOccupied = allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === nx && e.position.y === ny);
+                const isOccupied = allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === nx && e.position.y === ny && e.hp > 0);
                 if (!isOccupied) {
                     neighbors.push({ x: nx, y: ny });
                 }
@@ -316,21 +316,21 @@ function getNeighbors(x, y) {
 function findShortestPath(start, target, maxMove) {
     const queue = [[start]];
     const visited = new Set([`${start.x},${start.y}`]);
-    
-    while(queue.length > 0) {
+
+    while (queue.length > 0) {
         const path = queue.shift();
         const curr = path[path.length - 1]; // Current tail node
-        
+
         if (curr.x === target.x && curr.y === target.y) {
             return path.slice(1); // Return path excluding start node
         }
-        
+
         if (path.length - 1 < maxMove) {
             for (const n of getNeighbors(curr.x, curr.y)) {
                 const key = `${n.x},${n.y}`;
                 if (!visited.has(key)) {
                     visited.add(key);
-                    queue.push([...path, {x: n.x, y: n.y}]);
+                    queue.push([...path, { x: n.x, y: n.y }]);
                 }
             }
         }
@@ -340,9 +340,9 @@ function findShortestPath(start, target, maxMove) {
 
 async function handleTileClick(x, y) {
     if (!isPlayerTurn.value || !selectedAction.value || isProcessing.value) return;
-    
+
     if (selectedAction.value === 'move') {
-        const path = findShortestPath(currentEntity.value.position, {x, y}, currentEntity.value.move);
+        const path = findShortestPath(currentEntity.value.position, { x, y }, currentEntity.value.move);
         if (path) {
             selectedPath.value = path;
             isProcessing.value = true;
@@ -361,7 +361,7 @@ async function handleTileClick(x, y) {
         if (targetCell) {
             isProcessing.value = true;
             try {
-                await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{x, y}]);
+                await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{ x, y }]);
                 selectedAction.value = null;
                 highlightedCells.value = [];
             } catch (err) {
@@ -383,20 +383,20 @@ function calculateMoveRange() {
     const highlighted = [];
 
     while (queue.length > 0) {
-       const curr = queue.shift();
-       if (curr.x !== start.x || curr.y !== start.y) {
-           highlighted.push({ x: curr.x, y: curr.y, type: 'move' });
-       }
-       
-       if (curr.dist < maxMove) {
-           for (const n of getNeighbors(curr.x, curr.y)) {
-               const key = `${n.x},${n.y}`;
-               if (!visited.has(key)) {
+        const curr = queue.shift();
+        if (curr.x !== start.x || curr.y !== start.y) {
+            highlighted.push({ x: curr.x, y: curr.y, type: 'move' });
+        }
+
+        if (curr.dist < maxMove) {
+            for (const n of getNeighbors(curr.x, curr.y)) {
+                const key = `${n.x},${n.y}`;
+                if (!visited.has(key)) {
                     visited.add(key);
                     queue.push({ x: n.x, y: n.y, dist: curr.dist + 1 });
-               }
-           }
-       }
+                }
+            }
+        }
     }
     highlightedCells.value = highlighted;
 }
@@ -404,18 +404,18 @@ function calculateMoveRange() {
 function calculateAttackRange() {
     if (!currentEntity.value) return;
     const start = currentEntity.value.position;
-    
+
     const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     const highlighted = [];
-    
+
     for (const d of dirs) {
         const nx = start.x + d[0];
         const ny = start.y + d[1];
         if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
-             const enemy = enemyEntities.value.find(e => e.position.x === nx && e.position.y === ny && e.hp > 0);
-             if (enemy) {
-                 highlighted.push({ x: nx, y: ny, type: 'attack' });
-             }
+            const enemy = enemyEntities.value.find(e => e.position.x === nx && e.position.y === ny && e.hp > 0);
+            if (enemy) {
+                highlighted.push({ x: nx, y: ny, type: 'attack' });
+            }
         }
     }
     highlightedCells.value = highlighted;
@@ -433,79 +433,44 @@ async function executeForfeit() {
 </script>
 
 <template>
+
     <Head title="Battle Arena | Combat Engaged" />
 
     <TacticalLayout v-if="user && !isLoading" :user="user">
         <div class="arena">
             <!-- COMBAT HEADER -->
-            <CombatHeader
-                :ally-team-hp="allyTeamHp"
-                :ally-team-max-hp="allyTeamMaxHp"
-                :ally-chars-remaining="allyCharsRemaining"
-                :ally-total-chars="allyEntities.length"
-                :enemy-team-hp="enemyTeamHp"
-                :enemy-team-max-hp="enemyTeamMaxHp"
-                :enemy-chars-remaining="enemyCharsRemaining"
-                :enemy-total-chars="enemyEntities.length"
-                :match-duration="matchDuration"
-                :shot-clock="shotClock"
-                :is-socket-connected="isSocketConnected"
-            />
+            <CombatHeader :ally-team-hp="allyTeamHp" :ally-team-max-hp="allyTeamMaxHp"
+                :ally-chars-remaining="allyCharsRemaining" :ally-total-chars="allyEntities.length"
+                :enemy-team-hp="enemyTeamHp" :enemy-team-max-hp="enemyTeamMaxHp"
+                :enemy-chars-remaining="enemyCharsRemaining" :enemy-total-chars="enemyEntities.length"
+                :match-duration="matchDuration" :shot-clock="shotClock" :is-socket-connected="isSocketConnected" />
 
             <!-- ACTION REPORT OVERLAY -->
-            <TacticalActionReport
-                :action="lastAction"
-                :show="showActionReport"
-            />
+            <TacticalActionReport :action="lastAction" :show="showActionReport" />
 
             <!-- MAIN CONTENT: Rosters + Board -->
             <div class="arena__body">
                 <!-- LEFT ROSTER: Allied Forces -->
-                <TeamRosterPanel
-                    :players="allyRoster"
-                    :detailed-player-id="currentPlayerId"
-                    :team-colors="teamColors"
-                    side="left"
-                />
+                <TeamRosterPanel :players="allyRoster" :detailed-player-id="currentPlayerId" :team-colors="teamColors"
+                    side="left" />
 
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
-                    <IsoBoardGrid
-                        :grid="grid"
-                        :entities="allEntities"
-                        :current-entity-id="currentEntityId"
-                        :team-colors="teamColors"
-                        :highlighted-cells="highlightedCells"
-                        @tile-click="handleTileClick"
-                    />
+                    <IsoBoardGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
+                        :team-colors="teamColors" :highlighted-cells="highlightedCells" @tile-click="handleTileClick" />
 
-                    <ActionPanel
-                        :is-player-turn="isPlayerTurn"
-                        :is-processing="isProcessing"
-                        :selected-action="selectedAction"
-                        :active-character="currentEntity"
-                        :active-player-name="activePlayerName"
-                        :can-move="canMove"
-                        :can-attack="canAttack"
-                        @action="handleAction"
-                    />
+                    <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"
+                        :selected-action="selectedAction" :active-character="currentEntity"
+                        :active-player-name="activePlayerName" :can-move="canMove" :can-attack="canAttack"
+                        @action="handleAction" />
                 </div>
 
                 <!-- RIGHT ROSTER: Hostile Forces -->
-                <TeamRosterPanel
-                    :players="enemyRoster"
-                    detailed-player-id=""
-                    :team-colors="teamColors"
-                    side="right"
-                />
+                <TeamRosterPanel :players="enemyRoster" detailed-player-id="" :team-colors="teamColors" side="right" />
             </div>
 
             <!-- INITIATIVE TIMELINE -->
-            <InitiativeTimeline
-                :turns="turnOrder"
-                :team-colors="teamColors"
-                :current-entity-id="currentEntityId"
-            />
+            <InitiativeTimeline :turns="turnOrder" :team-colors="teamColors" :current-entity-id="currentEntityId" />
 
             <!-- Match ID watermark -->
             <div class="arena__watermark">
@@ -514,7 +479,8 @@ async function executeForfeit() {
 
             <!-- GAME OVER OVERLAY -->
             <div v-if="isGameOver" class="game-over-overlay">
-                <div class="game-over-content" :class="{ 'game-over--victory': isVictory, 'game-over--defeat': !isVictory }">
+                <div class="game-over-content"
+                    :class="{ 'game-over--victory': isVictory, 'game-over--defeat': !isVictory }">
                     <h1 class="game-over__title">
                         {{ isVictory ? 'VICTORY' : 'DEFEAT' }}
                     </h1>
@@ -528,16 +494,10 @@ async function executeForfeit() {
             </div>
 
             <!-- FORFEIT CONFIRMATION -->
-            <ConfirmModal
-                :show="showForfeitModal"
-                title="TERMINATION REQUEST"
+            <ConfirmModal :show="showForfeitModal" title="TERMINATION REQUEST"
                 message="Are you sure you want to forfeit? This will cause an immediate loss for your entire team and disconnect all tactical links."
-                confirm-text="FORFEIT MATCH"
-                cancel-text="RESUME COMBAT"
-                type="danger"
-                @close="showForfeitModal = false"
-                @confirm="executeForfeit"
-            />
+                confirm-text="FORFEIT MATCH" cancel-text="RESUME COMBAT" type="danger" @close="showForfeitModal = false"
+                @confirm="executeForfeit" />
         </div>
     </TacticalLayout>
 </template>
@@ -569,13 +529,11 @@ async function executeForfeit() {
     content: '';
     position: absolute;
     inset: 0;
-    background: repeating-linear-gradient(
-        0deg,
-        transparent,
-        transparent 3px,
-        rgba(0, 0, 0, 0.03) 3px,
-        rgba(0, 0, 0, 0.03) 6px
-    );
+    background: repeating-linear-gradient(0deg,
+            transparent,
+            transparent 3px,
+            rgba(0, 0, 0, 0.03) 3px,
+            rgba(0, 0, 0, 0.03) 6px);
     pointer-events: none;
     z-index: 100;
 }
@@ -645,14 +603,30 @@ async function executeForfeit() {
 .game-over--victory {
     border-color: rgba(0, 242, 255, 0.4);
 }
-.game-over--victory::before { background: #00f2ff; box-shadow: 0 0 20px #00f2ff; }
-.game-over--victory .game-over__title { color: #00f2ff; text-shadow: 0 0 16px rgba(0, 242, 255, 0.6); }
+
+.game-over--victory::before {
+    background: #00f2ff;
+    box-shadow: 0 0 20px #00f2ff;
+}
+
+.game-over--victory .game-over__title {
+    color: #00f2ff;
+    text-shadow: 0 0 16px rgba(0, 242, 255, 0.6);
+}
 
 .game-over--defeat {
     border-color: rgba(255, 32, 32, 0.4);
 }
-.game-over--defeat::before { background: #ff2020; box-shadow: 0 0 20px #ff2020; }
-.game-over--defeat .game-over__title { color: #ff2020; text-shadow: 0 0 16px rgba(255, 32, 32, 0.6); }
+
+.game-over--defeat::before {
+    background: #ff2020;
+    box-shadow: 0 0 20px #ff2020;
+}
+
+.game-over--defeat .game-over__title {
+    color: #ff2020;
+    text-shadow: 0 0 16px rgba(255, 32, 32, 0.6);
+}
 
 .game-over__title {
     font-family: 'Orbitron', sans-serif;
@@ -683,6 +657,7 @@ async function executeForfeit() {
     border: 1px solid rgba(255, 255, 255, 0.2);
     transition: all 0.2s ease;
 }
+
 .action-btn-back:hover {
     background: rgba(255, 255, 255, 0.1);
     border-color: #fff;

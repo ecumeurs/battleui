@@ -76,6 +76,34 @@ class WebhookController extends Controller
                 'turn' => $incomingVersion, // Unified progression marker
             ]);
 
+            /** @spec-link [[uc_match_resolution]] */
+            if ($eventName === 'game.ended') {
+                $winnerTeamId = $boardState['winner_team_id'] ?? null;
+                $match->update([
+                    'concluded_at' => now(),
+                    'winning_team_id' => $winnerTeamId,
+                ]);
+
+                Log::info("Match {$match_id} concluded. Winning team: {$winnerTeamId}. Updating player stats.");
+
+                foreach ($match->participants as $participant) {
+                    $user = $participant->player;
+                    if (!$user) continue;
+
+                    // Increment wins or losses
+                    if ($winnerTeamId !== null && $participant->team == $winnerTeamId) {
+                        $user->increment('total_wins');
+                    } else if ($winnerTeamId !== null && $winnerTeamId > 0) {
+                        $user->increment('total_losses');
+                    }
+
+                    // Recalculate ratio: [[rule_leaderboard_score_calculation]]
+                    $totalGames = $user->total_wins + $user->total_losses;
+                    $user->ratio = $totalGames > 0 ? (string) round($user->total_wins / $totalGames, 2) : "0.0";
+                    $user->save();
+                }
+            }
+
             Log::info("Match {$match_id} state updated to version {$incomingVersion} ($eventName). Broadcasting to " . $match->participants->count() . " participants.");
 
             // Broadcast the validated update

@@ -15,6 +15,7 @@ import IsoBoardGrid from '@/Components/Arena/IsoBoardGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
+import ConfirmModal from '@/Components/Modals/ConfirmModal.vue';
 
 const user = ref(getAuthUser());
 const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));
@@ -25,6 +26,7 @@ const isLoading = ref(true);
 const isSocketConnected = ref(false);
 const lastAction = ref(null);
 const showActionReport = ref(false);
+const showForfeitModal = ref(false);
 let actionTimeout = null;
 
 const myPlayer = computed(() => tactical.myPlayer(gameState.value));
@@ -36,21 +38,37 @@ let shotTimerInterval = null;
 onMounted(async () => {
     if (!matchId.value) return;
 
-    try {
-        const response = await game.fetchGameState(matchId.value);
-        gameState.value = response || {};
-        matchStartedAt.value = response.started_at;
-
-        game.subscribeToBoard(matchId.value, (event) => {
-            console.log('[BoardUpdated] Received payload:', event);
-            // 'event' is already unwrapped by the game service [[api_standard_envelope]]
+    // 1. Subscribe to updates FIRST to capture any events arriving during initial fetch
+    game.subscribeToBoard(matchId.value, (event) => {
+        console.log('[BoardUpdated] Received payload:', event);
+        // Guard: Only update if the incoming version is newer or if we have no state yet
+        if (!gameState.value || (event.version && event.version >= (gameState.value.version || 0))) {
             gameState.value = event;
             connection.setBoardLinked(true);
             // Clear pathfinding/selection on state update
             selectedAction.value = null;
             selectedPath.value = [];
             highlightedCells.value = [];
-        });
+        } else {
+            console.warn('[Arena] Ignoring older version update from socket', event.version, 'vs', gameState.value?.version);
+        }
+    });
+
+    // 2. Fetch Initial State
+    try {
+        const response = await game.fetchGameState(matchId.value);
+        console.log('[Arena] Initial fetch response:', response);
+        if (response && response.game_state) {
+            // Guard: Only apply fetch if we haven't already received a newer socket event
+            if (!gameState.value || response.game_state.version >= (gameState.value.version || 0)) {
+                gameState.value = response.game_state;
+                matchStartedAt.value = response.started_at;
+            } else {
+                console.warn('[Arena] Ignoring stale initial fetch (Version', response.game_state.version, ') as socket already provided Version', gameState.value.version);
+            }
+        } else {
+            console.warn('[Arena] No game_state found in response!');
+        }
 
         // Listen for connection health
         if (window.Echo && window.Echo.connector.pusher.connection) {
@@ -88,9 +106,12 @@ onMounted(async () => {
         console.log('[Arena] Board empty, attempting fallback sync...');
         try {
             const response = await game.fetchGameState(matchId.value);
-            if (response && response.players && response.players.length > 0) {
-                gameState.value = response;
-                matchStartedAt.value = response.started_at;
+            if (response && response.game_state && response.game_state.players) {
+                // Version protection applies here as well
+                if (!gameState.value || response.game_state.version >= (gameState.value.version || 0)) {
+                    gameState.value = response.game_state;
+                    matchStartedAt.value = response.started_at;
+                }
                 clearInterval(emergencyPoller);
             }
         } catch (err) {
@@ -257,16 +278,7 @@ async function handleAction(type) {
     }
 
     if (type === 'forfeit') {
-        if (confirm("Are you sure you want to forfeit? This will cause a loss for your entire team.")) {
-            isProcessing.value = true;
-            try {
-                await game.forfeit(matchId.value);
-            } catch (err) {
-                console.error("Forfeit failed:", err);
-            } finally {
-                isProcessing.value = false;
-            }
-        }
+        showForfeitModal.value = true;
         return;
     }
 
@@ -408,6 +420,16 @@ function calculateAttackRange() {
     }
     highlightedCells.value = highlighted;
 }
+async function executeForfeit() {
+    isProcessing.value = true;
+    try {
+        await game.forfeit(matchId.value);
+    } catch (err) {
+        console.error("Forfeit failed:", err);
+    } finally {
+        isProcessing.value = false;
+    }
+}
 </script>
 
 <template>
@@ -504,6 +526,18 @@ function calculateAttackRange() {
                     </div>
                 </div>
             </div>
+
+            <!-- FORFEIT CONFIRMATION -->
+            <ConfirmModal
+                :show="showForfeitModal"
+                title="TERMINATION REQUEST"
+                message="Are you sure you want to forfeit? This will cause an immediate loss for your entire team and disconnect all tactical links."
+                confirm-text="FORFEIT MATCH"
+                cancel-text="RESUME COMBAT"
+                type="danger"
+                @close="showForfeitModal = false"
+                @confirm="executeForfeit"
+            />
         </div>
     </TacticalLayout>
 </template>

@@ -65,16 +65,24 @@ export const game = {
         }
         
         // Listen on the private user channel for tactical updates
-        return window.Echo.private(`user.${user.ws_channel_key}`)
-            .listen('.board.updated', (event) => {
+        const channel = window.Echo.private(`user.${user.ws_channel_key}`);
+        
+        const events = ['.board.updated', '.game.started', '.turn.started', '.game.ended', '.game.forfeited'];
+        
+        events.forEach(eventName => {
+            channel.listen(eventName, (event) => {
                 // Unwrap standard envelope [[api_standard_envelope]]
                 const payload = event.data || event;
                 
                 // Filter events to ensure they belong to the current match
                 if (payload.match_id === matchId) {
+                    console.log(`[Tactical] Received ${eventName}:`, payload);
                     callback(payload);
                 }
             });
+        });
+
+        return channel;
     },
 
     /**

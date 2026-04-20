@@ -23,7 +23,8 @@ class MatchMakingController extends Controller
     use ApiResponder;
     public function __construct(
         protected UpsilonApiServiceInterface $upsilonService
-    ) {}
+    ) {
+    }
 
     private const AI_NAME_SEGMENTS = [
         'prefixes' => ['Null_', 'Void_', 'DeathX', 'Rust_', 'Cyber', 'Neon', 'Ghost_', 'Cinder'],
@@ -36,10 +37,10 @@ class MatchMakingController extends Controller
     private function generateAIName(): string
     {
         $pattern = rand(0, 2);
-        return match($pattern) {
-            0 => self::AI_NAME_SEGMENTS['prefixes'][array_rand(self::AI_NAME_SEGMENTS['prefixes'])] . 
-                 self::AI_NAME_SEGMENTS['subjects'][array_rand(self::AI_NAME_SEGMENTS['subjects'])] . 
-                 self::AI_NAME_SEGMENTS['suffixes'][array_rand(self::AI_NAME_SEGMENTS['suffixes'])],
+        return match ($pattern) {
+            0 => self::AI_NAME_SEGMENTS['prefixes'][array_rand(self::AI_NAME_SEGMENTS['prefixes'])] .
+            self::AI_NAME_SEGMENTS['subjects'][array_rand(self::AI_NAME_SEGMENTS['subjects'])] .
+            self::AI_NAME_SEGMENTS['suffixes'][array_rand(self::AI_NAME_SEGMENTS['suffixes'])],
             1 => self::AI_NAME_SEGMENTS['technicals'][array_rand(self::AI_NAME_SEGMENTS['technicals'])] . '-' . rand(100, 999),
             default => self::AI_NAME_SEGMENTS['abstracts'][array_rand(self::AI_NAME_SEGMENTS['abstracts'])] . '_' . dechex(rand(4096, 65535))
         };
@@ -68,11 +69,11 @@ class MatchMakingController extends Controller
         // Pull user's characters (first 3)
         $characters = $user->characters()->take(3)->get();
         if ($characters->count() < 3) {
-             // In a real scenario we might error, but for tests let's assume existence or generate if missing
-             if ($characters->count() === 0) {
-                 \App\Models\Character::generateInitialRoster($user->id);
-                 $characters = $user->characters()->take(3)->get();
-             }
+            // In a real scenario we might error, but for tests let's assume existence or generate if missing
+            if ($characters->count() === 0) {
+                \App\Models\Character::generateInitialRoster($user->id);
+                $characters = $user->characters()->take(3)->get();
+            }
         }
 
         $characterIds = $characters->pluck('id')->toArray();
@@ -86,11 +87,11 @@ class MatchMakingController extends Controller
 
         // Check if in an active match
         $activeMatch = \App\Models\MatchParticipant::where('player_id', $user->id)
-            ->whereHas('match', function($q) {
+            ->whereHas('match', function ($q) {
                 $q->whereNull('concluded_at');
             })
             ->exists();
-        
+
         if ($activeMatch) {
             return $this->error('Conflict: You are currently participating in an active match.', 409);
         }
@@ -104,9 +105,9 @@ class MatchMakingController extends Controller
         // Cleanup zombie entries where user was deleted
         $zombies = \App\Models\MatchmakingQueue::whereNotExists(function ($query) {
             $query->select(\Illuminate\Support\Facades\DB::raw(1))
-                  ->from('users')
-                  ->whereColumn('matchmaking_queues.user_id', 'users.id')
-                  ->whereNull('users.deleted_at');
+                ->from('users')
+                ->whereColumn('matchmaking_queues.user_id', 'users.id')
+                ->whereNull('users.deleted_at');
         })->delete();
 
         // Check if threshold met
@@ -128,11 +129,12 @@ class MatchMakingController extends Controller
             foreach ($queue as $index => $entry) {
                 $entryUser = \App\Models\User::find($entry->user_id);
                 $entryChars = \App\Models\Character::whereIn('id', $entry->character_ids)->get();
-                
+
                 // Assign teams: for 1v1_PVP, index 0 is team 1, index 1 is team 2.
                 // For 2v2_PVP, 0,1 are team 1, 2,3 are team 2.
                 $team = ($index < ($config['required'] / 2)) ? 1 : 2;
-                if ($config['required'] === 1) $team = 1; // PVE
+                if ($config['required'] === 1)
+                    $team = 1; // PVE
 
                 $players[] = new UpsilonPlayerResource([
                     'id' => $entryUser->id,
@@ -163,8 +165,9 @@ class MatchMakingController extends Controller
                 $maxHumanAttack = 0;
                 foreach ($players as $pResource) {
                     if (!$pResource->resource['ia']) {
-                         $entityMax = collect($pResource->resource['entities'])->max('attack');
-                         if ($entityMax > $maxHumanAttack) $maxHumanAttack = $entityMax;
+                        $entityMax = collect($pResource->resource['entities'])->max('attack');
+                        if ($entityMax > $maxHumanAttack)
+                            $maxHumanAttack = $entityMax;
                     }
                 }
 
@@ -181,7 +184,7 @@ class MatchMakingController extends Controller
                             $stats['defense'] = max(0, $maxHumanAttack - 1);
                         }
 
-                        $aiEntities[] = (object)[
+                        $aiEntities[] = (object) [
                             'id' => (string) Str::uuid(),
                             'name' => $this->generateAIName(), // Unique name per unit too
                             'hp' => $stats['hp'],
@@ -200,14 +203,14 @@ class MatchMakingController extends Controller
                         'ia' => true,
                         'entities' => $aiEntities
                     ]);
-                    
+
                     // Record AI participant with NULL player_id
                     \App\Models\MatchParticipant::create([
                         'match_id' => $match->id,
                         'player_id' => null, // AI refactored away from users table
                         'team' => 2,
                     ]);
-                    
+
                     // We don't add to participantIds because we don't broadcast to AI
                 }
             }
@@ -282,15 +285,15 @@ class MatchMakingController extends Controller
             ->first();
 
         if ($participant && $participant->match && is_null($participant->match->concluded_at)) {
-             $match = $participant->match;
-             $config = self::MODE_CONFIG[$match->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];
+            $match = $participant->match;
+            $config = self::MODE_CONFIG[$match->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];
 
-             return $this->success([
-                 'status' => 'matched',
-                 'match_id' => $match->id,
-                 'expected_participants' => $config['required'],
-                 'empty_slots' => 0
-             ], 'Match in progress. Reconnecting...');
+            return $this->success([
+                'status' => 'matched',
+                'match_id' => $match->id,
+                'expected_participants' => $config['required'],
+                'empty_slots' => 0
+            ], 'Match in progress. Reconnecting...');
         }
 
         // 3. User is idle
@@ -332,9 +335,9 @@ class MatchMakingController extends Controller
     public function getActiveStats(Request $request)
     {
         $stats = $this->upsilonService->getActiveMatchStats();
-        
+
         if (!($stats['success'] ?? false)) {
-             return $this->error($stats['message'] ?? 'Failed to retrieve active stats', 502);
+            return $this->error($stats['message'] ?? 'Failed to retrieve active stats', 502);
         }
 
         return $this->success($stats['data'] ?? ['active_count' => 0], 'Active stats retrieved.');

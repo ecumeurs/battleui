@@ -16,7 +16,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
 
     public function __construct()
     {
-        $this->baseUrl = config('services.upsilon.url', 'http://localhost:8081');
+        $this->baseUrl = config('services.upsilon.url');
     }
 
     /**
@@ -29,7 +29,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
             'callback_url' => $callbackUrl,
             'players' => array_map(fn($player) => $player instanceof \Illuminate\Http\Resources\Json\JsonResource ? $player->resolve() : $player, $players),
         ];
-        
+
         // Let's dump the finalized payload arrays
         // dump("Start Arena payload", $payload);
 
@@ -98,8 +98,8 @@ class UpsilonApiService implements UpsilonApiServiceInterface
                 'Accept' => 'application/json',
                 'Content-Type' => 'application/json',
             ])->send($method, $this->baseUrl . $endpoint, [
-                'json' => $envelope
-            ]);
+                        'json' => $envelope
+                    ]);
 
             if (!$response->successful()) {
                 Log::error("Upsilon API Error [{$requestId}]: " . $response->body());
@@ -109,7 +109,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
 
         } catch (\Exception $e) {
             Log::error("Upsilon API Connection Failed [{$requestId}]: " . $e->getMessage());
-            
+
             return [
                 'request_id' => $requestId,
                 'message' => 'Connection to Game Engine failed',

@@ -81,7 +81,11 @@ class GameController extends Controller
         );
 
         // 3. Return Standard Envelope back
-        return $this->success($response['data'] ?? $response, $response['message'] ?? 'Action processed', ($response['success'] ?? false) ? 200 : 400);
+        if (!($response['success'] ?? false)) {
+            return $this->error($response['message'] ?? 'Action failed', 400, $response['data'] ?? []);
+        }
+
+        return $this->success($response['data'] ?? [], $response['message'] ?? 'Action processed');
     }
 
     /**

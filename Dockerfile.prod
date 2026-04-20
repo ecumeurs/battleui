@@ -1,9 +1,30 @@
+# Stage 0: Install PHP dependencies (needed for Ziggy in assets)
+FROM composer:latest AS vendor-installer
+WORKDIR /app
+COPY composer.json composer.lock ./
+RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-autoloader
+
 # Stage 1: Build Assets
 FROM node:20-alpine AS assets-builder
 WORKDIR /app
+
+# Accept build arguments for environment variables
+ARG VITE_REVERB_APP_KEY
+ARG VITE_REVERB_HOST
+ARG VITE_REVERB_PORT
+ARG VITE_REVERB_SCHEME
+
+# Set them as environment variables for Vite
+ENV VITE_REVERB_APP_KEY=$VITE_REVERB_APP_KEY
+ENV VITE_REVERB_HOST=$VITE_REVERB_HOST
+ENV VITE_REVERB_PORT=$VITE_REVERB_PORT
+ENV VITE_REVERB_SCHEME=$VITE_REVERB_SCHEME
+
 COPY package*.json ./
 RUN npm install
 COPY . .
+# Copy vendor folder so Vite can resolve Ziggy
+COPY --from=vendor-installer /app/vendor ./vendor
 RUN npm run build
 
 # Stage 2: Production PHP Environment

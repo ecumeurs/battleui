@@ -39,14 +39,14 @@ WORKDIR /var/www/html
 # Copy application source
 COPY . .
 
-# Ensure storage and bootstrap/cache are writable
-RUN chown -R www-data:www-data storage bootstrap/cache
-
 # Install Composer
 COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
 
 # Install PHP dependencies
 RUN composer install --no-dev --optimize-autoloader --no-interaction
+
+# Ensure storage and bootstrap/cache are writable
+RUN chown -R www-data:www-data storage bootstrap/cache
 
 # Ensure curl is available for Docker healthchecks
 RUN which curl || apt-get update && apt-get install -y curl && rm -rf /var/lib/apt/lists/*

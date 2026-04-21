@@ -16,6 +16,21 @@ class StandardEnvelope
      */
     public function handle(Request $request, Closure $next): Response
     {
+        // 1. Handle Request (Unwrap Envelope)
+        if ($request->is('api/v1/*') && $request->isJson()) {
+            $payload = $request->json()->all();
+            
+            // Check if it follows the Standard Message Envelope
+            if (isset($payload['request_id']) && array_key_exists('data', $payload)) {
+                // Promoting request_id from envelope to header for consistency
+                $request->headers->set('X-Request-ID', $payload['request_id']);
+                
+                // Replace request input with the 'data' content only
+                // This makes it transparent to controllers and validators
+                $request->replace(is_array($payload['data']) ? $payload['data'] : []);
+            }
+        }
+
         $response = $next($request);
 
         // Only wrap JSON responses for /api/v1 routes

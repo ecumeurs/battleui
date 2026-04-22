@@ -148,7 +148,7 @@ onUnmounted(() => {
 const grid = computed(() => gameState.value?.grid || null);
 const allEntities = computed(() => {
     if (!gameState.value?.players) return [];
-    return gameState.value.players.flatMap(p => p.entities || []);
+    return gameState.value.players.flatMap(p => p.entities);
 });
 
 const turnOrder = computed(() => {

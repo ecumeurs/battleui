@@ -78,7 +78,7 @@ export const tactical = {
      */
     myCharacters(gameState) {
         const me = this.myPlayer(gameState);
-        return me ? me.entities : [];
+        return me ? me.entities : null;
     },
 
     /**
@@ -88,7 +88,7 @@ export const tactical = {
      */
     myAllies(gameState) {
         const me = this.myPlayer(gameState);
-        if (!me) return [];
+        if (!me) return null;
         return gameState.players.filter(p => p.team === me.team && !p.is_self);
     },
 
@@ -108,7 +108,7 @@ export const tactical = {
      */
     myFoes(gameState) {
         const me = this.myPlayer(gameState);
-        if (!me) return [];
+        if (!me) return null;
         return gameState.players.filter(p => p.team !== me.team);
     },
 

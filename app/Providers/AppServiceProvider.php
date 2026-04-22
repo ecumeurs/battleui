@@ -40,11 +40,15 @@ class AppServiceProvider extends ServiceProvider
 
         foreach ($mandatoryConfig as $key => $envVar) {
             if (empty(config($key))) {
+                // In local environment or during maintenance (console), we might want to be more helpful, 
+                // but in production/web we must crash early.
+                if ($this->app->runningInConsole()) {
+                    Log::warning("Mandatory configuration '$envVar' is missing. Some features may be unavailable.");
+                    continue;
+                }
+
                 $message = "CRITICAL: Mandatory configuration '$envVar' is missing. The application cannot start.";
                 Log::emergency($message);
-                
-                // In local environment, we might want to be more helpful, 
-                // but in production we must crash early.
                 throw new \RuntimeException($message);
             }
         }

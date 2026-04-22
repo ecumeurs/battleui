@@ -31,5 +31,22 @@ class AppServiceProvider extends ServiceProvider
             }
         }
         Log::info("Laravel API starting (rev: $revision)");
+
+        // Ensure mandatory configuration is present (Crash Early Principle)
+        $mandatoryConfig = [
+            'services.upsilon.url' => 'UPSILON_API_URL',
+            'services.upsilon.webhook_url' => 'UPSILON_WEBHOOK_URL',
+        ];
+
+        foreach ($mandatoryConfig as $key => $envVar) {
+            if (empty(config($key))) {
+                $message = "CRITICAL: Mandatory configuration '$envVar' is missing. The application cannot start.";
+                Log::emergency($message);
+                
+                // In local environment, we might want to be more helpful, 
+                // but in production we must crash early.
+                throw new \RuntimeException($message);
+            }
+        }
     }
 }

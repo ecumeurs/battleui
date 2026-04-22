@@ -54,14 +54,12 @@ export const game = {
      */
     subscribeToBoard(matchId, callback) {
         if (!window.Echo) {
-            console.error('Laravel Echo is not initialized.');
-            return;
+            throw new Error('CRITICAL: Laravel Echo is not initialized. Real-time updates unavailable.');
         }
 
         const user = this.getAuthUser();
         if (!user || !user.ws_channel_key) {
-            console.error('User WebSocket channel key not found.');
-            return;
+            throw new Error('CRITICAL: User WebSocket channel key not found. Tactical link cannot be established.');
         }
         
         // Listen on the private user channel for tactical updates

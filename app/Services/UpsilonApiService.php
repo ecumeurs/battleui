@@ -103,20 +103,23 @@ class UpsilonApiService implements UpsilonApiServiceInterface
 
             if (!$response->successful()) {
                 Log::error("Upsilon API Error [{$requestId}]: " . $response->body());
+                throw new \App\Exceptions\EngineConnectionException("API returned status {$response->status()}");
             }
 
-            return $response->json() ?? [];
+            $json = $response->json();
+            if (is_null($json)) {
+                throw new \App\Exceptions\EngineConnectionException("API returned invalid JSON");
+            }
+
+            return $json;
 
         } catch (\Exception $e) {
+            if ($e instanceof \App\Exceptions\EngineConnectionException) {
+                throw $e;
+            }
+            
             Log::error("Upsilon API Connection Failed [{$requestId}]: " . $e->getMessage());
-
-            return [
-                'request_id' => $requestId,
-                'message' => 'Connection to Game Engine failed',
-                'success' => false,
-                'data' => [],
-                'meta' => ['exception' => $e->getMessage()]
-            ];
+            throw new \App\Exceptions\EngineConnectionException($e->getMessage());
         }
     }
 }

@@ -23,6 +23,7 @@ const matchId = ref(new URLSearchParams(window.location.search).get('match_id'))
 const gameState = ref(null);
 const matchStartedAt = ref(null);
 const isLoading = ref(true);
+const error = ref(null);
 const isSocketConnected = ref(false);
 const lastAction = ref(null);
 const showActionReport = ref(false);
@@ -93,6 +94,7 @@ onMounted(async () => {
 
     } catch (e) {
         console.error("Failed to load game state", e);
+        error.value = "CRITICAL: Failed to establish tactical link with Game Engine.";
     } finally {
         isLoading.value = false;
     }
@@ -143,7 +145,7 @@ onUnmounted(() => {
 
 // ─── COMPUTED STATE ──────────────────────────────────────────
 
-const grid = computed(() => gameState.value?.grid || { width: 10, height: 10, cells: [] });
+const grid = computed(() => gameState.value?.grid || null);
 const allEntities = computed(() => {
     if (!gameState.value?.players) return [];
     return gameState.value.players.flatMap(p => p.entities || []);
@@ -189,7 +191,7 @@ function mapParticipantsToRoster(parts) {
 const allyRoster = computed(() => allyParticipants.value.map(p => ({
     nickname: p.nickname,
     team: p.team,
-    entities: (p.entities || []).map(e => ({
+    entities: (p.entities).map(e => ({
         ...e,
         _isActive: e.id === currentEntityId.value
     }))
@@ -197,7 +199,7 @@ const allyRoster = computed(() => allyParticipants.value.map(p => ({
 const enemyRoster = computed(() => enemyParticipants.value.map(p => ({
     nickname: p.nickname,
     team: p.team,
-    entities: (p.entities || []).map(e => ({
+    entities: (p.entities).map(e => ({
         ...e,
         _isActive: e.id === currentEntityId.value
     }))
@@ -437,7 +439,16 @@ async function executeForfeit() {
     <Head title="Battle Arena | Combat Engaged" />
 
     <TacticalLayout v-if="user && !isLoading" :user="user">
-        <div class="arena">
+        <div v-if="error" class="arena-error">
+            <div class="arena-error__content">
+                <h1 class="text-red-500 font-bold mb-4">TACTICAL LINK FAILURE</h1>
+                <p>{{ error }}</p>
+                <div class="mt-8">
+                    <a href="/dashboard" class="action-btn-back">ABORT MISSION</a>
+                </div>
+            </div>
+        </div>
+        <div v-else class="arena">
             <!-- COMBAT HEADER -->
             <CombatHeader :ally-team-hp="allyTeamHp" :ally-team-max-hp="allyTeamMaxHp"
                 :ally-chars-remaining="allyCharsRemaining" :ally-total-chars="allyEntities.length"
@@ -662,5 +673,39 @@ async function executeForfeit() {
     background: rgba(255, 255, 255, 0.1);
     border-color: #fff;
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
+}
+.arena-error {
+    flex: 1;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: rgba(10, 10, 11, 0.9);
+    backdrop-filter: blur(10px);
+    z-index: 2000;
+}
+
+.arena-error__content {
+    background: rgba(22, 22, 28, 0.95);
+    border: 1px solid rgba(255, 32, 32, 0.4);
+    padding: 60px;
+    text-align: center;
+    box-shadow: 0 0 50px rgba(255, 0, 0, 0.1);
+    max-width: 600px;
+}
+
+.arena-error__content h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 32px;
+    letter-spacing: 0.2em;
+    color: #ff2020;
+    text-shadow: 0 0 10px rgba(255, 32, 32, 0.5);
+}
+
+.arena-error__content p {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 16px;
+    color: #e0e0e0;
+    line-height: 1.6;
+    margin-bottom: 30px;
 }
 </style>

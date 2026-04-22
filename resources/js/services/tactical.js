@@ -78,7 +78,7 @@ export const tactical = {
      */
     myCharacters(gameState) {
         const me = this.myPlayer(gameState);
-        return me ? me.entities || [] : [];
+        return me ? me.entities : [];
     },
 
     /**
@@ -98,7 +98,7 @@ export const tactical = {
      * @returns {Array}
      */
     myAlliesCharacters(gameState) {
-        return this.myAllies(gameState).flatMap(p => p.entities || []);
+        return this.myAllies(gameState).flatMap(p => p.entities);
     },
 
     /**
@@ -118,7 +118,7 @@ export const tactical = {
      * @returns {Array}
      */
     myFoesCharacters(gameState) {
-        return this.myFoes(gameState).flatMap(p => p.entities || []);
+        return this.myFoes(gameState).flatMap(p => p.entities);
     },
 
     /**

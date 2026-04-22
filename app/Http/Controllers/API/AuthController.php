@@ -130,10 +130,10 @@ class AuthController extends Controller
             ]
         ];
 
-        return response()->json($data, 200, [
-            'Content-Type' => 'application/json',
-            'Content-Disposition' => 'attachment; filename="upsilon_identity_export.json"'
-        ]);
+        return $this->success($data, 'Identity export generated.')
+            ->withHeaders([
+                'Content-Disposition' => 'attachment; filename="upsilon_identity_export.json"'
+            ]);
     }
 
     /**

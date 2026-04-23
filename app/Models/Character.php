@@ -22,7 +22,8 @@ class Character extends Model
         'movement',
         'attack',
         'defense',
-        'initial_movement'
+        'initial_movement',
+        'spent_cp'
     ];
 
     public function player()
@@ -38,7 +39,7 @@ class Character extends Model
     public static function generateInitialRoster(string $playerId)
     {
         for ($i = 0; $i < 3; $i++) {
-            $stats = self::distributePoints(10);
+            $stats = self::getBaseStats();
             self::create([
                 'player_id' => $playerId,
                 'name' => "Character " . ($i + 1),
@@ -47,6 +48,7 @@ class Character extends Model
                 'attack' => $stats['attack'],
                 'defense' => $stats['defense'],
                 'initial_movement' => $stats['movement'],
+                'spent_cp' => 0,
             ]);
         }
     }
@@ -57,35 +59,45 @@ class Character extends Model
      */
     public function rerollStats()
     {
-        $stats = self::distributePoints(10);
+        $stats = self::getBaseStats();
         $this->update([
             'hp' => $stats['hp'],
             'movement' => $stats['movement'],
             'attack' => $stats['attack'],
             'defense' => $stats['defense'],
             'initial_movement' => $stats['movement'],
+            'spent_cp' => 0,
         ]);
         return $this;
     }
 
     /**
+     * @spec-link [[rule_character_create_character]]
+     */
+    public static function getBaseStats(): array
+    {
+        // V2 Baseline Stats
+        return [
+            'hp' => 30,
+            'attack' => 10,
+            'defense' => 5,
+            'movement' => 3
+        ];
+    }
+
+    /**
+     * Legacy point distribution for AI and tests.
      * @spec-link [[entity_character_allocate_hp]]
      */
-    public static function distributePoints(int $totalPoints): array
+    public static function distributePoints(int $total = 10): array
     {
-        // New Rule: 3 HP, 1 in others (Total 6 base)
         $stats = ['hp' => 3, 'movement' => 1, 'attack' => 1, 'defense' => 1];
+        $remaining = $total - array_sum($stats);
         
-        // Exactly 4 points dispatched
-        $remaining = 4; // $totalPoints - (3 + 1 + 1 + 1) where $totalPoints is 10
-
         $keys = array_keys($stats);
-        while ($remaining > 0) {
-            $key = $keys[array_rand($keys)];
-            $stats[$key]++;
-            $remaining--;
+        for ($i = 0; $i < $remaining; $i++) {
+            $stats[$keys[array_rand($keys)]]++;
         }
-
         return $stats;
     }
 }

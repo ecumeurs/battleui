@@ -84,28 +84,28 @@ class ProfileController extends Controller
         
         $validated = $request->validated();
 
-        $newHp = $character->hp + ($validated['stats']['hp'] ?? 0);
-        $newAttack = $character->attack + ($validated['stats']['attack'] ?? 0);
-        $newDefense = $character->defense + ($validated['stats']['defense'] ?? 0);
-        $newMovement = $character->movement + ($validated['stats']['movement'] ?? 0);
+        $incHp = $validated['stats']['hp'] ?? 0;
+        $incAttack = $validated['stats']['attack'] ?? 0;
+        $incDefense = $validated['stats']['defense'] ?? 0;
+        $incMovement = $validated['stats']['movement'] ?? 0;
 
-        // Constraint 1: Sum of all attributes <= 10 + total_wins
-        $totalAttributes = $newHp + $newAttack + $newDefense + $newMovement;
-        $maxAttributes = 10 + $user->total_wins;
+        $newHp = $character->hp + $incHp;
+        $newAttack = $character->attack + $incAttack;
+        $newDefense = $character->defense + $incDefense;
+        $newMovement = $character->movement + $incMovement;
 
-        if ($totalAttributes > $maxAttributes) {
-            return $this->error("Upgrade failed: Total attributes ($totalAttributes) exceed the allowed cap ($maxAttributes based on {$user->total_wins} wins).", 400);
+        // V2 Point-Buy CP Calculation
+        $incrementCP = ($incHp * 1) + ($incAttack * 5) + ($incDefense * 5) + ($incMovement * 30);
+        $newSpentCP = $character->spent_cp + $incrementCP;
+        
+        // Allowed CP: 100 base + (10 per win)
+        $maxAllowedCP = 100 + ($user->total_wins * 10);
+
+        if ($newSpentCP > $maxAllowedCP) {
+            return $this->error("Upgrade failed: Total spent CP ($newSpentCP) exceeds the allowed cap ($maxAllowedCP based on {$user->total_wins} wins).", 400);
         }
 
-        // Constraint 2: Movement <= initial_movement + floor(total_wins / 5)
-        $maxMovement = $character->initial_movement + floor($user->total_wins / 5);
-        if ($newMovement > $maxMovement) {
-            return $this->error("Upgrade failed: Movement ($newMovement) exceeds the allowed limit ($maxMovement based on {$user->total_wins} wins and initial movement {$character->initial_movement}).", 400);
-        }
-
-        // Constraint 3: No negative attributes (already partially covered by min:0 in validation if increments are positive)
-        // If the API implies absolute values, we check them. If it's increments, we check sums.
-        // The original code was `$character->$stat += $value;` so they are increments.
+        // Constraint: No negative attributes
         if ($newHp < 0 || $newAttack < 0 || $newDefense < 0 || $newMovement < 0) {
              return $this->error("Upgrade failed: Attributes cannot be negative.", 400);
         }
@@ -115,6 +115,7 @@ class ProfileController extends Controller
             'attack' => $newAttack,
             'defense' => $newDefense,
             'movement' => $newMovement,
+            'spent_cp' => $newSpentCP,
         ]);
 
         return $this->success(new CharacterResource($character), 'Character upgraded.');

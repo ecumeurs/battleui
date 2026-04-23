@@ -97,8 +97,13 @@ class BattleProxyTest extends TestCase
             'success' => true,
             'data' => [
                 'match_id' => $this->match->id,
-                'turn_counter' => 5,
-                'board' => [['x' => 0, 'y' => 0, 'entity' => 'hero-id']]
+                'version' => 5,
+                'event_type' => 'board.updated',
+                'data' => [
+                    'match_id' => $this->match->id,
+                    'turn_counter' => 5,
+                    'board' => [['x' => 0, 'y' => 0, 'entity' => 'hero-id']]
+                ]
             ]
         ];
 

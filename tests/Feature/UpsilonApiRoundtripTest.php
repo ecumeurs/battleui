@@ -78,12 +78,14 @@ class UpsilonApiRoundtripTest extends TestCase
         // Find entities actual positions
         $p1e1Pos = null;
         $p2e1Pos = null;
-        foreach ($initialState['entities'] as $entity) {
-            if ($entity['id'] === $p1e1Id) {
-                $p1e1Pos = $entity['position'];
-            }
-            if ($entity['id'] === $p2e1Id) {
-                $p2e1Pos = $entity['position'];
+        foreach ($initialState['players'] as $player) {
+            foreach ($player['entities'] as $entity) {
+                if ($entity['id'] === $p1e1Id) {
+                    $p1e1Pos = $entity['position'];
+                }
+                if ($entity['id'] === $p2e1Id) {
+                    $p2e1Pos = $entity['position'];
+                }
             }
         }
         

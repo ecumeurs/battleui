@@ -63,6 +63,18 @@ const initiateTermination = async () => {
                 </div>
             </div>
         </div>
+        
+        <!-- Credit Economy -->
+        <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative">
+            <h2 class="font-scifi text-[10px] text-upsilon-cyan uppercase tracking-[0.2em] mb-4">Credit Economy</h2>
+            <div class="flex items-baseline justify-between">
+                <div class="text-3xl font-scifi text-white">{{ user.credits || 0 }}</div>
+                <div class="text-[10px] font-mono text-upsilon-cyan uppercase tracking-tighter">Available Credits</div>
+            </div>
+            <div class="mt-4 p-2 bg-upsilon-cyan/10 border border-upsilon-cyan/20 text-[8px] font-mono text-upsilon-cyan uppercase text-center">
+                Earned via Damage & Healing
+            </div>
+        </div>
 
         <!-- Identity Management -->
         <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative @spec-link [[customer_user_account]]">

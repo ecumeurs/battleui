@@ -44,6 +44,7 @@ Route::prefix("v1")->group(function () {
         // Player Profile & Meta-game (Profile)
         // @spec-link [[api_profile_character]]
         Route::get('/profile', [ProfileController::class, 'getProfile']);
+        Route::get('/profile/credits', [ProfileController::class, 'getCredits']);
         Route::get('/profile/characters', [ProfileController::class, 'getCharacters']);
         Route::get('/profile/character/{characterId}', [ProfileController::class, 'getCharacter']);
         

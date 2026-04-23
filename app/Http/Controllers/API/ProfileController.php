@@ -29,6 +29,16 @@ class ProfileController extends Controller
     /**
      * @spec-link [[api_profile_character]]
      */
+    public function getCredits(Request $request)
+    {
+        return $this->success([
+            'credits' => $request->user()->credits,
+        ], 'Credits retrieved.');
+    }
+
+    /**
+     * @spec-link [[api_profile_character]]
+     */
     public function getCharacter(Request $request, string $characterId)
     {
         $user = $request->user();

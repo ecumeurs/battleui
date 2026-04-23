@@ -30,6 +30,7 @@ class User extends Authenticatable
         'total_losses',
         'ratio',
         'reroll_count',
+        'credits',
         'full_address',
         'birth_date'
     ];

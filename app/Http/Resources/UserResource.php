@@ -28,6 +28,7 @@ class UserResource extends JsonResource
             'total_losses' => $this->total_losses,
             'ratio' => $this->ratio,
             'reroll_count' => $this->reroll_count,
+            'credits' => $this->credits,
             'characters' => CharacterResource::collection($this->whenLoaded('characters')),
         ];
     }

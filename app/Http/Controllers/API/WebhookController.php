@@ -11,6 +11,8 @@ use Illuminate\Support\Facades\Log;
  * @spec-link [[api_websocket_game_events]]
  */
 use App\Models\GameMatch;
+use App\Models\User;
+use App\Models\CreditTransaction;
 use App\Events\BoardUpdated;
 use App\Traits\ApiResponder;
 use App\Http\Requests\API\Webhook\WebhookRequest;
@@ -75,6 +77,27 @@ class WebhookController extends Controller
                 'version' => $incomingVersion,
                 'turn' => $incomingVersion, // Unified progression marker
             ]);
+
+            // Process Credit Awards from Tactical Action
+            /** @spec-link [[rule_credit_earning_damage]] */
+            /** @spec-link [[rule_credit_earning_status_effects]] */
+            if (isset($boardState['action']['credits'])) {
+                foreach ($boardState['action']['credits'] as $award) {
+                    $player = User::find($award['player_id']);
+                    if ($player) {
+                        $player->increment('credits', $award['amount']);
+                        
+                        CreditTransaction::create([
+                            'player_id' => $player->id,
+                            'amount' => $award['amount'],
+                            'source' => $award['source'],
+                            'match_id' => $match_id,
+                        ]);
+
+                        Log::debug("Awarded {$award['amount']} credits to player {$player->id} from {$award['source']}");
+                    }
+                }
+            }
 
             /** @spec-link [[uc_match_resolution]] */
             if ($eventName === 'game.ended') {

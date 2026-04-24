@@ -18,7 +18,7 @@ export const game = {
      * @param {string} matchId 
      * @param {string} playerId 
      * @param {string} entityId 
-     * @param {string} type 'move' | 'attack' | 'pass' | 'forfeit'
+     * @param {string} type 'move' | 'attack' | 'pass'
      * @param {Array<{x: number, y: number}>} targetCoords 
      * @returns {Promise<Object>}
      */

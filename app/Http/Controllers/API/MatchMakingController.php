@@ -63,8 +63,11 @@ class MatchMakingController extends Controller
             return $this->error('Unauthorized', 401);
         }
 
-        $gameMode = $request->input('game_mode', '1v1_PVP');
-        $config = self::MODE_CONFIG[$gameMode] ?? self::MODE_CONFIG['1v1_PVP'];
+        $gameMode = $request->input('game_mode');
+        if (!isset(self::MODE_CONFIG[$gameMode])) {
+            return $this->error('Invalid game mode requested', 400);
+        }
+        $config = self::MODE_CONFIG[$gameMode];
 
         // Pull user's characters (first 3)
         $characters = $user->characters()->take(3)->get();

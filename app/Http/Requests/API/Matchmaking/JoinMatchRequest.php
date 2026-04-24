@@ -24,7 +24,7 @@ class JoinMatchRequest extends FormRequest
     {
         return [
             'game_mode' => [
-                'sometimes',
+                'required',
                 'string',
                 Rule::in(['1v1_PVP', '1v1_PVE', '2v2_PVP', '2v2_PVE']),
             ],

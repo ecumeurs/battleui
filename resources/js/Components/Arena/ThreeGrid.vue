@@ -34,9 +34,7 @@ const props = defineProps({
 
 const ready = ref(false);
 function onCanvasReady() {
-    setTimeout(() => {
-        ready.value = true;
-    }, 200);
+    ready.value = true;
 }
 
 const emit = defineEmits(['tile-click']);

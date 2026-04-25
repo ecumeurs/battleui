@@ -16,19 +16,33 @@ const props = defineProps({
 });
 
 const mounted = ref(false);
-watch(() => props.gridReady, (newVal) => {
-    if (newVal) {
-        setTimeout(() => {
-            mounted.value = true;
-        }, 200);
+const meshReady = ref(false);
+
+onMounted(() => {
+    mounted.value = true;
+});
+
+function onMeshReady() {
+    meshReady.value = true;
+}
+
+const showOverlay = ref(false);
+watch([mounted, () => props.gridReady, meshReady], ([m, g, r]) => {
+    if (m && g && r) {
+        nextTick(() => {
+            showOverlay.value = true;
+        });
     }
 }, { immediate: true });
 
-const position = computed(() => [
-    props.entity.position.x * props.tileSize,
-    props.surfaceHeight * props.tileHeight + props.tileHeight / 2 + 0.4,
-    props.entity.position.y * props.tileSize,
-]);
+const position = computed(() => {
+    if (!props.entity?.position) return [0, 0, 0];
+    return [
+        props.entity.position.x * props.tileSize,
+        props.surfaceHeight * props.tileHeight + props.tileHeight / 2 + 0.4,
+        props.entity.position.y * props.tileSize,
+    ];
+});
 
 const hpPct = computed(() => {
     if (!props.entity.max_hp) return 0;
@@ -82,7 +96,7 @@ const fragmentShader = `
 <template>
     <TresGroup :position="position">
         <!-- Pawn Mesh -->
-        <TresMesh cast-shadow>
+        <TresMesh cast-shadow @ready="onMeshReady">
             <TresConeGeometry :args="[0.3, 0.8, 6]" />
             <TresShaderMaterial
                 v-if="effects"
@@ -105,11 +119,18 @@ const fragmentShader = `
         </TresMesh>
 
         <!-- UI Overlay -->
-        <Html v-if="mounted && gridReady" center :position="[0, 0.8, 0]" :distance-factor="6">
+        <Html v-if="showOverlay && entity" center :position="[0, 0.8, 0]" :distance-factor="6">
             <div class="pawn-overlay">
                 <div class="pawn-overlay__name">{{ entity.nickname || entity.name }}</div>
                 <div class="pawn-overlay__hp-bar">
-                    <div class="pawn-overlay__hp-fill" :style="{ width: hpPct + '%', backgroundColor: color }"></div>
+                    <div
+                        class="pawn-overlay__hp-fill"
+                        :style="{
+                            width: hpPct + '%',
+                            backgroundColor: color,
+                            boxShadow: `0 0 4px ${color}`
+                        }"
+                    ></div>
                 </div>
             </div>
         </Html>
@@ -152,6 +173,5 @@ const fragmentShader = `
 .pawn-overlay__hp-fill {
     height: 100%;
     transition: width 0.4s cubic-bezier(0.4, 0, 0.2, 1);
-    box-shadow: 0 0 4px v-bind(color);
 }
 </style>

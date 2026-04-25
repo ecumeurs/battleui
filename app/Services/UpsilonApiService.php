@@ -99,12 +99,21 @@ class UpsilonApiService implements UpsilonApiServiceInterface
                         'json' => $envelope
                     ]);
 
+            $json = $response->json();
+
+            // An engine rule rejection (e.g. 412 PreconditionFailed) still carries
+            // a valid envelope with message + meta.error_key. Preserve it instead
+            // of throwing — the controller decides how to surface the failure.
+            // @spec-link [[api_standard_envelope]]
             if (!$response->successful()) {
+                if (is_array($json) && array_key_exists('success', $json)) {
+                    Log::warning("Upsilon API rule error [{$requestId}]: " . ($json['message'] ?? 'n/a'));
+                    return $json;
+                }
                 Log::error("Upsilon API Error [{$requestId}]: " . $response->body());
                 throw new \App\Exceptions\EngineConnectionException("API returned status {$response->status()}");
             }
 
-            $json = $response->json();
             if (is_null($json)) {
                 throw new \App\Exceptions\EngineConnectionException("API returned invalid JSON");
             }

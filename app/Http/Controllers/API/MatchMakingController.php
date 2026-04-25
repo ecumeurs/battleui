@@ -238,7 +238,7 @@ class MatchMakingController extends Controller
 
             // Broadcast to participants
             foreach ($participantIds as $channelKey) {
-                broadcast(new \App\Events\MatchFound($channelKey, $match->id));
+                broadcast(new \App\Events\MatchFound($channelKey, $match->id, $match->game_mode));
             }
 
             return $this->success([

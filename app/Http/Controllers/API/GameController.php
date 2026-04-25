@@ -80,12 +80,25 @@ class GameController extends Controller
             $validated['target_coords'] ?? []
         );
 
-        // 3. Return Standard Envelope back
+        // 3. Return Standard Envelope back, carrying any upstream meta
+        // (e.g. engine error_key) so clients can branch on typed failures.
+        // @spec-link [[api_standard_envelope]]
+        $upstreamMeta = (array) ($response['meta'] ?? []);
         if (!($response['success'] ?? false)) {
-            return $this->error($response['message'] ?? 'Action failed', 400, $response['data'] ?? []);
+            return $this->error(
+                $response['message'] ?? 'Action failed',
+                400,
+                $response['data'] ?? [],
+                $upstreamMeta
+            );
         }
 
-        return $this->success($response['data'] ?? [], $response['message'] ?? 'Action processed');
+        return $this->success(
+            $response['data'] ?? [],
+            $response['message'] ?? 'Action processed',
+            200,
+            $upstreamMeta
+        );
     }
 
     /**
@@ -101,10 +114,20 @@ class GameController extends Controller
         // Forfeiting is a player-level action, no entity_id required from frontend.
         $response = $this->upsilonService->forfeit($id, $request->user()->id);
 
+        $upstreamMeta = (array) ($response['meta'] ?? []);
+        if (!($response['success'] ?? false)) {
+            return $this->error(
+                $response['message'] ?? 'Forfeit failed',
+                400,
+                $response['data'] ?? [],
+                $upstreamMeta
+            );
+        }
         return $this->success(
-            $response['data'] ?? [], 
-            $response['message'] ?? 'Forfeit request processed', 
-            ($response['success'] ?? false) ? 200 : 400
+            $response['data'] ?? [],
+            $response['message'] ?? 'Forfeit request processed',
+            200,
+            $upstreamMeta
         );
     }
 }

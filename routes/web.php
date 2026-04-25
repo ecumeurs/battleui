@@ -50,6 +50,12 @@ Route::get('/admin/login', function () {
 
 require __DIR__.'/auth.php';
 
+/** @spec-link [[mech_frontend_test_seams]] */
+Route::prefix('__test/component')->group(function () {
+    Route::get('/', fn () => Inertia::render('TestComponentIndex'));
+    Route::get('/{name}', fn (string $name) => Inertia::render('TestComponent', ['name' => $name]));
+});
+
 /** @spec-link [[mech_web_catchall_router]] */
 Route::get('/{any}', function () {
     return Inertia::render('Welcome');

@@ -67,7 +67,7 @@ class AuthController extends Controller
         $token = $user->createToken('auth_token', expiresAt: now()->addMinutes(15))->plainTextToken;
 
         return $this->success([
-            'user' => new UserResource($user),
+            'user' => new UserResource($user->load('characters')),
             'token' => $token,
         ], 'Registration successful.', 201);
     }

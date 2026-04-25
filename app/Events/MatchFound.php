@@ -20,6 +20,7 @@ class MatchFound implements ShouldBroadcast
     public function __construct(
         public string $channel_key,
         public string $match_id,
+        public string $game_mode,
         public array $data = []
     ) {}
 
@@ -46,6 +47,7 @@ class MatchFound implements ShouldBroadcast
             'success' => true,
             'data' => [
                 'match_id' => $this->match_id,
+                'game_mode' => $this->game_mode,
             ],
             'meta' => (object) []
         ];

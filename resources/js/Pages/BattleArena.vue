@@ -11,7 +11,7 @@ import { tactical } from '@/services/tactical';
 
 import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
-import IsoBoardGrid from '@/Components/Arena/IsoBoardGrid.vue';
+import ThreeGrid from '@/Components/Arena/ThreeGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
@@ -467,7 +467,7 @@ async function executeForfeit() {
 
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
-                    <IsoBoardGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
+                    <ThreeGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
                         :team-colors="teamColors" :highlighted-cells="highlightedCells" @tile-click="handleTileClick" />
 
                     <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"

@@ -8,19 +8,9 @@ import Tile3D from './Tile3D.vue';
 import Obstacle3D from './Obstacle3D.vue';
 import Pawn3D from './Pawn3D.vue';
 import PostProcess from './PostProcess.vue';
-
-// ── Facing indicator ──────────────────────────────────────────────────────────
-// Grid "Up" = grid Y+1 = Three.js +Z; "Right" = grid X+1 = +X; etc.
-// Each entry is a flat triangle in local XZ at y=0: tip toward the facing edge.
-const FTIP = 0.42, FBASE = 0.18, FSTEM = 0.06;
-function _fb(v) { return new THREE.BufferAttribute(new Float32Array(v), 3); }
-const FACING_ATTRS = {
-    Up:    _fb([ 0,0,FTIP, -FBASE,0,-FSTEM,  FBASE,0,-FSTEM]),
-    Down:  _fb([ 0,0,-FTIP, FBASE,0,FSTEM, -FBASE,0,FSTEM ]),
-    Right: _fb([ FTIP,0,0,  FSTEM,0,FBASE,  FSTEM,0,-FBASE]),
-    Left:  _fb([-FTIP,0,0, -FSTEM,0,-FBASE, -FSTEM,0,FBASE]),
-};
-function facingAttr(facing) { return FACING_ATTRS[facing] ?? null; }
+import HighlightMaterial from './HighlightMaterial.vue';
+import GridHighlight from './GridHighlight.vue';
+import FacingIndicator3D from './FacingIndicator3D.vue';
 
 const props = defineProps({
     grid: { type: Object, required: true },
@@ -142,7 +132,7 @@ function onTileClick(tile, event) {
             power-preference="high-performance"
         >
             <template v-if="ready">
-                <TresPerspectiveCamera :position="cameraPos" :look-at="[gridCenter.x, 0, gridCenter.z]" :fov="45" />
+                <TresPerspectiveCamera make-default :position="cameraPos" :look-at="[gridCenter.x, 0, gridCenter.z]" :fov="45" />
                 <OrbitControls
                     :target="[gridCenter.x, 0, gridCenter.z]"
                     :max-polar-angle="Math.PI / 2.2"
@@ -206,27 +196,17 @@ function onTileClick(tile, event) {
                     :effects="effects"
                 />
 
-                <!-- Movement / attack highlights: flat wireframe planes -->
-                <TresMesh
+                <!-- Movement / attack highlights -->
+                <GridHighlight
                     v-for="h in highlightedCells"
                     :key="'hl-' + h.x + '-' + h.y + '-' + h.type"
-                    :position="[
-                        h.x * TILE_SIZE,
-                        surfaceHeight(h.x, h.y) * TILE_HEIGHT + TILE_HEIGHT + 0.02,
-                        h.y * TILE_SIZE,
-                    ]"
-                    :rotation="[-Math.PI / 2, 0, 0]"
-                >
-                    <TresPlaneGeometry :args="[TILE_SIZE * 0.95, TILE_SIZE * 0.95]" />
-                    <TresMeshStandardMaterial
-                        :color="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
-                        :emissive="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
-                        :emissive-intensity="3.0"
-                        transparent
-                        :opacity="0.4"
-                        :depth-write="false"
-                    />
-                </TresMesh>
+                    :x="h.x"
+                    :y="h.y"
+                    :type="h.type"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :surface-height="surfaceHeight(h.x, h.y)"
+                />
 
                 <!-- Pawns -->
                 <Pawn3D
@@ -242,19 +222,17 @@ function onTileClick(tile, event) {
                     :grid-ready="ready"
                 />
 
-                <!-- Facing indicator: dark-green triangle at cell level, tip points toward facing edge -->
-                <TresMesh
-                    v-for="entity in entities.filter((e) => !e.dead && e.hp > 0 && facingAttr(e.facing))"
+                <!-- Facing indicators -->
+                <FacingIndicator3D
+                    v-for="entity in entities.filter((e) => !e.dead && e.hp > 0)"
                     :key="'facing-' + entity.id"
-                    :position="[
-                        entity.position.x * TILE_SIZE,
-                        surfaceHeight(entity.position.x, entity.position.y) * TILE_HEIGHT + TILE_HEIGHT + 0.03,
-                        entity.position.y * TILE_SIZE,
-                    ]"
-                >
-                    <TresBufferGeometry :attributes-position="facingAttr(entity.facing)" />
-                    <TresMeshBasicMaterial color="#1a5c1a" :side="2" />
-                </TresMesh>
+                    :facing="entity.facing"
+                    :x="entity.position.x"
+                    :y="entity.position.y"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :surface-height="surfaceHeight(entity.position.x, entity.position.y)"
+                />
             </template>
         </TresCanvas>
     </div>

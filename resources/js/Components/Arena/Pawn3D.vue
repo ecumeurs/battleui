@@ -1,8 +1,8 @@
 <script setup>
-import { ref, computed, watch, onMounted } from 'vue';
+import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { Html } from '@tresjs/cientos';
-import { useLoop } from '@tresjs/core';
 import * as THREE from 'three';
+import HologramMaterial from './HologramMaterial.vue';
 
 const props = defineProps({
     entity: { type: Object, required: true },
@@ -48,49 +48,6 @@ const hpPct = computed(() => {
     if (!props.entity.max_hp) return 0;
     return Math.max(0, Math.min(100, Math.round((props.entity.hp / props.entity.max_hp) * 100)));
 });
-
-// ── Hologram Shader Logic ──────────────────────────────────────────────────
-const { onRender } = useLoop();
-const uTime = ref(0);
-onRender(({ elapsed }) => {
-    shaderUniforms.uTime.value = elapsed;
-});
-
-const shaderUniforms = {
-    uTime: { value: 0 },
-    uColor: { value: new THREE.Color(props.color) },
-    uOpacity: { value: props.isCurrent ? 0.7 : 0.4 }
-};
-
-watch(() => props.color, (newColor) => {
-    shaderUniforms.uColor.value.set(newColor);
-});
-
-watch(() => props.isCurrent, (newVal) => {
-    shaderUniforms.uOpacity.value = newVal ? 0.7 : 0.4;
-});
-
-const vertexShader = `
-    varying vec2 vUv;
-    void main() {
-        vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
-    }
-`;
-
-const fragmentShader = `
-    uniform float uTime;
-    uniform vec3 uColor;
-    uniform float uOpacity;
-    varying vec2 vUv;
-    void main() {
-        // Scrolling scanlines (subtler)
-        float scanline = sin(vUv.y * 60.0 + uTime * 3.0) * 0.1 + 0.9;
-        // Intermittent flicker (faster but shallower)
-        float flicker = sin(uTime * 30.0) * 0.03 + 0.97;
-        gl_FragColor = vec4(uColor, uOpacity * scanline * flicker);
-    }
-`;
 </script>
 
 <template>
@@ -98,15 +55,10 @@ const fragmentShader = `
         <!-- Pawn Mesh -->
         <TresMesh cast-shadow @ready="onMeshReady">
             <TresConeGeometry :args="[0.3, 0.8, 6]" />
-            <TresShaderMaterial
+            <HologramMaterial
                 v-if="effects"
-                :uniforms="shaderUniforms"
-                :vertex-shader="vertexShader"
-                :fragment-shader="fragmentShader"
-                :transparent="true"
-                :depth-write="false"
-                :blending="THREE.AdditiveBlending"
-                :on-before-compile="(s) => { s.uniforms.uTime = shaderUniforms.uTime }"
+                :color="color"
+                :opacity="isCurrent ? 0.7 : 0.4"
             />
             <TresMeshStandardMaterial
                 v-else

@@ -172,6 +172,7 @@ const FIXTURES = {
             { x: 2, y: 2, type: 'move' },
             { x: 0, y: 2, type: 'move' },
             { x: 1, y: 3, type: 'move' },
+            { x: 4, y: 1, type: 'attack' },
         ],
     },
 };

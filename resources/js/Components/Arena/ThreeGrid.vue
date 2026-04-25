@@ -23,8 +23,16 @@ const props = defineProps({
 });
 
 const ready = ref(false);
-function onCanvasReady() {
+function onCanvasReady(state) {
     ready.value = true;
+    console.log('--- 3D Arena State ---');
+    console.log('Scene:', state.scene);
+    console.log('Renderer:', state.renderer);
+    if (state.scene) {
+        const lights = state.scene.children.filter(c => c.isLight);
+        console.log('Active Lights:', lights.length, lights.map(l => l.type));
+    }
+    console.log('Effects Mode:', props.effects ? 'ON' : 'OFF');
 }
 
 const emit = defineEmits(['tile-click']);
@@ -145,9 +153,17 @@ function onTileClick(tile, event) {
 
                 <PostProcess :enabled="effects" />
 
-                <TresAmbientLight :intensity="effects ? 0.8 : 1.4" :color="effects ? '#2a2a3a' : '#ffffff'" />
+                <TresAmbientLight :intensity="effects ? 0.6 : 0.8" :color="effects ? '#2a2a3a' : '#ffffff'" />
                 <TresFogExp2 v-if="effects" color="#05050a" :density="0.015" />
 
+                <!-- Warm overhead key light -->
+                <TresPointLight
+                    :position="[gridCenter.x, 5, gridCenter.z]"
+                    color="#ffecb3"
+                    :intensity="effects ? 50 : 150"
+                    :distance="60"
+                    :decay="1.5"
+                />
                 <template v-if="effects">
                     <TresSpotLight
                         :position="[gridCenter.x - 8, 12, gridCenter.z - 8]"

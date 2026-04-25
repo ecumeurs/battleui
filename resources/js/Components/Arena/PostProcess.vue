@@ -9,9 +9,9 @@ const props = defineProps({
 <template>
     <EffectComposer v-if="enabled">
         <UnrealBloom
-            :intensity="1.5"
-            :threshold="0.4"
-            :radius="0.3"
+            :intensity="1.4"
+            :threshold="0.35"
+            :radius="0.5"
         />
     </EffectComposer>
 </template>

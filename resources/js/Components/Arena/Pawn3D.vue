@@ -39,9 +39,11 @@ watch([mounted, () => props.gridReady, meshReady], ([m, g, r]) => {
 
 const position = computed(() => {
     if (!props.entity?.position) return [0, 0, 0];
+    const surface = (props.surfaceHeight + 1) * props.tileHeight;
+    const pawnH = 0.8;
     return [
         props.entity.position.x * props.tileSize,
-        props.surfaceHeight * props.tileHeight + props.tileHeight / 2 + 0.4,
+        surface + (pawnH / 2) + 0.02, // 0.02 safety margin above surface
         props.entity.position.y * props.tileSize,
     ];
 });
@@ -60,8 +62,10 @@ const hpPct = computed(() => {
             <HologramMaterial
                 v-if="effects"
                 :color="color"
-                :opacity="isCurrent ? 0.7 : 0.4"
+                :opacity="isCurrent ? 0.8 : 0.65"
+                :glow-intensity="isCurrent ? 0.8 : 1.4"
             />
+
             <TresMeshStandardMaterial
                 v-else
                 :color="color"

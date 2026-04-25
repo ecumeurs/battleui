@@ -10,8 +10,7 @@ tags: [progression, character]
 parents:
   - [[entity_character]]
   - [[requirement_customer_player_profile]]
-dependents:
-  - [[uc_progression_stat_allocation]]
+dependents: []
 ---
 # Character Progression Rule
 

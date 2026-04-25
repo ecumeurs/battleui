@@ -7,7 +7,8 @@ version: 1.0
 tags: [ui, combat, board, obstacle, holographic]
 parents:
   - [[ui_iso_board]]
-dependents: []
+dependents:
+  - [[mech_hologram_shader]]
 human_name: Holographic Obstacle UI
 priority: 3
 ---

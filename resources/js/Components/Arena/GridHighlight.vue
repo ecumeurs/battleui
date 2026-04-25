@@ -1,4 +1,5 @@
 <script setup>
+// @spec-link [[ui_selection_highlight]]
 import HighlightMaterial from './HighlightMaterial.vue';
 
 const props = defineProps({

@@ -5,7 +5,8 @@ priority: 5
 tags: [ui, combat, pawn, holographic, 3d]
 parents:
   - [[ui_iso_board]]
-dependents: []
+dependents:
+  - [[mech_hologram_shader]]
 type: UI
 layer: ARCHITECTURE
 version: 1.0

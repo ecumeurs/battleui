@@ -1,4 +1,5 @@
 <script setup>
+// @spec-link [[ui_selection_highlight]]
 import { useLoop } from '@tresjs/core';
 import * as THREE from 'three';
 

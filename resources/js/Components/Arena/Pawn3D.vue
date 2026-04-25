@@ -1,4 +1,6 @@
 <script setup>
+// @spec-link [[ui_character_pawn]]
+// @spec-link [[mech_hologram_shader]]
 import { ref, computed, watch, nextTick, onMounted } from 'vue';
 import { Html } from '@tresjs/cientos';
 import * as THREE from 'three';

@@ -1,4 +1,5 @@
 <script setup>
+// @spec-link [[ui_iso_board]]
 import * as THREE from 'three';
 
 const props = defineProps({

@@ -9,6 +9,7 @@ dependents:
   - [[mech_frontend_test_seams]]
   - [[ui_character_pawn]]
   - [[ui_holo_obstacle]]
+  - [[ui_selection_highlight]]
 human_name: 3D Board Grid UI (Three.js)
 priority: 5
 parents:

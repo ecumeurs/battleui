@@ -1,3 +1,4 @@
+<!-- @spec-link [[mech_hologram_shader]] -->
 <script setup>
 import { ref, watch } from 'vue';
 import { useLoop } from '@tresjs/core';

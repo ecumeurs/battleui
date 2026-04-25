@@ -1,4 +1,6 @@
 <script setup>
+// @spec-link [[ui_holo_obstacle]]
+// @spec-link [[mech_hologram_shader]]
 import { computed } from 'vue';
 import HologramMaterial from './HologramMaterial.vue';
 

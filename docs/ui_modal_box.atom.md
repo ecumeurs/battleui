@@ -4,7 +4,7 @@ status: STABLE
 layer: ARCHITECTURE
 tags: [ui, modal, design-system]
 parents:
-  - [[requirement_customer_user_account]]
+  - [[shared:requirement_customer_user_account]]
 dependents: []
 human_name: UI Modal Box Specification
 type: UI

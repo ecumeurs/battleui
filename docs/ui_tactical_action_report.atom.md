@@ -8,7 +8,7 @@ status: STABLE
 priority: 2
 tags: [ui, combat, feedback]
 parents:
-  - [[requirement_customer_action_reporting]]
+  - [[shared:requirement_customer_action_reporting]]
 dependents: []
 ---
 

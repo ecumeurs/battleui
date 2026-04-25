@@ -8,7 +8,7 @@ status: REVIEW
 priority: 5
 tags: [ui, secure, combat]
 parents:
-  - [[module_game]]
+  - [[upsilonbattle:module_game]]
 dependents:
   - [[ui_battle_arena]]
 ---

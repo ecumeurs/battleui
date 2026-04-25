@@ -9,11 +9,9 @@ priority: 5
 tags: []
 parents:
   - [[module_frontend]]
-  - [[uc_player_login]]
+  - [[shared:uc_player_login]]
 dependents:
   - [[module_ui_tactical_layout]]
-  - [[uc_player_login]]
-  - [[uc_progression_stat_allocation]]
   - [[ui_character_roster]]
   - [[ui_dashboard_match_statistics]]
   - [[ui_dashboard_navigation]]
@@ -22,6 +20,8 @@ dependents:
   - [[ui_dashboard_queue_selection]]
   - [[ui_dashboard_roster_display]]
   - [[ui_dashboard_security_check]]
+  - [[shared:uc_player_login]]
+  - [[shared:uc_progression_stat_allocation]]
 ---
 # Dashboard Page UI
 

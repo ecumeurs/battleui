@@ -4,8 +4,8 @@ status: STABLE
 type: UI
 version: 1.0
 parents:
-  - [[mech_action_economy]]
   - [[ui_battle_arena]]
+  - [[upsilonbattle:mech_action_economy]]
 dependents: []
 human_name: Action Panel Component
 layer: ARCHITECTURE

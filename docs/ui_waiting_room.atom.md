@@ -8,7 +8,7 @@ status: REVIEW
 priority: 5
 tags: [ui, secure, matchmaking]
 parents:
-  - [[req_matchmaking]]
+  - [[shared:req_matchmaking]]
 dependents: []
 ---
 # Waiting Room UI

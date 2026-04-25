@@ -8,7 +8,7 @@ status: STABLE
 priority: 5
 tags: [admin, ui]
 parents:
-  - [[uc_admin_login]]
+  - [[shared:uc_admin_login]]
 dependents: []
 ---
 

@@ -2,8 +2,8 @@
 id: ui_initiative_timeline
 status: STABLE
 parents:
-  - [[mech_action_economy]]
   - [[ui_battle_arena]]
+  - [[upsilonbattle:mech_action_economy]]
 human_name: Initiative Timeline UI
 layer: ARCHITECTURE
 priority: 5

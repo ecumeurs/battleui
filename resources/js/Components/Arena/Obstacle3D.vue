@@ -11,21 +11,24 @@ const props = defineProps({
     effects: { type: Boolean, default: false },
 });
 
-const position = computed(() => [
-    props.tile.x * props.tileSize,
-    props.tile.height * props.tileHeight + props.tileHeight * 1.5,
-    props.tile.y * props.tileSize,
-]);
+const position = computed(() => {
+    const surface = (props.tile.height + 1) * props.tileHeight;
+    const obstacleH = props.tileHeight * 2.0;
+    return [
+        props.tile.x * props.tileSize,
+        surface + (obstacleH / 2) + 0.05, // 0.05 safety margin above surface
+        props.tile.y * props.tileSize,
+    ];
+});
 
 const obstacleColor = computed(() => {
     const colors = [
-        '#3d2b1f', // Deep brown
-        '#4a3728', // Dark earth
-        '#5c4033', // Bark
-        '#7b3f00', // Chocolate
-        '#8b4513', // Saddle brown
-        '#a0522d', // Sienna
-        '#b24412', // Rust
+        '#5d3b2f', // Warm Copper
+        '#6a4738', // Oxidized Iron
+        '#7c5043', // Terracotta Metal
+        '#8b5a2b', // Golden Rust
+        '#a67c52', // Brass
+        '#b24412', // Industrial Orange
     ];
     // Simple stable hash based on coordinates
     const hash = (props.tile.x * 7 + props.tile.y * 13) % colors.length;

@@ -21,9 +21,12 @@ onRender(({ elapsed }) => {
 
 const vertexShader = `
     varying vec2 vUv;
+    uniform float uTime;
     void main() {
         vUv = uv;
-        gl_Position = projectionMatrix * modelViewMatrix * vec4(position, 1.0);
+        // Minute vertical bobbing for holographic UI (always above ground)
+        float bob = (sin(uTime * 1.5) * 0.5 + 0.5) * 0.02;
+        gl_Position = projectionMatrix * modelViewMatrix * vec4(position.x, position.y + bob, position.z, 1.0);
     }
 `;
 

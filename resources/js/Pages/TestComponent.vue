@@ -220,6 +220,7 @@ onMounted(() => {
                 :team-colors="fixture.teamColors"
                 :highlighted-cells="fixture.highlightedCells"
                 :auto-rotate="isVisual"
+                :effects="isVisual"
                 @tile-click="() => {}"
             />
         </div>

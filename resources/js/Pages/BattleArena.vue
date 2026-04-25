@@ -468,7 +468,7 @@ async function executeForfeit() {
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
                     <ThreeGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
-                        :team-colors="teamColors" :highlighted-cells="highlightedCells" @tile-click="handleTileClick" />
+                        :team-colors="teamColors" :highlighted-cells="highlightedCells" effects @tile-click="handleTileClick" />
 
                     <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"
                         :selected-action="selectedAction" :active-character="currentEntity"

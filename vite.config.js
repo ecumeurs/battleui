@@ -10,6 +10,9 @@ export default defineConfig({
         }),
         vue({
             template: {
+                compilerOptions: {
+                    isCustomElement: (tag) => tag.startsWith('Tres') && tag !== 'TresCanvas',
+                },
                 transformAssetUrls: {
                     base: null,
                     includeAbsolute: false,

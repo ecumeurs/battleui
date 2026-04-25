@@ -1,15 +1,19 @@
 <!-- @spec-link [[ui_iso_board]] -->
 <script setup>
-import { computed } from 'vue';
+import { computed, ref, onMounted } from 'vue';
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
-import { BufferAttribute } from 'three';
+import * as THREE from 'three';
+import Tile3D from './Tile3D.vue';
+import Obstacle3D from './Obstacle3D.vue';
+import Pawn3D from './Pawn3D.vue';
+import PostProcess from './PostProcess.vue';
 
 // ── Facing indicator ──────────────────────────────────────────────────────────
 // Grid "Up" = grid Y+1 = Three.js +Z; "Right" = grid X+1 = +X; etc.
 // Each entry is a flat triangle in local XZ at y=0: tip toward the facing edge.
 const FTIP = 0.42, FBASE = 0.18, FSTEM = 0.06;
-function _fb(v) { return new BufferAttribute(new Float32Array(v), 3); }
+function _fb(v) { return new THREE.BufferAttribute(new Float32Array(v), 3); }
 const FACING_ATTRS = {
     Up:    _fb([ 0,0,FTIP, -FBASE,0,-FSTEM,  FBASE,0,-FSTEM]),
     Down:  _fb([ 0,0,-FTIP, FBASE,0,FSTEM, -FBASE,0,FSTEM ]),
@@ -25,7 +29,15 @@ const props = defineProps({
     teamColors: { type: Object, default: () => ({}) },
     highlightedCells: { type: Array, default: () => [] },
     autoRotate: { type: Boolean, default: false },
+    effects: { type: Boolean, default: false },
 });
+
+const ready = ref(false);
+function onCanvasReady() {
+    setTimeout(() => {
+        ready.value = true;
+    }, 200);
+}
 
 const emit = defineEmits(['tile-click']);
 
@@ -96,6 +108,9 @@ function entityAt(x, y) {
     );
 }
 
+// ── Post-Processing Placeholder ──────────────────────────────────────────────
+// Logic moved to PostProcess.vue
+
 function surfaceHeight(x, y) {
     const cell = props.grid?.cells?.[x]?.[y];
     return cell?.height ?? 0;
@@ -119,113 +134,130 @@ function onTileClick(tile, event) {
 
 <template>
     <div class="three-grid">
-        <TresCanvas clear-color="#05050a" shadows window-size>
-            <TresPerspectiveCamera :position="cameraPos" :look-at="[gridCenter.x, 0, gridCenter.z]" :fov="45" />
-            <OrbitControls
-                :target="[gridCenter.x, 0, gridCenter.z]"
-                :max-polar-angle="Math.PI / 2.2"
-                :min-distance="4"
-                :max-distance="60"
-                :enable-damping="true"
-                :auto-rotate="autoRotate"
-                :auto-rotate-speed="1.2"
-            />
-
-            <TresAmbientLight :intensity="1.4" />
-            <TresDirectionalLight
-                :position="[gridCenter.x + 10, 18, gridCenter.z + 10]"
-                :intensity="2.0"
-                cast-shadow
-            />
-
-            <!-- Terrain tiles -->
-            <TresMesh
-                v-for="tile in tiles"
-                :key="'tile-' + tile.x + '-' + tile.y"
-                :position="tilePosition(tile)"
-                receive-shadow
-                :user-data="{ gx: tile.x, gy: tile.y }"
-                @click="(e) => onTileClick(tile, e)"
-            >
-                <TresBoxGeometry :args="[TILE_SIZE * 0.98, (tile.height + 1) * TILE_HEIGHT, TILE_SIZE * 0.98]" />
-                <TresMeshStandardMaterial
-                    :color="tileColor(tile)"
-                    :emissive="tileColor(tile)"
-                    :emissive-intensity="0.6"
-                    :roughness="0.7"
-                    :metalness="0.2"
+        <TresCanvas
+            @ready="onCanvasReady"
+            clear-color="#05050a"
+            shadows
+            :shadow-map-type="THREE.PCFShadowMap"
+            alpha
+            window-size
+            power-preference="high-performance"
+        >
+            <template v-if="ready">
+                <TresPerspectiveCamera :position="cameraPos" :look-at="[gridCenter.x, 0, gridCenter.z]" :fov="45" />
+                <OrbitControls
+                    :target="[gridCenter.x, 0, gridCenter.z]"
+                    :max-polar-angle="Math.PI / 2.2"
+                    :min-distance="4"
+                    :max-distance="60"
+                    :enable-damping="true"
+                    :auto-rotate="autoRotate"
+                    :auto-rotate-speed="1.2"
                 />
-            </TresMesh>
 
-            <!-- Obstacles: extrude a block above the surface for visual weight -->
-            <TresMesh
-                v-for="tile in tiles.filter((t) => t.obstacle)"
-                :key="'obs-' + tile.x + '-' + tile.y"
-                :position="[
-                    tile.x * TILE_SIZE,
-                    tile.height * TILE_HEIGHT + TILE_HEIGHT * 1.5,
-                    tile.y * TILE_SIZE,
-                ]"
-                cast-shadow
-            >
-                <TresBoxGeometry :args="[TILE_SIZE * 0.8, TILE_HEIGHT * 2, TILE_SIZE * 0.8]" />
-                <TresMeshStandardMaterial color="#3d2b1f" emissive="#3d2b1f" :emissive-intensity="0.5" :roughness="0.9" :metalness="0.3" />
-            </TresMesh>
+                <PostProcess :enabled="effects" />
 
-            <!-- Movement / attack highlights: thin slab hovering above surface -->
-            <TresMesh
-                v-for="h in highlightedCells"
-                :key="'hl-' + h.x + '-' + h.y + '-' + h.type"
-                :position="[
-                    h.x * TILE_SIZE,
-                    surfaceHeight(h.x, h.y) * TILE_HEIGHT + TILE_HEIGHT + 0.05,
-                    h.y * TILE_SIZE,
-                ]"
-            >
-                <TresBoxGeometry :args="[TILE_SIZE * 0.9, 0.04, TILE_SIZE * 0.9]" />
-                <TresMeshStandardMaterial
-                    :color="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
-                    :emissive="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
-                    :emissive-intensity="0.6"
-                    transparent
-                    :opacity="0.55"
+                <TresAmbientLight :intensity="effects ? 0.8 : 1.4" :color="effects ? '#2a2a3a' : '#ffffff'" />
+                <TresFogExp2 v-if="effects" color="#05050a" :density="0.015" />
+
+                <template v-if="effects">
+                    <TresSpotLight
+                        :position="[gridCenter.x - 8, 12, gridCenter.z - 8]"
+                        color="#00f2ff"
+                        :intensity="800"
+                        :distance="40"
+                        :angle="Math.PI / 4"
+                        :penumbra="0.3"
+                        cast-shadow
+                    />
+                    <TresSpotLight
+                        :position="[gridCenter.x + 8, 12, gridCenter.z + 8]"
+                        color="#ff00ff"
+                        :intensity="800"
+                        :distance="40"
+                        :angle="Math.PI / 4"
+                        :penumbra="0.3"
+                        cast-shadow
+                    />
+                </template>
+                <TresDirectionalLight
+                    v-else
+                    :position="[gridCenter.x + 10, 18, gridCenter.z + 10]"
+                    :intensity="2.0"
+                    cast-shadow
                 />
-            </TresMesh>
 
-            <!-- Pawns: cones sitting on the surface, tinted per team -->
-            <TresMesh
-                v-for="entity in entities.filter((e) => !e.dead && e.hp > 0)"
-                :key="'pawn-' + entity.id"
-                :position="[
-                    entity.position.x * TILE_SIZE,
-                    surfaceHeight(entity.position.x, entity.position.y) * TILE_HEIGHT + TILE_HEIGHT / 2 + 0.4,
-                    entity.position.y * TILE_SIZE,
-                ]"
-                cast-shadow
-            >
-                <TresConeGeometry :args="[0.3, 0.8, 6]" />
-                <TresMeshStandardMaterial
+                <!-- Terrain tiles -->
+                <Tile3D
+                    v-for="tile in tiles"
+                    :key="'tile-' + tile.x + '-' + tile.y"
+                    :tile="tile"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :effects="effects"
+                    @click="(e) => onTileClick(tile, e)"
+                />
+
+                <!-- Obstacles -->
+                <Obstacle3D
+                    v-for="tile in tiles.filter((t) => t.obstacle)"
+                    :key="'obs-' + tile.x + '-' + tile.y"
+                    :tile="tile"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :effects="effects"
+                />
+
+                <!-- Movement / attack highlights: flat wireframe planes -->
+                <TresMesh
+                    v-for="h in highlightedCells"
+                    :key="'hl-' + h.x + '-' + h.y + '-' + h.type"
+                    :position="[
+                        h.x * TILE_SIZE,
+                        surfaceHeight(h.x, h.y) * TILE_HEIGHT + TILE_HEIGHT + 0.02,
+                        h.y * TILE_SIZE,
+                    ]"
+                    :rotation="[-Math.PI / 2, 0, 0]"
+                >
+                    <TresPlaneGeometry :args="[TILE_SIZE * 0.95, TILE_SIZE * 0.95]" />
+                    <TresMeshStandardMaterial
+                        :color="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
+                        :emissive="h.type === 'attack' ? '#ff00ff' : '#00f2ff'"
+                        :emissive-intensity="3.0"
+                        transparent
+                        :opacity="0.4"
+                        :depth-write="false"
+                    />
+                </TresMesh>
+
+                <!-- Pawns -->
+                <Pawn3D
+                    v-for="entity in entities.filter((e) => !e.dead && e.hp > 0)"
+                    :key="'pawn-' + entity.id"
+                    :entity="entity"
                     :color="entityColor(entity)"
-                    :emissive="entityColor(entity)"
-                    :emissive-intensity="entity.id === currentEntityId ? 0.8 : 0.2"
-                    :roughness="0.35"
-                    :metalness="0.75"
+                    :is-current="entity.id === currentEntityId"
+                    :surface-height="surfaceHeight(entity.position.x, entity.position.y)"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :effects="effects"
+                    :grid-ready="ready"
                 />
-            </TresMesh>
 
-            <!-- Facing indicator: dark-green triangle at cell level, tip points toward facing edge -->
-            <TresMesh
-                v-for="entity in entities.filter((e) => !e.dead && e.hp > 0 && facingAttr(e.facing))"
-                :key="'facing-' + entity.id"
-                :position="[
-                    entity.position.x * TILE_SIZE,
-                    surfaceHeight(entity.position.x, entity.position.y) * TILE_HEIGHT + TILE_HEIGHT + 0.03,
-                    entity.position.y * TILE_SIZE,
-                ]"
-            >
-                <TresBufferGeometry :attributes-position="facingAttr(entity.facing)" />
-                <TresMeshBasicMaterial color="#1a5c1a" :side="2" />
-            </TresMesh>
+                <!-- Facing indicator: dark-green triangle at cell level, tip points toward facing edge -->
+                <TresMesh
+                    v-for="entity in entities.filter((e) => !e.dead && e.hp > 0 && facingAttr(e.facing))"
+                    :key="'facing-' + entity.id"
+                    :position="[
+                        entity.position.x * TILE_SIZE,
+                        surfaceHeight(entity.position.x, entity.position.y) * TILE_HEIGHT + TILE_HEIGHT + 0.03,
+                        entity.position.y * TILE_SIZE,
+                    ]"
+                >
+                    <TresBufferGeometry :attributes-position="facingAttr(entity.facing)" />
+                    <TresMeshBasicMaterial color="#1a5c1a" :side="2" />
+                </TresMesh>
+            </template>
         </TresCanvas>
     </div>
 </template>

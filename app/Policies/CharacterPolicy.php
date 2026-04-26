@@ -47,4 +47,20 @@ class CharacterPolicy
 
         return Response::allow();
     }
+
+    /**
+     * @spec-link [[upsilonapi:api_equipment_management]]
+     */
+    public function equip(User $user, Character $character): bool
+    {
+        return $user->id === $character->player_id;
+    }
+
+    /**
+     * @spec-link [[upsilonapi:api_equipment_management]]
+     */
+    public function unequip(User $user, Character $character): bool
+    {
+        return $user->id === $character->player_id;
+    }
 }

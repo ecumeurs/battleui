@@ -10,6 +10,9 @@ use Illuminate\Support\Facades\Route;
 
 use App\Http\Controllers\API\WebhookController;
 use App\Http\Controllers\API\LeaderboardController;
+use App\Http\Controllers\API\ShopController;
+use App\Http\Controllers\API\InventoryController;
+use App\Http\Controllers\API\EquipmentController;
 
 Route::post('/webhook/upsilon', [WebhookController::class, 'handle']);
 
@@ -73,6 +76,20 @@ Route::prefix("v1")->group(function () {
         Route::get('/game/{id}', [GameController::class, 'state']);
         Route::post('/game/{id}/action', [GameController::class, 'action']);
         Route::post('/game/{id}/forfeit', [GameController::class, 'forfeit']);
+
+        // Shop (ISS-074)
+        // @spec-link [[upsilonapi:api_shop_browse]]
+        // @spec-link [[upsilonapi:api_shop_purchase]]
+        Route::get('/shop/items', [ShopController::class, 'index']);
+        Route::post('/shop/purchase', [ShopController::class, 'purchase']);
+
+        // Inventory & Equipment (ISS-074)
+        // @spec-link [[upsilonapi:api_inventory_list]]
+        // @spec-link [[upsilonapi:api_equipment_management]]
+        Route::get('/profile/inventory', [InventoryController::class, 'index']);
+        Route::get('/profile/character/{characterId}/equipment', [EquipmentController::class, 'show']);
+        Route::post('/profile/character/{characterId}/equip', [EquipmentController::class, 'equip']);
+        Route::delete('/profile/character/{characterId}/unequip/{slot}', [EquipmentController::class, 'unequip']);
 
         // Administrative Layer
         Route::middleware('admin')->prefix('admin')->group(function() {

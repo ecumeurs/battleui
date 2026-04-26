@@ -16,6 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        /** @spec-link [[upsilonbattle:entity_shop_item]] */
+        $this->call(ShopItemsSeeder::class);
+
         /** @spec-link [[infra_seed_admin]] */
         $adminPassword = env('ADMIN_INITIAL_PASSWORD');
 

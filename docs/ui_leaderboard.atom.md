@@ -15,7 +15,6 @@ dependents:
   - [[ui_leaderboard_primary_sorting]]
   - [[ui_leaderboard_secondary_sorting]]
   - [[ui_leaderboard_security]]
-  - [[upsilonapi:api_leaderboard]]
 ---
 # Leaderboard Page UI
 

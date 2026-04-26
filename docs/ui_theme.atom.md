@@ -2,7 +2,11 @@
 id: ui_theme
 status: STABLE
 human_name: UI Theme Specification
-dependents: []
+dependents:
+  - [[ui_character_equipment_panel]]
+  - [[ui_character_full_stat_panel]]
+  - [[ui_inventory]]
+  - [[ui_shop]]
 type: UI
 layer: ARCHITECTURE
 version: 1.0

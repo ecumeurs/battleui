@@ -84,51 +84,71 @@ class ProfileController extends Controller
 
     /**
      * @spec-link [[api_profile_character]]
-     * @spec-link [[rule_progression]]
+     * @spec-link [[shared:rule_progression]]
+     * @spec-link [[shared:rule_stat_taxonomy]]
+     *
+     * Class A stats only — Class B (AttackRange, Shield) cannot be CP-upgraded.
      */
     public function updateCharacter(UpdateCharacterRequest $request, string $characterId)
     {
         $user = $request->user();
         $character = Character::findOrFail($characterId);
         $this->authorize('update', $character);
-        
+
         $validated = $request->validated();
+        $stats = $validated['stats'];
 
-        $incHp = $validated['stats']['hp'] ?? 0;
-        $incAttack = $validated['stats']['attack'] ?? 0;
-        $incDefense = $validated['stats']['defense'] ?? 0;
-        $incMovement = $validated['stats']['movement'] ?? 0;
+        // Class A increments (default 0 if not provided).
+        $inc = [
+            'hp'          => $stats['hp']          ?? 0,
+            'mp'          => $stats['mp']          ?? 0,
+            'sp'          => $stats['sp']          ?? 0,
+            'attack'      => $stats['attack']      ?? 0,
+            'defense'     => $stats['defense']     ?? 0,
+            'movement'    => $stats['movement']    ?? 0,
+            'jump_height' => $stats['jump_height'] ?? 0,
+            'crit_chance' => $stats['crit_chance'] ?? 0,
+            'crit_damage' => $stats['crit_damage'] ?? 0,
+        ];
 
-        $newHp = $character->hp + $incHp;
-        $newAttack = $character->attack + $incAttack;
-        $newDefense = $character->defense + $incDefense;
-        $newMovement = $character->movement + $incMovement;
+        // CP costs per [[shared:rule_progression]] v2.1.
+        $costs = [
+            'hp'          => 1,
+            'mp'          => 1,
+            'sp'          => 1,
+            'attack'      => 5,
+            'defense'     => 5,
+            'movement'    => 30,
+            'jump_height' => 15,
+            'crit_chance' => 10,
+            'crit_damage' => 5,
+        ];
 
-        // V2 Point-Buy CP Calculation
-        $incrementCP = ($incHp * 1) + ($incAttack * 5) + ($incDefense * 5) + ($incMovement * 30);
-        $newSpentCP = $character->spent_cp + $incrementCP;
-        
-        // Allowed CP: 100 base + (10 per win)
+        $incrementCP = 0;
+        foreach ($inc as $stat => $delta) {
+            $incrementCP += $delta * $costs[$stat];
+        }
+
+        $newSpentCP   = $character->spent_cp + $incrementCP;
         $maxAllowedCP = 100 + ($user->total_wins * 10);
 
         if ($newSpentCP > $maxAllowedCP) {
             return $this->error("Upgrade failed: Total spent CP ($newSpentCP) exceeds the allowed cap ($maxAllowedCP based on {$user->total_wins} wins).", 400);
         }
 
-        // Constraint: No negative attributes
-        if ($newHp < 0 || $newAttack < 0 || $newDefense < 0 || $newMovement < 0) {
-             return $this->error("Upgrade failed: Attributes cannot be negative.", 400);
+        // No-negative constraint on every Class A stat.
+        $newValues = [];
+        foreach ($inc as $stat => $delta) {
+            $newValues[$stat] = $character->{$stat} + $delta;
+            if ($newValues[$stat] < 0) {
+                return $this->error("Upgrade failed: Attribute '{$stat}' cannot be negative.", 400);
+            }
         }
+        $newValues['spent_cp'] = $newSpentCP;
 
-        $character->update([
-            'hp' => $newHp,
-            'attack' => $newAttack,
-            'defense' => $newDefense,
-            'movement' => $newMovement,
-            'spent_cp' => $newSpentCP,
-        ]);
+        $character->update($newValues);
 
-        return $this->success(new CharacterResource($character), 'Character upgraded.');
+        return $this->success(new CharacterResource($character->fresh()), 'Character upgraded.');
     }
 
     /**

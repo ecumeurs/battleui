@@ -78,4 +78,20 @@ class User extends Authenticatable
     {
         return $this->hasMany(Character::class, 'player_id');
     }
+
+    /**
+     * @spec-link [[upsilonbattle:entity_player_inventory]]
+     */
+    public function inventory()
+    {
+        return $this->hasMany(PlayerInventory::class, 'player_id');
+    }
+
+    /**
+     * @spec-link [[upsilonbattle:entity_player_inventory]]
+     */
+    public function inventoryTransactions()
+    {
+        return $this->hasMany(InventoryTransaction::class, 'player_id');
+    }
 }

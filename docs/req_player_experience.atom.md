@@ -8,17 +8,7 @@ status: STABLE
 priority: 5
 tags: [player, experience]
 parents: []
-dependents:
-  - [[shared:requirement_customer_action_reporting]]
-  - [[shared:requirement_customer_api_first]]
-  - [[shared:requirement_req_trpg_game_definition]]
-  - [[shared:uc_combat_turn]]
-  - [[shared:uc_match_resolution]]
-  - [[shared:uc_matchmaking]]
-  - [[shared:uc_player_login]]
-  - [[shared:uc_player_registration]]
-  - [[shared:uc_progression_stat_allocation]]
-  - [[shared:us_auth_logout]]
+dependents: []
 ---
 
 # Player Experience Requirement

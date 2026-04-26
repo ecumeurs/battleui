@@ -15,13 +15,24 @@ class CharacterResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id' => $this->id,
-            'name' => $this->name,
-            'hp' => $this->hp,
-            'attack' => $this->attack,
-            'defense' => $this->defense,
-            'movement' => $this->movement,
-            'initial_movement' => $this->initial_movement,
+            'id'               => $this->id,
+            'name'             => $this->name,
+            // Class A — CP-upgradable, persisted [[shared:rule_progression]]
+            'hp'               => (int) $this->hp,
+            'mp'               => (int) $this->mp,
+            'sp'               => (int) $this->sp,
+            'attack'           => (int) $this->attack,
+            'defense'          => (int) $this->defense,
+            'movement'         => (int) $this->movement,
+            'jump_height'      => (int) $this->jump_height,
+            'crit_chance'      => (int) $this->crit_chance,
+            'crit_damage'      => (int) $this->crit_damage,
+            'initial_movement' => (int) $this->initial_movement,
+            'spent_cp'         => (int) $this->spent_cp,
+            // Equipment summary (when loaded)
+            'equipment'        => $this->whenLoaded('equipment', function () {
+                return new CharacterEquipmentResource($this->equipment);
+            }),
         ];
     }
 }

@@ -19,9 +19,14 @@ class Character extends Model
         'player_id',
         'name',
         'hp',
+        'mp',
+        'sp',
         'movement',
+        'jump_height',
         'attack',
         'defense',
+        'crit_chance',
+        'crit_damage',
         'initial_movement',
         'spent_cp'
     ];
@@ -29,6 +34,14 @@ class Character extends Model
     public function player()
     {
         return $this->belongsTo(User::class, 'player_id');
+    }
+
+    /**
+     * @spec-link [[upsilonbattle:entity_character_equipment]]
+     */
+    public function equipment()
+    {
+        return $this->hasOne(CharacterEquipment::class, 'character_id');
     }
 
     /**
@@ -44,9 +57,14 @@ class Character extends Model
                 'player_id' => $playerId,
                 'name' => "Character " . ($i + 1),
                 'hp' => $stats['hp'],
+                'mp' => $stats['mp'],
+                'sp' => $stats['sp'],
                 'movement' => $stats['movement'],
+                'jump_height' => $stats['jump_height'],
                 'attack' => $stats['attack'],
                 'defense' => $stats['defense'],
+                'crit_chance' => $stats['crit_chance'],
+                'crit_damage' => $stats['crit_damage'],
                 'initial_movement' => $stats['movement'],
                 'spent_cp' => 0,
             ]);
@@ -62,9 +80,14 @@ class Character extends Model
         $stats = self::getBaseStats();
         $this->update([
             'hp' => $stats['hp'],
+            'mp' => $stats['mp'],
+            'sp' => $stats['sp'],
             'movement' => $stats['movement'],
+            'jump_height' => $stats['jump_height'],
             'attack' => $stats['attack'],
             'defense' => $stats['defense'],
+            'crit_chance' => $stats['crit_chance'],
+            'crit_damage' => $stats['crit_damage'],
             'initial_movement' => $stats['movement'],
             'spent_cp' => 0,
         ]);
@@ -76,12 +99,18 @@ class Character extends Model
      */
     public static function getBaseStats(): array
     {
-        // V2 Baseline Stats
+        // V2 Baseline Stats — Class A (CP-upgradable). Class B (AttackRange,
+        // Shield) intentionally absent: items/buffs only per [[shared:rule_stat_taxonomy]].
         return [
-            'hp' => 30,
-            'attack' => 10,
-            'defense' => 5,
-            'movement' => 3
+            'hp'          => 30,
+            'mp'          => 10,
+            'sp'          => 10,
+            'attack'      => 10,
+            'defense'     => 5,
+            'movement'    => 3,
+            'jump_height' => 2,
+            'crit_chance' => 0,
+            'crit_damage' => 0,
         ];
     }
 

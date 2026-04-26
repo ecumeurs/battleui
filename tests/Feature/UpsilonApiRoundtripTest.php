@@ -33,15 +33,16 @@ class UpsilonApiRoundtripTest extends TestCase
                 'team' => 1,
                 'ia' => false,
                 'entities' => [
-                    (object)[
-                        'id' => $p1e1Id,
+                    tap(new \App\Models\Character([
                         'name' => "P1E1",
                         'hp' => 10,
                         'attack' => 3,
                         'defense' => 1,
                         'movement' => 2,
-                        'position' => ['x' => 0, 'y' => 0]
-                    ]
+                    ]), function ($c) use ($p1e1Id) { 
+                        $c->id = $p1e1Id;
+                        $c->position = ['x' => 0, 'y' => 0]; 
+                    })
                 ]
             ]),
             new UpsilonPlayerResource([
@@ -49,15 +50,16 @@ class UpsilonApiRoundtripTest extends TestCase
                 'team' => 2,
                 'ia' => true,
                 'entities' => [
-                    (object)[
-                        'id' => $p2e1Id,
+                    tap(new \App\Models\Character([
                         'name' => "P2E1",
                         'hp' => 10,
                         'attack' => 3,
                         'defense' => 1,
                         'movement' => 2,
-                        'position' => ['x' => 1, 'y' => 1]
-                    ]
+                    ]), function ($c) use ($p2e1Id) { 
+                        $c->id = $p2e1Id;
+                        $c->position = ['x' => 1, 'y' => 1]; 
+                    })
                 ]
             ])
         ];

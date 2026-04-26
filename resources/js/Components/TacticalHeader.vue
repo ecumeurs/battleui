@@ -37,6 +37,14 @@ const handleLogout = async () => {
                 <span class="text-upsilon-cyan font-mono text-[10px] uppercase tracking-widest truncate w-40">ENTITY: {{ user ? user.account_name : 'GUEST' }}</span>
                 <span class="text-upsilon-lime font-mono text-[8px] uppercase tracking-widest">ROLE: {{ user ? user.role : 'GUEST' }}</span>
             </div>
+            
+            <div v-if="user" class="h-8 w-px bg-upsilon-steel/30 hidden md:block"></div>
+            <nav v-if="user" class="hidden md:flex gap-6">
+                <Link href="/dashboard" class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-widest hover:text-white transition-colors">Roster</Link>
+                <Link href="/shop" class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-widest hover:text-white transition-colors">Supply Depot</Link>
+                <Link href="/inventory" class="font-scifi text-[10px] text-upsilon-steel uppercase tracking-widest hover:text-white transition-colors">Inventory</Link>
+            </nav>
+
             <div v-if="user && user.role === 'Admin'" class="h-8 w-px bg-upsilon-steel/30 hidden md:block"></div>
             <Link 
                 v-if="user && user.role === 'Admin'"

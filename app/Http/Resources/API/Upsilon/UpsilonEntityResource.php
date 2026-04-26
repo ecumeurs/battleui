@@ -24,6 +24,26 @@ class UpsilonEntityResource extends JsonResource
          * Since current HP is a consumable stat managed during battle and not persisted in the database roster, 
          * we map both 'hp' and 'max_hp' to this baseline value for engine initialization.
          */
+        $equippedItems = [];
+        if ($this->relationLoaded('equipment') && $this->equipment) {
+            $slots = ['armor', 'utility', 'weapon'];
+            foreach ($slots as $slot) {
+                $itemRelation = $slot . 'Item';
+                if ($this->equipment->relationLoaded($itemRelation) && $this->equipment->$itemRelation) {
+                    $inventoryItem = $this->equipment->$itemRelation;
+                    if ($inventoryItem->relationLoaded('shopItem') && $inventoryItem->shopItem) {
+                        $shopItem = $inventoryItem->shopItem;
+                        $equippedItems[] = [
+                            'item_id' => $inventoryItem->id,
+                            'name' => $shopItem->name,
+                            'slot' => $shopItem->slot,
+                            'properties' => $shopItem->properties,
+                        ];
+                    }
+                }
+            }
+        }
+
         return [
             'id' => $this->id,
             'name' => $this->name,
@@ -34,6 +54,8 @@ class UpsilonEntityResource extends JsonResource
             'move' => $this->movement,
             'max_move' => $this->movement,
             'position' => $this->position ?? null,
+            'equipped_items' => $equippedItems,
+            'equipped_skills' => [], // reserved for ISS-073
         ];
     }
 }

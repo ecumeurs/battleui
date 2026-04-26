@@ -131,7 +131,11 @@ class MatchMakingController extends Controller
             $participantIds = [];
             foreach ($queue as $index => $entry) {
                 $entryUser = \App\Models\User::find($entry->user_id);
-                $entryChars = \App\Models\Character::whereIn('id', $entry->character_ids)->get();
+                $entryChars = \App\Models\Character::with([
+                    'equipment.armorItem.shopItem',
+                    'equipment.utilityItem.shopItem',
+                    'equipment.weaponItem.shopItem'
+                ])->whereIn('id', $entry->character_ids)->get();
 
                 // Assign teams: for 1v1_PVP, index 0 is team 1, index 1 is team 2.
                 // For 2v2_PVP, 0,1 are team 1, 2,3 are team 2.

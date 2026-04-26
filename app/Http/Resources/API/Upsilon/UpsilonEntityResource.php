@@ -25,7 +25,7 @@ class UpsilonEntityResource extends JsonResource
          * we map both 'hp' and 'max_hp' to this baseline value for engine initialization.
          */
         $equippedItems = [];
-        if ($this->relationLoaded('equipment') && $this->equipment) {
+        if ($this->resource instanceof \Illuminate\Database\Eloquent\Model && $this->relationLoaded('equipment') && $this->equipment) {
             $slots = ['armor', 'utility', 'weapon'];
             foreach ($slots as $slot) {
                 $itemRelation = $slot . 'Item';

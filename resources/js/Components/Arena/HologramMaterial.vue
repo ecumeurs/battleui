@@ -8,6 +8,7 @@ const props = defineProps({
     color: { type: String, default: '#ffffff' },
     opacity: { type: Number, default: 0.4 },
     glowIntensity: { type: Number, default: 1.0 },
+    floating: { type: Boolean, default: true },
 });
 
 const { onRender } = useLoop();
@@ -15,7 +16,8 @@ const shaderUniforms = {
     uTime: { value: 0 },
     uColor: { value: new THREE.Color(props.color) },
     uOpacity: { value: props.opacity },
-    uGlowIntensity: { value: props.glowIntensity }
+    uGlowIntensity: { value: props.glowIntensity },
+    uFloating: { value: props.floating ? 1.0 : 0.0 }
 };
 
 onRender(({ elapsed }) => {
@@ -33,6 +35,10 @@ watch(() => props.opacity, (newVal) => {
 
 watch(() => props.glowIntensity, (newVal) => {
     shaderUniforms.uGlowIntensity.value = newVal;
+});
+
+watch(() => props.floating, (newVal) => {
+    shaderUniforms.uFloating.value = newVal ? 1.0 : 0.0;
 });
 
 
@@ -97,6 +103,7 @@ const vertexShader = `
     varying vec3 vViewPosition;
     varying vec3 vWorldOrigin;
     uniform float uTime;
+    uniform float uFloating;
 
     void main() {
         vUv = uv;
@@ -109,7 +116,7 @@ const vertexShader = `
         
         // Minute bobbing motion (Floating) - applied uniformly to all vertices
         // Using (sin * 0.5 + 0.5) ensures the value is always >= 0, so it never dips below ground
-        float bob = (sin(uTime * 1.0 + offset) * 0.5 + 0.5) * 0.08;
+        float bob = (sin(uTime * 1.0 + offset) * 0.5 + 0.5) * 0.08 * uFloating;
         
         vec4 mvPosition = modelViewMatrix * vec4(position.x, position.y + bob, position.z, 1.0);
         vViewPosition = -mvPosition.xyz;

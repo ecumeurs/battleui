@@ -18,9 +18,9 @@ const defaultColor = props.type === 'attack' ? '#ff00ff' : '#00f2ff';
 <template>
     <TresMesh
         :position="[
-            x * tileSize,
+            (x + 0.5) * tileSize,
             surfaceHeight * tileHeight + tileHeight + 0.02,
-            y * tileSize,
+            (y + 0.5) * tileSize,
         ]"
         :rotation="[-Math.PI / 2, 0, 0]"
     >

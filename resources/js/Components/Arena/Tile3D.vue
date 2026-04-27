@@ -2,6 +2,7 @@
 import { computed, ref, onMounted, watch } from 'vue';
 import * as THREE from 'three';
 import { getHexesInTile, HEX_RADIUS } from '../../Composables/useHexGrid';
+import HologramMaterial from './HologramMaterial.vue';
 
 const props = defineProps({
     tile: { type: Object, required: true },
@@ -10,11 +11,11 @@ const props = defineProps({
     effects: { type: Boolean, default: false },
 });
 
-const hexes = computed(() => getHexesInTile(props.tile.x, props.tile.y));
+const hexes = computed(() => getHexesInTile(props.tile.x + 0.5, props.tile.y + 0.5));
 
 const position = computed(() => {
     // Parent group position is at floor level (Y=0)
-    return [props.tile.x * props.tileSize, 0, props.tile.y * props.tileSize];
+    return [(props.tile.x + 0.5) * props.tileSize, 0, (props.tile.y + 0.5) * props.tileSize];
 });
 
 
@@ -38,10 +39,12 @@ function updateMatrices() {
     const h = (props.tile.height + 1) * props.tileHeight;
     
     const roughnessArray = new Float32Array(hexes.value.length);
+    const metalnessArray = new Float32Array(hexes.value.length);
     
     hexes.value.forEach((hex, i) => {
         // Position relative to tile (gx, gy)
-        dummy.position.set(hex.x - props.tile.x, h / 2, hex.z - props.tile.y);
+        // Add +0.125 X correction to center the hex cluster within the logical tile
+        dummy.position.set(hex.x - (props.tile.x + 0.5) + 0.125, h / 2, hex.z - (props.tile.y + 0.5));
         dummy.scale.set(1, h, 1);
         dummy.rotation.y = Math.PI / 6;
         dummy.updateMatrix();
@@ -54,12 +57,13 @@ function updateMatrices() {
         
         colorObj.set(PALETTE[hash]);
         
-        // Copper/Rust detection (Indices 3, 4, 5 are warmer/metallic)
-        // 50% more reflexive = half the roughness
+        // Copper/Rust detection (Indices 3, 4 are warmer/metallic)
         if (hash === 4 || hash === 3) {
-            roughnessArray[i] = 0.2; // Shiny copper/rust
+            roughnessArray[i] = 0.05; // Extra shiny
+            metalnessArray[i] = 1.0;  // Fully metallic
         } else {
-            roughnessArray[i] = 0.5; // Standard iron
+            roughnessArray[i] = 0.5;  // Standard iron
+            metalnessArray[i] = 0.7;
         }
         
         // If effects are on, darken even more
@@ -70,9 +74,11 @@ function updateMatrices() {
         instancedMeshRef.value.setColorAt(i, colorObj);
     });
     
-    // Add custom attribute for roughness
+    // Add custom attributes for roughness and metalness
     const roughnessAttr = new THREE.InstancedBufferAttribute(roughnessArray, 1);
+    const metalnessAttr = new THREE.InstancedBufferAttribute(metalnessArray, 1);
     instancedMeshRef.value.geometry.setAttribute('aRoughness', roughnessAttr);
+    instancedMeshRef.value.geometry.setAttribute('aMetalness', metalnessAttr);
     
     instancedMeshRef.value.instanceMatrix.needsUpdate = true;
     if (instancedMeshRef.value.instanceColor) {
@@ -87,18 +93,24 @@ function onMaterialReady(mat) {
     mat.onBeforeCompile = (shader) => {
         shader.vertexShader = `
             attribute float aRoughness;
+            attribute float aMetalness;
             varying float vRoughness;
+            varying float vMetalness;
             ${shader.vertexShader}
         `.replace(
             '#include <begin_vertex>',
-            '#include <begin_vertex>\nvRoughness = aRoughness;'
+            '#include <begin_vertex>\nvRoughness = aRoughness;\nvMetalness = aMetalness;'
         );
         shader.fragmentShader = `
             varying float vRoughness;
+            varying float vMetalness;
             ${shader.fragmentShader}
         `.replace(
             '#include <roughnessmap_fragment>',
             '#include <roughnessmap_fragment>\nroughnessFactor = vRoughness;'
+        ).replace(
+            '#include <metalnessmap_fragment>',
+            '#include <metalnessmap_fragment>\nmetalnessFactor = vMetalness;'
         );
     };
 }
@@ -121,5 +133,29 @@ function onMaterialReady(mat) {
                 @ready="onMaterialReady"
             />
         </TresInstancedMesh>
+
+        <!-- Hollow logical grid indicator (Hologram Frame) -->
+        <TresGroup :position="[0, (tile.height + 1) * tileHeight + 0.02, 0]">
+            <!-- North edge -->
+            <TresMesh :position="[0, 0, -tileSize * 0.5]">
+                <TresBoxGeometry :args="[tileSize, 0.01, 0.01]" />
+                <HologramMaterial color="#00f2ff" :opacity="0.15" :glow-intensity="0.4" :floating="false" />
+            </TresMesh>
+            <!-- South edge -->
+            <TresMesh :position="[0, 0, tileSize * 0.5]">
+                <TresBoxGeometry :args="[tileSize, 0.01, 0.01]" />
+                <HologramMaterial color="#00f2ff" :opacity="0.15" :glow-intensity="0.4" :floating="false" />
+            </TresMesh>
+            <!-- East edge -->
+            <TresMesh :position="[tileSize * 0.5, 0, 0]">
+                <TresBoxGeometry :args="[0.01, 0.01, tileSize]" />
+                <HologramMaterial color="#00f2ff" :opacity="0.15" :glow-intensity="0.4" :floating="false" />
+            </TresMesh>
+            <!-- West edge -->
+            <TresMesh :position="[-tileSize * 0.5, 0, 0]">
+                <TresBoxGeometry :args="[0.01, 0.01, tileSize]" />
+                <HologramMaterial color="#00f2ff" :opacity="0.15" :glow-intensity="0.4" :floating="false" />
+            </TresMesh>
+        </TresGroup>
     </TresGroup>
 </template>

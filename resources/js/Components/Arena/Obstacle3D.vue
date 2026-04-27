@@ -15,9 +15,9 @@ const position = computed(() => {
     const surface = (props.tile.height + 1) * props.tileHeight;
     const obstacleH = props.tileHeight * 2.0;
     return [
-        props.tile.x * props.tileSize,
+        (props.tile.x + 0.5) * props.tileSize,
         surface + (obstacleH / 2) + 0.05, // 0.05 safety margin above surface
-        props.tile.y * props.tileSize,
+        (props.tile.y + 0.5) * props.tileSize,
     ];
 });
 

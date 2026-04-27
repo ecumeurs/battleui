@@ -42,9 +42,9 @@ const position = computed(() => {
     const surface = (props.surfaceHeight + 1) * props.tileHeight;
     const pawnH = 0.8;
     return [
-        props.entity.position.x * props.tileSize,
+        (props.entity.position.x + 0.5) * props.tileSize,
         surface + (pawnH / 2) + 0.02, // 0.02 safety margin above surface
-        props.entity.position.y * props.tileSize,
+        (props.entity.position.y + 0.5) * props.tileSize,
     ];
 });
 

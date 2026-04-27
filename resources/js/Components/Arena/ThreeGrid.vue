@@ -28,8 +28,12 @@ function onCanvasReady(state) {
     console.log('--- 3D Arena State ---');
     console.log('Scene:', state.scene);
     console.log('Renderer:', state.renderer);
+    
+    // Safety: convert children to array and handle potential proxying
     if (state.scene) {
-        const lights = state.scene.children.filter(c => c.isLight);
+        const scene = state.scene.value || state.scene;
+        const children = scene.children ? Array.from(scene.children) : [];
+        const lights = children.filter(c => c && c.isLight);
         console.log('Active Lights:', lights.length, lights.map(l => l.type));
     }
     console.log('Effects Mode:', props.effects ? 'ON' : 'OFF');
@@ -49,8 +53,8 @@ const TILE_HEIGHT = 0.25;
 
 /* Camera origin: grid center at floor level. */
 const gridCenter = computed(() => ({
-    x: ((props.grid?.width ?? 1) - 1) * TILE_SIZE * 0.5,
-    z: ((props.grid?.height ?? 1) - 1) * TILE_SIZE * 0.5,
+    x: (props.grid?.width ?? 1) * TILE_SIZE * 0.5,
+    z: (props.grid?.height ?? 1) * TILE_SIZE * 0.5,
 }));
 
 const cameraPos = computed(() => {
@@ -138,8 +142,8 @@ function onTileClick(tile, event) {
             alpha
             window-size
             power-preference="high-performance"
+            :disable-render="effects"
         >
-            <template v-if="ready">
                 <TresPerspectiveCamera make-default :position="cameraPos" :look-at="[gridCenter.x, 0, gridCenter.z]" :fov="45" />
                 <OrbitControls
                     :target="[gridCenter.x, 0, gridCenter.z]"
@@ -182,6 +186,15 @@ function onTileClick(tile, event) {
                         :angle="Math.PI / 4"
                         :penumbra="0.3"
                         cast-shadow
+                    />
+                    <!-- Specular rim light for copper shine -->
+                    <TresSpotLight
+                        :position="[gridCenter.x + 14, 7, gridCenter.z - 14]"
+                        color="#ffccaa"
+                        :intensity="250"
+                        :distance="50"
+                        :angle="Math.PI / 4"
+                        :penumbra="0.5"
                     />
                 </template>
                 <TresDirectionalLight
@@ -249,7 +262,6 @@ function onTileClick(tile, event) {
                     :tile-height="TILE_HEIGHT"
                     :surface-height="surfaceHeight(entity.position.x, entity.position.y)"
                 />
-            </template>
         </TresCanvas>
     </div>
 </template>

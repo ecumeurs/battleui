@@ -19,6 +19,10 @@ class DatabaseSeeder extends Seeder
         /** @spec-link [[upsilonbattle:entity_shop_item]] */
         $this->call(ShopItemsSeeder::class);
 
+        /** @spec-link [[entity_skill_template]] */
+        $this->call(SkillTemplatesSeeder::class);
+
+
         /** @spec-link [[infra_seed_admin]] */
         $adminPassword = env('ADMIN_INITIAL_PASSWORD');
 
@@ -37,5 +41,31 @@ class DatabaseSeeder extends Seeder
                 'birth_date' => '1970-01-01',
             ]
         );
+
+        // Add a dummy user to prevent "last admin" anonymization failure in E2E tests
+        User::updateOrCreate(
+            ['email' => 'dummy@example.com'],
+            [
+                'account_name' => 'dummy_user',
+                'password_hash' => \Illuminate\Support\Facades\Hash::make('DummyPassword123!'),
+                'role' => 'Player',
+                'full_address' => 'Dummy St',
+                'birth_date' => '1990-01-01',
+            ]
+        );
+
+        // Add a second admin to allow "anonymize" testing on one of them
+        User::updateOrCreate(
+            ['email' => 'admin2@admin.com'],
+            [
+                'account_name' => 'admin2',
+                'password_hash' => \Illuminate\Support\Facades\Hash::make('AdminPassword123!'),
+                'role' => 'Admin',
+                'full_address' => 'SYS_ADMIN_LOCAL_2',
+                'birth_date' => '1970-01-01',
+            ]
+        );
     }
+
+
 }

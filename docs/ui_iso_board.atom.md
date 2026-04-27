@@ -1,6 +1,6 @@
 ---
 id: ui_iso_board
-status: REVIEW
+status: STABLE
 type: UI
 layer: ARCHITECTURE
 version: 2.0

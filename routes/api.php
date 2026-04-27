@@ -13,6 +13,8 @@ use App\Http\Controllers\API\LeaderboardController;
 use App\Http\Controllers\API\ShopController;
 use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\EquipmentController;
+use App\Http\Controllers\API\SkillTemplateController;
+use App\Http\Controllers\API\CharacterSkillController;
 
 Route::post('/webhook/upsilon', [WebhookController::class, 'handle']);
 
@@ -90,6 +92,19 @@ Route::prefix("v1")->group(function () {
         Route::get('/profile/character/{characterId}/equipment', [EquipmentController::class, 'show']);
         Route::post('/profile/character/{characterId}/equip', [EquipmentController::class, 'equip']);
         Route::delete('/profile/character/{characterId}/unequip/{slot}', [EquipmentController::class, 'unequip']);
+
+        // Skill Templates — browsable catalog (ISS-086)
+        // @spec-link [[api_skill_template_browse]]
+        Route::get('/skills/templates', [SkillTemplateController::class, 'index']);
+        Route::get('/skills/templates/{id}', [SkillTemplateController::class, 'show']);
+
+        // Character Skill Inventory — slot-based loadout (ISS-073)
+        // @spec-link [[api_character_skill_inventory]]
+        // @spec-link [[rule_character_skill_slots]]
+        Route::get('/profile/character/{characterId}/skills', [CharacterSkillController::class, 'index']);
+        Route::post('/profile/character/{characterId}/skills/roll', [CharacterSkillController::class, 'roll']);
+        Route::post('/profile/character/{characterId}/skills/{skillId}/equip', [CharacterSkillController::class, 'equip']);
+        Route::delete('/profile/character/{characterId}/skills/{skillId}/unequip', [CharacterSkillController::class, 'unequip']);
 
         // Administrative Layer
         Route::middleware('admin')->prefix('admin')->group(function() {

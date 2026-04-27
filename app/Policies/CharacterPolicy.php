@@ -63,4 +63,28 @@ class CharacterPolicy
     {
         return $user->id === $character->player_id;
     }
+
+    /**
+     * @spec-link [[api_character_skill_inventory]]
+     */
+    public function acquireSkill(User $user, Character $character): bool
+    {
+        return $user->id === $character->player_id;
+    }
+
+    /**
+     * @spec-link [[api_character_skill_inventory]]
+     */
+    public function equipSkill(User $user, Character $character): bool
+    {
+        return $user->id === $character->player_id;
+    }
+
+    /**
+     * @spec-link [[api_character_skill_inventory]]
+     */
+    public function unequipSkill(User $user, Character $character): bool
+    {
+        return $user->id === $character->player_id;
+    }
 }

@@ -23,6 +23,7 @@ class ShopItem extends Model
         'properties',
         'cost',
         'available',
+        'skill_template_id',
         'version',
     ];
 
@@ -31,4 +32,13 @@ class ShopItem extends Model
         'available'  => 'bool',
         'cost'       => 'integer',
     ];
+
+    /**
+     * Exotic items only — null for vanilla weapons/armor (D11).
+     * @spec-link [[mec_item_carried_skill]]
+     */
+    public function skillTemplate()
+    {
+        return $this->belongsTo(SkillTemplate::class, 'skill_template_id');
+    }
 }

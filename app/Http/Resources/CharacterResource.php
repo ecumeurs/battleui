@@ -4,6 +4,7 @@ namespace App\Http\Resources;
 
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
+use App\Http\Resources\CharacterSkillResource;
 
 class CharacterResource extends JsonResource
 {
@@ -33,6 +34,9 @@ class CharacterResource extends JsonResource
             'equipment'        => $this->whenLoaded('equipment', function () {
                 return new CharacterEquipmentResource($this->equipment);
             }),
+            // Skill inventory (when loaded) — @spec-link [[entity_character_skill_inventory]]
+            'skill_slots'      => $this->skill_slots,
+            'skills'           => CharacterSkillResource::collection($this->whenLoaded('skills')),
         ];
     }
 }

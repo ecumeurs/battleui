@@ -45,6 +45,31 @@ class Character extends Model
     }
 
     /**
+     * @spec-link [[entity_character_skill_inventory]]
+     */
+    public function skills()
+    {
+        return $this->hasMany(CharacterSkill::class, 'character_id');
+    }
+
+    public function equippedSkills()
+    {
+        return $this->hasMany(CharacterSkill::class, 'character_id')->where('equipped', true);
+    }
+
+    /**
+     * Skill slot count is derived from the player's total wins, not stored.
+     * Formula: min(5, 1 + floor(total_wins / 10)) — locked per D4 (per-player).
+     * Always eager-load the `player` relation to avoid N+1 / null reads.
+     *
+     * @spec-link [[rule_character_skill_slots]]
+     */
+    public function getSkillSlotsAttribute(): int
+    {
+        return min(5, 1 + intdiv($this->player->total_wins ?? 0, 10));
+    }
+
+    /**
      * @spec-link [[rule_character_create_character]]
      * @spec-link [[entity_character_allocate_hp]]
      * @spec-link [[uc_player_registration_generate_characters]]

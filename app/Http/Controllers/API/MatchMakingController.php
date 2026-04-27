@@ -132,9 +132,10 @@ class MatchMakingController extends Controller
             foreach ($queue as $index => $entry) {
                 $entryUser = \App\Models\User::find($entry->user_id);
                 $entryChars = \App\Models\Character::with([
-                    'equipment.armorItem.shopItem',
-                    'equipment.utilityItem.shopItem',
-                    'equipment.weaponItem.shopItem'
+                    'equipment.armorItem.shopItem.skillTemplate',
+                    'equipment.utilityItem.shopItem.skillTemplate',
+                    'equipment.weaponItem.shopItem.skillTemplate',
+                    'equippedSkills',
                 ])->whereIn('id', $entry->character_ids)->get();
 
                 // Assign teams: for 1v1_PVP, index 0 is team 1, index 1 is team 2.

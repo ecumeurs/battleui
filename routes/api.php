@@ -15,6 +15,8 @@ use App\Http\Controllers\API\InventoryController;
 use App\Http\Controllers\API\EquipmentController;
 use App\Http\Controllers\API\SkillTemplateController;
 use App\Http\Controllers\API\CharacterSkillController;
+use App\Http\Controllers\API\Admin\AdminSkillTemplateController;
+use App\Http\Controllers\API\Admin\AdminShopItemController;
 
 Route::post('/webhook/upsilon', [WebhookController::class, 'handle']);
 
@@ -114,6 +116,14 @@ Route::prefix("v1")->group(function () {
 
             Route::get('/history', [ApiAdminController::class, 'history']);
             Route::post('/history/purge', [ApiAdminController::class, 'purge']);
+
+            // Content management — skill templates (ISS-086)
+            // @spec-link [[api_skill_template_admin_crud]]
+            Route::apiResource('skill-templates', AdminSkillTemplateController::class);
+
+            // Content management — shop items (ISS-086)
+            // @spec-link [[api_shop_item_admin_crud]]
+            Route::apiResource('shop-items', AdminShopItemController::class);
         });
     });
 });

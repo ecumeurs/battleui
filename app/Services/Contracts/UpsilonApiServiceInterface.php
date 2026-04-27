@@ -26,4 +26,12 @@ interface UpsilonApiServiceInterface
      * @return array The Go api_standard_envelope response (containing ActiveMatchStatsResponse data)
      */
     public function getActiveMatchStats(): array;
+
+    /**
+     * Check if a specific arena exists in the Upsilon Engine.
+     * 
+     * @param string $arenaId
+     * @return array The Go api_standard_envelope response (containing ArenaExistsResponse data)
+     */
+    public function checkArenaExistence(string $arenaId): array;
 }

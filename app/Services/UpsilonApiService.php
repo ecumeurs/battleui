@@ -63,6 +63,14 @@ class UpsilonApiService implements UpsilonApiServiceInterface
     }
 
     /**
+     * @spec-link [[api_arena_existence_check]]
+     */
+    public function checkArenaExistence(string $arenaId): array
+    {
+        return $this->sendEnvelopeRequest('GET', "/v1/arena/{$arenaId}/exists", [], 'Check Arena Existence');
+    }
+
+    /**
      * @spec-link [[api_go_battle_forfeit]]
      */
     public function forfeit(string $arenaId, string $playerId): array

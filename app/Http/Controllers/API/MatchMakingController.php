@@ -294,6 +294,40 @@ class MatchMakingController extends Controller
 
         if ($participant && $participant->match && is_null($participant->match->concluded_at)) {
             $match = $participant->match;
+
+            // Verification: Ensure the arena still exists in the engine
+            /** @spec-link [[api_arena_existence_check]] */
+            try {
+                $existence = $this->upsilonService->checkArenaExistence($match->id);
+                if (!($existence['success'] ?? false) || !($existence['data']['exists'] ?? false)) {
+                    \Illuminate\Support\Facades\Log::warning("Arena {$match->id} missing from engine for user {$user->id}. Neural link severed. Concluding match.");
+                    
+                    $match->update([
+                        'concluded_at' => now(),
+                        'winning_team_id' => null // Draw/Void since engine state is lost
+                    ]);
+
+                    return $this->success([
+                        'status' => 'idle',
+                        'match_id' => null,
+                        'expected_participants' => null,
+                        'empty_slots' => null
+                    ], 'Neural link severed. Match state lost.');
+                }
+            } catch (\Exception $e) {
+                // If engine is unreachable, we treat it as missing since the engine is stateless
+                // and a restart would have wiped the arena anyway.
+                \Illuminate\Support\Facades\Log::error("Engine unreachable during status poll for match {$match->id}: " . $e->getMessage());
+                
+                $match->update(['concluded_at' => now()]);
+                return $this->success([
+                    'status' => 'idle',
+                    'match_id' => null,
+                    'expected_participants' => null,
+                    'empty_slots' => null
+                ], 'Engine communication failure. Match state lost.');
+            }
+
             $config = self::MODE_CONFIG[$match->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];
 
             return $this->success([

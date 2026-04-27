@@ -22,8 +22,6 @@ dependents:
   - [[ui_dashboard_queue_selection]]
   - [[ui_dashboard_roster_display]]
   - [[ui_dashboard_security_check]]
-  - [[uc_player_login]]
-  - [[uc_progression_stat_allocation]]
 ---
 # Dashboard Page UI
 

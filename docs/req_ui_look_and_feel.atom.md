@@ -8,6 +8,10 @@ dependents:
   - [[ui_inventory]]
   - [[ui_shop]]
   - [[ui_theme]]
+  - [[mech_ai_name_generation]]
+  - [[rule_pve_winnability_balance]]
+  - [[rule_pvp_stalemate_draw]]
+  - [[shared:rule_pve_winnability_balance]]
 parents: []
 human_name: UI Look and Feel Aesthetic
 type: REQUIREMENT

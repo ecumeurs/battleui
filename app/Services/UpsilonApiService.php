@@ -33,7 +33,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
         // Let's dump the finalized payload arrays
         // dump("Start Arena payload", $payload);
 
-        return $this->sendEnvelopeRequest('POST', '/internal/arena/start', $payload, 'Start Arena');
+        return $this->sendEnvelopeRequest('POST', '/v1/arena/start', $payload, 'Start Arena');
     }
 
     /**
@@ -51,7 +51,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
             $payload['target_coords'] = array_map(fn($pos) => is_array($pos) ? $pos : $pos->toArray(), $targetCoords);
         }
 
-        return $this->sendEnvelopeRequest('POST', "/internal/arena/{$arenaId}/action", $payload, "Action: {$type}");
+        return $this->sendEnvelopeRequest('POST', "/v1/arena/{$arenaId}/action", $payload, "Action: {$type}");
     }
 
     /**
@@ -71,7 +71,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
             'player_id' => $playerId,
         ];
 
-        return $this->sendEnvelopeRequest('POST', "/internal/arena/{$arenaId}/forfeit", $payload, "Action: forfeit");
+        return $this->sendEnvelopeRequest('POST', "/v1/arena/{$arenaId}/forfeit", $payload, "Action: forfeit");
     }
 
     /**

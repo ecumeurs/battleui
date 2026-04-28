@@ -21,7 +21,7 @@ class StoreShopItemRequest extends FormRequest
             'type'              => 'sometimes|string|max:50',
             'slot'              => 'required|string|in:armor,utility,weapon',
             'cost'              => 'required|integer|min:0',
-            'properties'        => 'required|array',
+            'properties'        => 'present|array',
             'available'         => 'boolean',
             'skill_template_id' => 'nullable|uuid|exists:skill_templates,id',
         ];

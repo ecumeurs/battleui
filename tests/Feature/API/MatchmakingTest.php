@@ -171,6 +171,10 @@ class MatchmakingTest extends TestCase
         // 1. Setup - Mock service
         $this->mock(UpsilonApiServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('startArena')->once()->andReturn(['success' => true]);
+            $mock->shouldReceive('checkArenaExistence')->once()->andReturn([
+                'success' => true,
+                'data' => ['exists' => true]
+            ]);
         });
 
         // 2. Player 2 already in queue

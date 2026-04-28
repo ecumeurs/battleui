@@ -20,9 +20,10 @@ class StoreSkillTemplateRequest extends FormRequest
         return [
             'name'            => 'required|string|max:100',
             'behavior'        => 'required|string|in:Direct,Reaction,Passive,Counter,Trap',
-            'targeting'       => 'required|array',
-            'costs'           => 'required|array',
-            'effect'          => 'required|array',
+            'targeting'       => 'present|array',
+            'costs'           => 'present|array',
+            'effect'          => 'present|array',
+
             'grade'           => 'required|string|in:I,II,III,IV,V',
             'weight_positive' => 'required|integer|min:0',
             'weight_negative' => 'required|integer|min:0',

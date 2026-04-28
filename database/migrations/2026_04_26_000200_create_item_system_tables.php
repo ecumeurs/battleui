@@ -25,7 +25,7 @@ return new class extends Migration
         Schema::create('shop_items', function (Blueprint $table) {
             $table->uuid('id')->primary();
             $table->string('name', 100);
-            $table->string('type', 32);
+            $table->string('type', 32)->nullable();
             $table->string('slot', 16);
             $table->json('properties');
             $table->integer('cost');

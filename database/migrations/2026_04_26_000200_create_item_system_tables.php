@@ -47,7 +47,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('shop_item_id')->references('id')->on('shop_items');
+            $table->foreign('shop_item_id')->references('id')->on('shop_items')->onDelete('cascade');
             $table->unique(['player_id', 'shop_item_id']);
             $table->index('player_id');
         });
@@ -63,7 +63,7 @@ return new class extends Migration
             $table->timestamps();
 
             $table->foreign('player_id')->references('id')->on('users')->onDelete('cascade');
-            $table->foreign('shop_item_id')->references('id')->on('shop_items');
+            $table->foreign('shop_item_id')->references('id')->on('shop_items')->onDelete('cascade');
             $table->index('player_id');
         });
 

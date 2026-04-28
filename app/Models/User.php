@@ -35,6 +35,15 @@ class User extends Authenticatable
         'birth_date'
     ];
 
+    protected $attributes = [
+        'credits' => 1000,
+        'total_wins' => 0,
+        'total_losses' => 0,
+        'ratio' => 0.0,
+        'reroll_count' => 0,
+        'role' => 'Player',
+    ];
+
     protected static function booted()
     {
         static::creating(function ($user) {

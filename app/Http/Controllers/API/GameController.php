@@ -85,21 +85,49 @@ class GameController extends Controller
         // (e.g. engine error_key) so clients can branch on typed failures.
         // @spec-link [[api_standard_envelope]]
         $upstreamMeta = (array) ($response['meta'] ?? []);
-        if (!($response['success'] ?? false)) {
-            return $this->error(
-                $response['message'] ?? 'Action failed',
-                400,
+        if ($response['success'] ?? false) {
+            $this->processCredits($response['data'] ?? [], $id);
+            
+            return $this->success(
                 $response['data'] ?? [],
+                $response['message'] ?? 'Action processed',
+                200,
                 $upstreamMeta
             );
         }
 
-        return $this->success(
+        return $this->error(
+            $response['message'] ?? 'Action failed',
+            400,
             $response['data'] ?? [],
-            $response['message'] ?? 'Action processed',
-            200,
             $upstreamMeta
         );
+    }
+
+    /**
+     * Process and award credits from tactical action results.
+     */
+    private function processCredits(array $data, string $matchId)
+    {
+        if (!isset($data['results'])) return;
+
+        foreach ($data['results'] as $result) {
+            if (isset($result['credits'])) {
+                foreach ($result['credits'] as $award) {
+                    $player = \App\Models\User::find($award['player_id']);
+                    if ($player) {
+                        $player->increment('credits', $award['amount']);
+                        
+                        \App\Models\CreditTransaction::create([
+                            'player_id' => $player->id,
+                            'amount' => $award['amount'],
+                            'source' => $award['source'],
+                            'match_id' => $matchId,
+                        ]);
+                    }
+                }
+            }
+        }
     }
 
     /**

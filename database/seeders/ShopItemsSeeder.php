@@ -15,9 +15,14 @@ use Illuminate\Support\Facades\DB;
  */
 class ShopItemsSeeder extends Seeder
 {
-    public const BASIC_ARMOR_ID  = '00000000-0000-4000-8000-000000000001';
-    public const BASIC_SWORD_ID  = '00000000-0000-4000-8000-000000000002';
-    public const SWIFT_BOOTS_ID  = '00000000-0000-4000-8000-000000000003';
+    public const BASIC_ARMOR_ID       = '00000000-0000-4000-8000-000000000001';
+    public const BASIC_SWORD_ID       = '00000000-0000-4000-8000-000000000002';
+    public const SWIFT_BOOTS_ID       = '00000000-0000-4000-8000-000000000003';
+    public const REINFORCED_PLATE_ID  = '00000000-0000-4000-8000-000000000004';
+    public const COMBAT_KNIFE_ID      = '00000000-0000-4000-8000-000000000005';
+    public const HEAVY_HAMMER_ID      = '00000000-0000-4000-8000-000000000006';
+    public const STIM_PACK_ID         = '00000000-0000-4000-8000-000000000007';
+    public const TACTICAL_CLOAK_ID    = '00000000-0000-4000-8000-000000000008';
 
     public function run(): void
     {
@@ -65,6 +70,80 @@ class ShopItemsSeeder extends Seeder
                 'updated_at' => $now,
             ],
         ];
+
+        $items = array_merge($items, [
+            [
+                'id'         => self::REINFORCED_PLATE_ID,
+                'name'       => 'Reinforced Plate',
+                'type'       => 'armor',
+                'slot'       => 'armor',
+                'properties' => json_encode(['ArmorRating' => 10]),
+                'cost'       => 600,
+                'available'  => true,
+                'version'    => '2.0',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id'         => self::COMBAT_KNIFE_ID,
+                'name'       => 'Combat Knife',
+                'type'       => 'weapon',
+                'slot'       => 'weapon',
+                'properties' => json_encode([
+                    'WeaponBaseDamage' => 3,
+                    'WeaponType'       => 'One-Handed Melee',
+                    'WeaponRange'      => 1,
+                ]),
+                'cost'       => 100,
+                'available'  => true,
+                'version'    => '2.0',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id'         => self::HEAVY_HAMMER_ID,
+                'name'       => 'Heavy Hammer',
+                'type'       => 'weapon',
+                'slot'       => 'weapon',
+                'properties' => json_encode([
+                    'WeaponBaseDamage' => 8,
+                    'WeaponType'       => 'Two-Handed Melee',
+                    'WeaponRange'      => 1,
+                ]),
+                'cost'       => 800,
+                'available'  => true,
+                'version'    => '2.0',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id'         => self::STIM_PACK_ID,
+                'name'       => 'Stim Pack',
+                'type'       => 'utility',
+                'slot'       => 'utility',
+                'properties' => json_encode(['HPBonus' => 5]),
+                'cost'       => 250,
+                'available'  => true,
+                'version'    => '2.0',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+            [
+                'id'         => self::TACTICAL_CLOAK_ID,
+                'name'       => 'Tactical Cloak',
+                'type'       => 'utility',
+                'slot'       => 'utility',
+                'properties' => json_encode([
+                    'Movement'     => 1,
+                    'DefenseBonus' => 2,
+                ]),
+                'cost'       => 700,
+                'available'  => true,
+                'version'    => '2.0',
+                'created_at' => $now,
+                'updated_at' => $now,
+            ],
+        ]);
 
         DB::table('shop_items')->upsert($items, ['id'], [
             'name', 'type', 'slot', 'properties', 'cost', 'available', 'version', 'updated_at',

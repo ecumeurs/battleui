@@ -52,6 +52,10 @@ class CharacterSkillController extends Controller
             return $this->error($e->getMessage(), $e->httpStatus(), null, ['reason' => $e->reason]);
         }
 
+        if (! $character->roulette_used) {
+            $character->update(['roulette_used' => true]);
+        }
+
         return $this->success(
             new CharacterSkillResource($skill),
             'Skill acquired.',

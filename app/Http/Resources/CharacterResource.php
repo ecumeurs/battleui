@@ -35,8 +35,9 @@ class CharacterResource extends JsonResource
                 return new CharacterEquipmentResource($this->equipment);
             }),
             // Skill inventory (when loaded) — @spec-link [[entity_character_skill_inventory]]
-            'skill_slots'      => $this->skill_slots,
-            'skills'           => CharacterSkillResource::collection($this->whenLoaded('skills')),
+            'skill_slots'        => $this->skill_slots,
+            'skills'             => CharacterSkillResource::collection($this->whenLoaded('skills')),
+            'roulette_available' => ! (bool) $this->roulette_used,
         ];
     }
 }

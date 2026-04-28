@@ -28,7 +28,12 @@ class Character extends Model
         'crit_chance',
         'crit_damage',
         'initial_movement',
-        'spent_cp'
+        'spent_cp',
+        'roulette_used',
+    ];
+
+    protected $casts = [
+        'roulette_used' => 'boolean',
     ];
 
     public function player()

@@ -7,6 +7,7 @@ import auth from '@/services/auth';
 import inventoryService from '@/services/inventory';
 import CharacterCard from './Character/CharacterCard.vue';
 import EquipDrawer from './Inventory/EquipDrawer.vue';
+import ConfirmModal from '@/Components/Modals/ConfirmModal.vue';
 
 const props = defineProps({
     user: {
@@ -14,6 +15,8 @@ const props = defineProps({
         required: true
     }
 });
+
+const emit = defineEmits(['character-click']);
 
 const characters = ref([]);
 const inventory = ref([]);
@@ -23,6 +26,8 @@ const error = ref(null);
 const showEquipDrawer = ref(false);
 const selectedCharacter = ref(null);
 const activeSlot = ref(null);
+const showRerollConfirm = ref(false);
+const rerollTargetId = ref(null);
 
 const handleRename = async ({ id, name }) => {
     try {
@@ -53,9 +58,16 @@ const fetchData = async () => {
     }
 };
 
-const handleReroll = async (characterId) => {
-    if (!confirm('Are you sure you want to reroll this character? It will reset all stats to baseline.')) return;
-    
+const handleReroll = (characterId) => {
+    rerollTargetId.value = characterId;
+    showRerollConfirm.value = true;
+};
+
+const confirmReroll = async () => {
+    const characterId = rerollTargetId.value;
+    showRerollConfirm.value = false;
+    rerollTargetId.value = null;
+    if (!characterId) return;
     try {
         const data = await auth.post(`/profile/character/${characterId}/reroll`);
         const index = characters.value.findIndex(c => c.id === characterId);
@@ -128,16 +140,22 @@ onMounted(fetchData);
         </div>
 
         <div v-if="!loading" class="grid grid-cols-1 gap-6">
-            <CharacterCard 
-                v-for="char in characters" 
-                :key="char.id" 
-                :character="char"
-                :user="props.user"
-                @rename="handleRename"
-                @reroll="handleReroll"
-                @upgrade="handleUpgrade"
-                @manage-equipment="handleManageEquipment"
-            />
+            <div
+                v-for="char in characters"
+                :key="char.id"
+                class="cursor-pointer"
+                @click="emit('character-click', char.id)"
+            >
+                <CharacterCard
+                    :character="char"
+                    :user="props.user"
+                    @rename.stop="handleRename"
+                    @reroll.stop="handleReroll"
+                    @upgrade.stop="handleUpgrade"
+                    @manage-equipment.stop="handleManageEquipment"
+                    @click.stop
+                />
+            </div>
         </div>
 
         <!-- Loading Skeleton -->
@@ -145,7 +163,7 @@ onMounted(fetchData);
             <div v-for="i in 2" :key="i" class="h-64 bg-upsilon-gunmetal/40 border border-upsilon-steel/20"></div>
         </div>
 
-        <EquipDrawer 
+        <EquipDrawer
             :show="showEquipDrawer"
             :character="selectedCharacter"
             :inventory="inventory"
@@ -153,6 +171,17 @@ onMounted(fetchData);
             @close="showEquipDrawer = false"
             @equip="handleEquip"
             @unequip="handleUnequip"
+        />
+
+        <ConfirmModal
+            :show="showRerollConfirm"
+            title="Reroll Protocol"
+            message="Rerolling regenerates this combatant's stats to baseline. All CP upgrades will be wiped. This cannot be undone."
+            confirm-text="Reroll"
+            cancel-text="Abort"
+            type="warning"
+            @close="showRerollConfirm = false"
+            @confirm="confirmReroll"
         />
     </div>
 </template>

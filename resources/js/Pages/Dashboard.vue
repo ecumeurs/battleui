@@ -8,8 +8,40 @@ import CharacterRoster from '@/Components/CharacterRoster.vue';
 import IdentitySection from '@/Components/IdentitySection.vue';
 import EngagementHub from '@/Components/EngagementHub.vue';
 import LeaderboardComponent from '@/Components/LeaderboardComponent.vue';
+import NeonShopButton from '@/Components/Shop/NeonShopButton.vue';
+import InventoryModal from '@/Components/Modals/InventoryModal.vue';
+import ShopModal from '@/Components/Modals/ShopModal.vue';
+import CharacterDetailModal from '@/Components/Modals/CharacterDetailModal.vue';
+import SkillRouletteModal from '@/Components/Modals/SkillRouletteModal.vue';
 
 import auth from '@/services/auth';
+
+const showInventoryModal = ref(false);
+const showShopModal = ref(false);
+const showCharacterModal = ref(false);
+const selectedCharacterId = ref(null);
+const showRouletteModal = ref(false);
+const rouletteCharacterId = ref(null);
+
+function openCharacterModal(characterId) {
+    selectedCharacterId.value = characterId;
+    showCharacterModal.value = true;
+}
+
+function closeCharacterModal() {
+    showCharacterModal.value = false;
+    selectedCharacterId.value = null;
+}
+
+function openRoulette(characterId) {
+    rouletteCharacterId.value = characterId;
+    showRouletteModal.value = true;
+}
+
+function closeRoulette() {
+    showRouletteModal.value = false;
+    rouletteCharacterId.value = null;
+}
 
 const user = ref(null);
 
@@ -81,7 +113,7 @@ onUnmounted(() => {
             
             <!-- Left Column: Roster -->
             <aside class="lg:col-span-3">
-                <CharacterRoster :user="user" />
+                <CharacterRoster :user="user" @character-click="openCharacterModal" />
             </aside>
 
             <!-- Center Column: Global Action -->
@@ -105,13 +137,43 @@ onUnmounted(() => {
                 <LeaderboardComponent :user="user" />
             </main>
 
-            <!-- Right Column: Identity & Combat Record -->
-            <IdentitySection 
-                class="lg:col-span-3" 
-                :user="user" 
-                :playerStats="playerStats" 
-            />
+            <!-- Right Column: Identity, Shop & Inventory -->
+            <div class="lg:col-span-3 space-y-4">
+                <IdentitySection :user="user" :playerStats="playerStats" />
+
+                <!-- Inventory access -->
+                <button
+                    @click="showInventoryModal = true"
+                    class="w-full px-4 py-3 border border-upsilon-cyan/40 bg-black/40 text-upsilon-cyan font-mono text-[10px] uppercase tracking-[0.3em] hover:bg-upsilon-cyan/10 hover:border-upsilon-cyan transition-all duration-300 flex items-center justify-between group"
+                >
+                    <span>◈ Inventory Archive</span>
+                    <span class="text-upsilon-steel group-hover:text-upsilon-cyan transition-colors">›</span>
+                </button>
+
+                <!-- Neon shop CTA -->
+                <NeonShopButton @click="showShopModal = true" />
+            </div>
         </div>
+
+        <!-- Modals -->
+        <InventoryModal :show="showInventoryModal" @close="showInventoryModal = false" />
+        <ShopModal :show="showShopModal" :user="user" @close="showShopModal = false" @credits-updated="user = { ...user, credits: $event }" />
+        <CharacterDetailModal
+            v-if="selectedCharacterId"
+            :show="showCharacterModal"
+            :character-id="selectedCharacterId"
+            :user="user"
+            @close="closeCharacterModal"
+            @credits-updated="user = { ...user, credits: $event }"
+            @roulette-click="openRoulette"
+        />
+        <SkillRouletteModal
+            v-if="rouletteCharacterId"
+            :show="showRouletteModal"
+            :character-id="rouletteCharacterId"
+            @close="closeRoulette"
+            @skill-acquired="closeRoulette"
+        />
     </TacticalLayout>
 </template>
 

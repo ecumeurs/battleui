@@ -77,7 +77,8 @@ class GameController extends Controller
             $user->id,
             $entityId,
             $validated['type'],
-            $validated['target_coords'] ?? []
+            $validated['target_coords'] ?? [],
+            $validated['skill_id'] ?? null
         );
 
         // 3. Return Standard Envelope back, carrying any upstream meta

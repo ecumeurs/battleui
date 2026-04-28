@@ -39,7 +39,7 @@ class UpsilonApiService implements UpsilonApiServiceInterface
     /**
      * @spec-link [[api_go_battle_action]]
      */
-    public function sendAction(string $arenaId, string $playerId, string $entityId, string $type, array $targetCoords = []): array
+    public function sendAction(string $arenaId, string $playerId, string $entityId, string $type, array $targetCoords = [], ?string $skillId = null): array
     {
         $payload = [
             'player_id' => $playerId,
@@ -49,6 +49,10 @@ class UpsilonApiService implements UpsilonApiServiceInterface
 
         if (!empty($targetCoords)) {
             $payload['target_coords'] = array_map(fn($pos) => is_array($pos) ? $pos : $pos->toArray(), $targetCoords);
+        }
+
+        if ($skillId) {
+            $payload['skill_id'] = $skillId;
         }
 
         return $this->sendEnvelopeRequest('POST', "/v1/arena/{$arenaId}/action", $payload, "Action: {$type}");

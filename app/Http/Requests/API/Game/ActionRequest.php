@@ -24,6 +24,7 @@ class ActionRequest extends FormRequest
         return [
             'entity_id' => 'nullable|string',
             'type' => 'required|string',
+            'skill_id' => 'nullable|string',
             'target_coords' => 'array',
         ];
     }

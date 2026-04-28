@@ -16,7 +16,7 @@ interface UpsilonApiServiceInterface
      */
     public function startArena(string $matchId, string $callbackUrl, array $players): array;
 
-    public function sendAction(string $arenaId, string $playerId, string $entityId, string $type, array $targetCoords = []): array;
+    public function sendAction(string $arenaId, string $playerId, string $entityId, string $type, array $targetCoords = [], ?string $skillId = null): array;
     
     public function forfeit(string $arenaId, string $playerId): array;
 

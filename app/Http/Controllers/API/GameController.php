@@ -68,7 +68,9 @@ class GameController extends Controller
             ->exists();
 
         if (!$ownsEntity) {
-            return $this->error('Forbidden: You do not own the entity specified in this action.', 403);
+            return $this->error('Forbidden: You do not own the entity specified in this action.', 403, (object)[], [
+                'error_key' => 'entity.controller.missmatch'
+            ]);
         }
 
         // 4. Call the UPSILON ENGINE via Service

@@ -21,7 +21,7 @@ export default defineConfig({
         },
     ],
 
-    webServer: {
+    webServer: process.env.PLAYWRIGHT_SKIP_SERVER ? undefined : {
         command: 'php artisan serve --host=0.0.0.0 --port=8000',
         url: 'http://localhost:8000/up',
         reuseExistingServer: !process.env.CI,

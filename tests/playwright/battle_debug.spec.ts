@@ -59,8 +59,9 @@ test('battle debug: gather logs and DOM for 1v1 PVE', async ({ page }) => {
     // Give 2 seconds for scene initialization as requested
     await page.waitForTimeout(2000);
 
-    // 5. Capture the DOM
+    // 5. Capture the DOM and Screenshot
     const content = await page.content();
+    await page.screenshot({ path: 'battle_screenshot.png', fullPage: true });
 
     // 6. Prepare log content
     const allLogs = [
@@ -71,13 +72,18 @@ test('battle debug: gather logs and DOM for 1v1 PVE', async ({ page }) => {
         ...errors,
     ].join('\n');
 
-    // Write files to the root of the battleui folder
+    // Write files
     fs.writeFileSync('battle_js_log.log', allLogs);
     fs.writeFileSync('battle_dom.html', content);
 
-    console.log('Successfully captured battle_js_log.log and battle_dom.html');
+    console.log('Successfully captured logs, DOM, and battle_screenshot.png');
     
-    // Perform a basic assertion to report success/failure in the test runner
-    // If the roster is missing (as observed), this will fail but files are already written.
-    await expect(page.locator('.team-roster-panel--left'), 'Allied roster should be present').toBeVisible({ timeout: 5000 });
+    // 7. Explicit UI Presence Checks
+    await expect(page.locator('.combat-header'), 'HUD Top Bar (CombatHeader) should be visible').toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.roster-panel--left'), 'Allied Roster Panel should be visible').toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.roster-panel--right'), 'Enemy Roster Panel should be visible').toBeVisible({ timeout: 5000 });
+    await expect(page.locator('.timeline'), 'Initiative Timeline should be visible').toBeVisible({ timeout: 5000 });
+    
+    // The AP Box only appears when it's a turn, which should be true in PVE initial state
+    await expect(page.locator('.ap-box'), 'Action Command Pane (AP Box) should be visible').toBeVisible({ timeout: 10000 });
 });

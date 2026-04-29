@@ -12,7 +12,7 @@ const props = defineProps({
 </script>
 
 <template>
-    <div class="roster-panel" :class="'roster-panel--' + side">
+    <div class="team-roster-panel roster-panel" :class="['team-roster-panel--' + side, 'roster-panel--' + side]">
         <div class="roster-panel__header">
             <span class="roster-panel__header-icon">◆</span>
             {{ side === 'left' ? 'ALLIED FORCES' : 'HOSTILE FORCES' }}
@@ -47,6 +47,7 @@ const props = defineProps({
     flex-direction: column;
     overflow-y: auto;
     max-height: 100%;
+    z-index: 1000;
 }
 
 .roster-panel--left {

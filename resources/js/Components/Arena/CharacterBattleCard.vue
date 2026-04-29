@@ -27,7 +27,7 @@ function hpBarColor() {
 
 <template>
     <div
-        class="char-card"
+        class="char-card character-card-mini"
         :class="{ 'char-card--compact': compact, 'char-card--active': isActive }"
         :style="{ '--accent': accentColor }"
     >

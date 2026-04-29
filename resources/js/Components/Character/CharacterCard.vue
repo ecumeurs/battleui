@@ -46,7 +46,10 @@ const canUpgrade = computed(() => cp.value.spent < cp.value.max);
 </script>
 
 <template>
-    <div class="p-4 bg-upsilon-gunmetal/30 border border-upsilon-steel/20 hover:border-upsilon-cyan/40 transition-all relative group shadow-lg backdrop-blur-md">
+    <div 
+        data-testid="character-card"
+        class="p-4 bg-upsilon-gunmetal/30 border border-upsilon-steel/20 hover:border-upsilon-cyan/40 transition-all relative group shadow-lg backdrop-blur-md"
+    >
         <!-- Accent corners -->
         <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-upsilon-cyan/40 group-hover:border-upsilon-cyan transition-colors"></div>
         <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-upsilon-cyan/40 group-hover:border-upsilon-cyan transition-colors"></div>
@@ -62,11 +65,12 @@ const canUpgrade = computed(() => cp.value.spent < cp.value.max);
                         @keyup.esc="cancelRename"
                         autoFocus
                     />
-                    <button @click="submitRename" class="text-upsilon-lime font-mono text-[8px] border border-upsilon-lime/30 px-2 py-1 hover:bg-upsilon-lime/10">SAVE</button>
+                    <button @click.stop="submitRename" class="text-upsilon-lime font-mono text-[8px] border border-upsilon-lime/30 px-2 py-1 hover:bg-upsilon-lime/10">SAVE</button>
+                    <button @click.stop="cancelRename" class="text-upsilon-steel font-mono text-[8px] border border-upsilon-steel/30 px-2 py-1 hover:bg-upsilon-steel/10">CANCEL</button>
                 </div>
                 <h3 
                     v-else 
-                    @click="startRename"
+                    @click.stop="startRename"
                     class="font-scifi text-base text-white truncate cursor-pointer hover:text-upsilon-cyan transition-colors tracking-widest uppercase"
                 >
                     {{ character.name }}
@@ -78,7 +82,7 @@ const canUpgrade = computed(() => cp.value.spent < cp.value.max);
             
             <button 
                 v-if="user.total_wins === 0"
-                @click="$emit('reroll', character.id)"
+                @click.stop="$emit('reroll', character.id)"
                 class="text-[8px] font-scifi text-upsilon-rust border border-upsilon-rust/40 px-2 py-1 hover:bg-upsilon-rust/10 transition-colors"
             >
                 REROLL

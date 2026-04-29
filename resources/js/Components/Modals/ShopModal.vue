@@ -100,6 +100,7 @@ async function confirmPurchase() {
                     v-for="item in items"
                     :key="item.id"
                     @click="selected = item"
+                    data-testid="shop-item"
                     class="w-full text-left px-3 py-2.5 border transition-all duration-150 group"
                     :class="selected?.id === item.id
                         ? 'bg-upsilon-magenta/10 border-upsilon-magenta/50'

@@ -24,19 +24,14 @@ const props = defineProps({
 
 const ready = ref(false);
 function onCanvasReady(state) {
-    ready.value = true;
-    console.log('--- 3D Arena State ---');
-    console.log('Scene:', state.scene);
-    console.log('Renderer:', state.renderer);
-    
-    // Safety: convert children to array and handle potential proxying
-    if (state.scene) {
-        const scene = state.scene.value || state.scene;
-        const children = scene.children ? Array.from(scene.children) : [];
-        const lights = children.filter(c => c && c.isLight);
-        console.log('Active Lights:', lights.length, lights.map(l => l.type));
+    const canvas = state.renderer.domElement;
+    if (canvas) {
+        canvas.style.position = 'relative';
+        canvas.style.top = 'auto';
+        canvas.style.left = 'auto';
+        canvas.style.zIndex = '1';
     }
-    console.log('Effects Mode:', props.effects ? 'ON' : 'OFF');
+    ready.value = true;
 }
 
 const emit = defineEmits(['tile-click']);
@@ -135,12 +130,11 @@ function onTileClick(tile, event) {
 <template>
     <div class="three-grid">
         <TresCanvas
+            :window-size="false"
             @ready="onCanvasReady"
-            clear-color="#05050a"
             shadows
             :shadow-map-type="THREE.PCFShadowMap"
             alpha
-            window-size
             power-preference="high-performance"
             :disable-render="effects"
         >
@@ -270,8 +264,15 @@ function onTileClick(tile, event) {
 .three-grid {
     flex: 1;
     position: relative;
+    z-index: 1;
     min-height: 0;
     overflow: hidden;
     background: radial-gradient(circle at center, rgba(0, 242, 255, 0.04) 0%, transparent 60%);
+}
+
+.three-grid :deep(canvas) {
+    position: relative !important;
+    width: 100% !important;
+    height: 100% !important;
 }
 </style>

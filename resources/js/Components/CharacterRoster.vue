@@ -149,11 +149,10 @@ onMounted(fetchData);
                 <CharacterCard
                     :character="char"
                     :user="props.user"
-                    @rename.stop="handleRename"
-                    @reroll.stop="handleReroll"
-                    @upgrade.stop="handleUpgrade"
-                    @manage-equipment.stop="handleManageEquipment"
-                    @click.stop
+                    @rename="handleRename"
+                    @reroll="handleReroll"
+                    @upgrade="handleUpgrade"
+                    @manage-equipment="handleManageEquipment"
                 />
             </div>
         </div>

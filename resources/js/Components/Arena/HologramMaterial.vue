@@ -61,20 +61,19 @@ const fragmentShader = `
         float edge = 1.0 - max(dot(normal, viewDir), 0.0);
         edge = pow(edge, 3.0);
 
-        // Periodic Glitch/Flicker (Once every 20s)
+        // Periodic Glitch/Flicker (Once every 40)
         // Using world origin as seed so each object flickers at different times
         float seed = vWorldOrigin.x * 12.9898 + vWorldOrigin.z * 78.233;
-        float cycleTime = mod(uTime + hash(seed) * 20.0, 20.0);
+        float cycleTime = mod(uTime + hash(seed) * 40.0, 40.0);
         
         // Flicker window: 0.2s to 1.0s
         float flickerDuration = 0.2 + hash(seed + 1.0) * 0.8;
         float flickerIntensity = 1.0;
         
         if (cycleTime < flickerDuration) {
-            // Rapid chaotic flickering during the glitch window
-            float glitch = sin(uTime * 50.0 + hash(seed) * 100.0) * 0.5 + 0.5;
-            // Occasional full drop-out
-            if (hash(uTime + seed) > 0.8) glitch = 0.0;
+            float glitch = (sin(uTime * 50.0 + hash(seed) * 100.0) * 0.5 + 0.5) * 0.25;
+            // Occasional full drop-out (now even rarer)
+            if (hash(uTime + seed) > 0.98) glitch = 0.0;
             flickerIntensity = glitch;
         }
 
@@ -126,12 +125,6 @@ const vertexShader = `
 </script>
 
 <template>
-    <TresShaderMaterial
-        :uniforms="shaderUniforms"
-        :vertex-shader="vertexShader"
-        :fragment-shader="fragmentShader"
-        :transparent="true"
-        :depth-write="true"
-        :blending="THREE.NormalBlending"
-    />
+    <TresShaderMaterial :uniforms="shaderUniforms" :vertex-shader="vertexShader" :fragment-shader="fragmentShader"
+        :transparent="true" :depth-write="true" :blending="THREE.NormalBlending" />
 </template>

@@ -9,7 +9,10 @@ const props = defineProps({
     isEnemy: { type: Boolean, default: false },
 });
 
-const hpPct = computed(() => Math.round((props.teamHp / props.teamMaxHp) * 100));
+const hpPct = computed(() => {
+    if (!props.teamMaxHp) return 0;
+    return Math.round((props.teamHp / props.teamMaxHp) * 100);
+});
 
 function barColor(pct) {
     if (pct > 60) return '#39ff13';

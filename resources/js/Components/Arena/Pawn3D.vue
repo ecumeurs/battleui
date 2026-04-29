@@ -28,14 +28,7 @@ function onMeshReady() {
     meshReady.value = true;
 }
 
-const showOverlay = ref(false);
-watch([mounted, () => props.gridReady, meshReady], ([m, g, r]) => {
-    if (m && g && r) {
-        nextTick(() => {
-            showOverlay.value = true;
-        });
-    }
-}, { immediate: true });
+const showOverlay = computed(() => mounted.value && props.gridReady);
 
 const position = computed(() => {
     if (!props.entity?.position) return [0, 0, 0];
@@ -103,6 +96,7 @@ const hpPct = computed(() => {
     gap: 2px;
     pointer-events: none;
     user-select: none;
+    z-index: 1000;
     filter: drop-shadow(0 0 2px rgba(0, 0, 0, 0.5));
 }
 

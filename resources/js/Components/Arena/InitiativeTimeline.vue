@@ -72,6 +72,8 @@ function tokenColor(turn) {
     border-top: 1px solid rgba(74, 74, 79, 0.3);
     padding: 6px 12px 10px;
     backdrop-filter: blur(4px);
+    position: relative;
+    z-index: 1000;
 }
 
 .timeline__header {

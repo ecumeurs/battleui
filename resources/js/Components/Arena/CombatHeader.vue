@@ -54,6 +54,7 @@ const props = defineProps({
     backdrop-filter: blur(6px);
     position: relative;
     padding: 0 12px;
+    z-index: 1000;
 }
 
 /* Scanline overlay */

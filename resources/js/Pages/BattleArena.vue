@@ -31,7 +31,10 @@ const showForfeitModal = ref(false);
 let actionTimeout = null;
 
 const myPlayer = computed(() => tactical.myPlayer(gameState.value));
-const currentPlayerId = computed(() => myPlayer.value?.nickname || ''); // We use nickname as a stable display ID
+const currentPlayerId = computed(() => {
+    if (!myPlayer.value) return '';
+    return String(myPlayer.value.player_id || myPlayer.value.nickname);
+});
 
 let matchTimerInterval = null;
 let shotTimerInterval = null;
@@ -175,54 +178,42 @@ const allyEntities = computed(() => tactical.myCharacters(gameState.value).conca
 const enemyEntities = computed(() => tactical.myFoesCharacters(gameState.value));
 
 function mapParticipantsToRoster(parts) {
-    // Note: AI players might not be explicitly in `participants` if they are handled purely in Golang.
-    // We will inject a virtual "AI" participant here if needed, but the UI expects a player list structure.
     return parts.map(p => ({
-        id: String(p.player_id),
+        id: String(p.player_id || p.nickname),
         nickname: p.nickname,
         team: p.team,
-        entities: allEntities.value.filter(e => String(e.player_id) === String(p.player_id)).map(e => ({
+        entities: (p.entities || []).map(e => ({
             ...e,
             _isActive: String(e.id) === currentEntityId.value
         }))
     }));
 }
 
-const allyRoster = computed(() => allyParticipants.value.map(p => ({
-    nickname: p.nickname,
-    team: p.team,
-    entities: (p.entities).map(e => ({
-        ...e,
-        _isActive: e.id === currentEntityId.value
-    }))
-})));
-const enemyRoster = computed(() => enemyParticipants.value.map(p => ({
-    nickname: p.nickname,
-    team: p.team,
-    entities: (p.entities).map(e => ({
-        ...e,
-        _isActive: e.id === currentEntityId.value
-    }))
-})));
+const allyRoster = computed(() => mapParticipantsToRoster(allyParticipants.value));
+const enemyRoster = computed(() => mapParticipantsToRoster(enemyParticipants.value));
 
 const teamColors = computed(() => {
     const colors = {};
     if (!gameState.value?.players) return colors;
 
     gameState.value.players.forEach(p => {
-        const pKey = p.nickname;
+        let color = '#ffffff';
         if (p.is_self) {
-            colors[pKey] = '#00a8ff'; // Blue
+            color = '#00a8ff'; // Blue
         } else if (p.team === myTeam.value) {
-            colors[pKey] = '#39ff13'; // Green
+            color = '#39ff13'; // Green
         } else {
+            // Check if it's the primary foe
             const foes = enemyParticipants.value;
-            if (foes[0] && foes[0].nickname === pKey) {
-                colors[pKey] = '#ff2020'; // Red
+            if (foes[0] && (foes[0].player_id === p.player_id || foes[0].nickname === p.nickname)) {
+                color = '#ff2020'; // Red
             } else {
-                colors[pKey] = '#b030ff'; // Purple
+                color = '#b030ff'; // Purple
             }
         }
+        
+        if (p.player_id) colors[String(p.player_id)] = color;
+        if (p.nickname) colors[String(p.nickname)] = color;
     });
 
     return colors;

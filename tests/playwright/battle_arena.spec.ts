@@ -33,10 +33,13 @@ test.describe('1v1 PVE Battle Arena', () => {
         consoleErrors = [];
         consoleWarnings = [];
         page.on('console', msg => {
+            const text = msg.text();
             if (msg.type() === 'error') {
-                consoleErrors.push(msg.text());
+                consoleErrors.push(text);
             } else if (msg.type() === 'warning') {
-                consoleWarnings.push(msg.text());
+                // Skip environment-specific WebGL performance warnings
+                if (text.includes('GPU stall') || text.includes('ReadPixels')) return;
+                consoleWarnings.push(text);
             }
         });
     });

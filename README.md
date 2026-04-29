@@ -92,15 +92,21 @@ The visual interface and player interactions are located in:
     - **CharacterRoster.vue**: Modular management interface for character stats and progression.
     - **IdentitySection.vue**: Modular component for managing user personal data, credentials, and GDPR controls.
     - **ModalBox.vue**: Themed base component for "Neon in the Dust" interactive dialogs and portals.
+    - **EngagementHub.vue**: The core matchmaking interface and mode selection portal.
     - **LeaderboardComponent.vue**: Modular competitive feed displaying global rankings, categorical splits (1v1/2v2), and the current user's neural signature.
     - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
-    - **Modals/EditIdentityModal.vue**: Interactive portal for synchronizing user identity data (nickname, email, address).
     - **Modals/ChangePasswordModal.vue**: Secure credential rotation interface for updating authentication keys.
-- **[resources/js/Components/Arena](file:///workspace/battleui/resources/js/Components/Arena)**: Core battle UI mechanics.
-    - **IsoBoardGrid.vue**: The scalable 2:1 isometric grid mapped to engine coordinates.
+- **[resources/js/Components/Arena](file:///workspace/battleui/resources/js/Components/Arena)**: Core battle UI and 3D mechanics.
+    - **ThreeGrid.vue**: The primary **TresJS** 3D scene orchestration.
+    - **Pawn3D.vue**: High-fidelity 3D entity representation with HTML overlays for status.
+    - **Tile3D.vue**: Interactive 3D grid tiles supporting movement and selection.
+    - **Obstacle3D.vue** & **HoloObstacle.vue**: 3D environmental geometry and specialized scifi effects.
     - **ActionPanel.vue**: State-driven execution panel to proxy command inputs directly back to the API.
     - **InitiativeTimeline.vue**: Visual representation of turn order dynamics.
-    - **CharacterBattleCard.vue** & **CharacterPawn.vue**: On-board and off-board entity representations.
+    - **CombatHeader.vue**, **TeamSummary.vue**, **GameClocks.vue**: Tactical telemetry and match timing.
+    - **TeamRosterPanel.vue**: Detailed side-bar rosters for allied and hostile forces.
+    - **TacticalActionReport.vue**: Immersive overlay for post-action feedback.
+    - **HologramMaterial.vue** & **HighlightMaterial.vue**: Custom shaders providing the "Neon in the Dust" aesthetic.
 - **[resources/js/Layouts](file:///workspace/battleui/resources/js/Layouts)**: Wrapper components for consistent UI structure.
     - **TacticalLayout.vue**: The primary "Neon in the Dust" layout framework.
 - **Core Frontend Logic**:
@@ -116,13 +122,18 @@ The core logic, API endpoints, and data management are located in:
 - **[app/Services](file:///workspace/battleui/app/Services)**: Contains specialized logic like the `UpsilonApiService` for game engine communication.
 - **[routes](file:///workspace/battleui/routes)**: Defines the web and API entry points.
 
-## Testing & Verification
- 
- For rapid verification of API flows without using a browser, the [UpsilonCLI](file:///workspace/upsiloncli) is the recommended tool. It allows you to:
- - **Simulate Player Journeys**: Run a full Register → Login → Matchmaking sequence interactively.
- - **Debug Matchmaking**: Join the queue as multiple users using separate terminal sessions to verify queue logic and `MatchFound` event delivery.
- - **Inspect Payloads**: Every action reveals the exact `curl` command and raw JSON response for deep troubleshooting.
- - **Automated Audits**: Run `upsiloncli --auto` to perform a smoke test of all primary user flows in seconds.
+### Playwright E2E Tests (Recommended)
+For full visual and logic verification, use the Playwright suite:
+- **`npx playwright test`**: Run all E2E tests (Authentication, Dashboard, Battle Arena).
+- **`./test_3d_ui.sh`**: Rapid visual smoke test of the 3D grid and materials.
+- **`./test_3d_battle.sh`**: Comprehensive Battle Arena debug script. Registers a user, joins a 1v1 PVE battle, and dumps `battle_dom.html` and `battle_js_log.log` for troubleshooting.
+
+### UpsilonCLI (Headless)
+For rapid verification of API flows without using a browser, the [UpsilonCLI](file:///workspace/upsiloncli) is the recommended tool. It allows you to:
+- **Simulate Player Journeys**: Run a full Register → Login → Matchmaking sequence interactively.
+- **Debug Matchmaking**: Join the queue as multiple users using separate terminal sessions to verify queue logic and `MatchFound` event delivery.
+- **Inspect Payloads**: Every action reveals the exact `curl` command and raw JSON response for deep troubleshooting.
+- **Automated Audits**: Run `upsiloncli --auto` to perform a smoke test of all primary user flows in seconds.
  
  ---
  

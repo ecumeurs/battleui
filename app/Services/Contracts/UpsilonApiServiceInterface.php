@@ -29,9 +29,21 @@ interface UpsilonApiServiceInterface
 
     /**
      * Check if a specific arena exists in the Upsilon Engine.
-     * 
+     *
      * @param string $arenaId
      * @return array The Go api_standard_envelope response (containing ArenaExistsResponse data)
      */
     public function checkArenaExistence(string $arenaId): array;
+
+    /**
+     * Resurrect a crashed arena from persisted board state (ISS-054).
+     * Called when the engine has lost in-memory state for an active match.
+     *
+     * @param string $matchId The match to resurrect
+     * @param array $boardState The cached game_state_cache snapshot from the DB
+     * @param string $callbackUrl Webhook endpoint for engine events
+     * @param array $players Original player list (needed to re-create controllers)
+     * @return array The Go api_standard_envelope response (containing ArenaStartResponse data)
+     */
+    public function resurrectArena(string $matchId, array $boardState, string $callbackUrl, array $players): array;
 }

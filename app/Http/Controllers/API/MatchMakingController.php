@@ -295,37 +295,99 @@ class MatchMakingController extends Controller
         if ($participant && $participant->match && is_null($participant->match->concluded_at)) {
             $match = $participant->match;
 
-            // Verification: Ensure the arena still exists in the engine
+            // Verification: Ensure the arena still exists in the engine; attempt resurrection if not.
             /** @spec-link [[api_arena_existence_check]] */
             try {
                 $existence = $this->upsilonService->checkArenaExistence($match->id);
                 if (!($existence['success'] ?? false) || !($existence['data']['exists'] ?? false)) {
-                    \Illuminate\Support\Facades\Log::warning("Arena {$match->id} missing from engine for user {$user->id}. Neural link severed. Concluding match.");
-                    
-                    $match->update([
-                        'concluded_at' => now(),
-                        'winning_team_id' => null // Draw/Void since engine state is lost
-                    ]);
+                    \Illuminate\Support\Facades\Log::warning("Arena {$match->id} missing from engine for user {$user->id}. Attempting resurrection (ISS-054).");
 
+                    // Attempt to resurrect from the last known cached board state.
+                    $cachedState = $match->game_state_cache;
+                    if (!empty($cachedState) && !empty($cachedState['players'])) {
+                        try {
+                            $callbackUrl = config('services.upsilon.webhook_url')
+                                ?: str_replace('localhost', '127.0.0.1', url('/api/webhook/upsilon'));
+
+                            $this->upsilonService->resurrectArena(
+                                $match->id,
+                                $cachedState,
+                                $callbackUrl,
+                                $cachedState['players']
+                            );
+
+                            \Illuminate\Support\Facades\Log::info("Arena {$match->id} resurrected successfully.");
+                            // Fall through to return the normal "matched" response below.
+                        } catch (\Exception $resErr) {
+                            \Illuminate\Support\Facades\Log::error("Resurrection failed for arena {$match->id}: " . $resErr->getMessage());
+
+                            $match->update([
+                                'concluded_at' => now(),
+                                'winning_team_id' => null,
+                            ]);
+
+                            return $this->success([
+                                'status' => 'idle',
+                                'match_id' => null,
+                                'expected_participants' => null,
+                                'empty_slots' => null
+                            ], 'Neural link severed. Resurrection failed.');
+                        }
+                    } else {
+                        \Illuminate\Support\Facades\Log::warning("No cached board state available for resurrection of {$match->id}. Concluding match.");
+
+                        $match->update([
+                            'concluded_at' => now(),
+                            'winning_team_id' => null,
+                        ]);
+
+                        return $this->success([
+                            'status' => 'idle',
+                            'match_id' => null,
+                            'expected_participants' => null,
+                            'empty_slots' => null
+                        ], 'Neural link severed. Match state lost.');
+                    }
+                }
+            } catch (\App\Exceptions\EngineConnectionException $e) {
+                // Engine fully unreachable — attempt resurrection if we have cached state.
+                \Illuminate\Support\Facades\Log::error("Engine unreachable during status poll for match {$match->id}: " . $e->getMessage());
+
+                $cachedState = $match->game_state_cache;
+                if (!empty($cachedState) && !empty($cachedState['players'])) {
+                    try {
+                        $callbackUrl = config('services.upsilon.webhook_url')
+                            ?: str_replace('localhost', '127.0.0.1', url('/api/webhook/upsilon'));
+
+                        $this->upsilonService->resurrectArena(
+                            $match->id,
+                            $cachedState,
+                            $callbackUrl,
+                            $cachedState['players']
+                        );
+
+                        \Illuminate\Support\Facades\Log::info("Arena {$match->id} resurrected after reconnection (engine was restarting).");
+                        // Fall through to return the normal "matched" response below.
+                    } catch (\Exception $resErr) {
+                        \Illuminate\Support\Facades\Log::error("Resurrection failed after engine restart for {$match->id}: " . $resErr->getMessage());
+
+                        $match->update(['concluded_at' => now()]);
+                        return $this->success([
+                            'status' => 'idle',
+                            'match_id' => null,
+                            'expected_participants' => null,
+                            'empty_slots' => null
+                        ], 'Engine communication failure. Match state lost.');
+                    }
+                } else {
+                    $match->update(['concluded_at' => now()]);
                     return $this->success([
                         'status' => 'idle',
                         'match_id' => null,
                         'expected_participants' => null,
                         'empty_slots' => null
-                    ], 'Neural link severed. Match state lost.');
+                    ], 'Engine communication failure. Match state lost.');
                 }
-            } catch (\Exception $e) {
-                // If engine is unreachable, we treat it as missing since the engine is stateless
-                // and a restart would have wiped the arena anyway.
-                \Illuminate\Support\Facades\Log::error("Engine unreachable during status poll for match {$match->id}: " . $e->getMessage());
-                
-                $match->update(['concluded_at' => now()]);
-                return $this->success([
-                    'status' => 'idle',
-                    'match_id' => null,
-                    'expected_participants' => null,
-                    'empty_slots' => null
-                ], 'Engine communication failure. Match state lost.');
             }
 
             $config = self::MODE_CONFIG[$match->game_mode] ?? self::MODE_CONFIG['1v1_PVP'];

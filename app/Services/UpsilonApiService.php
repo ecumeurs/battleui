@@ -87,6 +87,52 @@ class UpsilonApiService implements UpsilonApiServiceInterface
     }
 
     /**
+     * Resurrect a crashed arena from persisted board state (ISS-054).
+     * Translates the cached BoardState snapshot into the Go engine's ArenaResurrectRequest shape.
+     * @spec-link [[api_go_battle_engine]]
+     */
+    public function resurrectArena(string $matchId, array $boardState, string $callbackUrl, array $players): array
+    {
+        // Translate the 2D Cells[][] snapshot to ResurrectGrid.cells format.
+        $gridData = $boardState['grid'] ?? [];
+        $cells = [];
+        $rawCells = $gridData['cells'] ?? [];
+        foreach ($rawCells as $col) {
+            $colOut = [];
+            foreach ($col as $c) {
+                $colOut[] = [
+                    'obstacle' => (bool)($c['obstacle'] ?? false),
+                    'height'   => (int)($c['height'] ?? 0),
+                ];
+            }
+            $cells[] = $colOut;
+        }
+
+        // Translate Turn[] to ResurrectTurn[].
+        $turns = array_map(fn($t) => [
+            'entity_id' => $t['entity_id'] ?? '',
+            'delay'     => (int)($t['delay'] ?? 0),
+        ], $boardState['turn'] ?? []);
+
+        $payload = [
+            'match_id'          => $matchId,
+            'callback_url'      => $callbackUrl,
+            'players'           => $players,
+            'grid'              => [
+                'width'      => (int)($gridData['width'] ?? 0),
+                'height'     => (int)($gridData['height'] ?? 0),
+                'max_height' => (int)($gridData['max_height'] ?? 0),
+                'cells'      => $cells,
+            ],
+            'turns'             => $turns,
+            'current_entity_id' => $boardState['current_entity_id'] ?? '',
+            'version'           => (int)($boardState['version'] ?? 0),
+        ];
+
+        return $this->sendEnvelopeRequest('POST', "/v1/arena/{$matchId}/resurrect", $payload, 'Resurrect Arena');
+    }
+
+    /**
      * Wraps requests in the api_standard_envelope format.
      * @spec-link [[api_standard_envelope]]
      */

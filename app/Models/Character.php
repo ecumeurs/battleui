@@ -71,7 +71,7 @@ class Character extends Model
      */
     public function getSkillSlotsAttribute(): int
     {
-        return min(5, 1 + intdiv($this->player->total_wins ?? 0, 10));
+        return min(5, 1 + intdiv($this->player?->total_wins ?? 0, 10));
     }
 
     /**

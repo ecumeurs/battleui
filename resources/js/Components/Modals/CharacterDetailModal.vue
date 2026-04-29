@@ -3,7 +3,7 @@
      @spec-link [[ui_character_full_stat_panel]]
      @spec-link [[entity_character_skill_inventory]] -->
 <script setup>
-import { ref, computed, watch } from 'vue';
+import { ref, computed, watch, onMounted } from 'vue';
 import ModalBox from '@/Components/ModalBox.vue';
 import SkillDetail from '@/Components/Skill/SkillDetail.vue';
 import SkillSlotPill from '@/Components/Skill/SkillSlotPill.vue';

@@ -41,7 +41,14 @@ watch(
             }, 200);
         }
     },
+    { immediate: true }
 );
+ 
+onMounted(() => {
+    if (props.show) {
+        dialog.value?.showModal();
+    }
+});
 
 const close = () => {
     if (props.closeable) {

@@ -140,8 +140,8 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     await waitForRoster(page);
 
     // Click the first character card to open CharacterDetailModal
-    const characterCard = page.locator('.cursor-pointer').first();
-    await characterCard.click();
+    const characterCard = page.getByTestId('character-card').first();
+    await characterCard.click({ force: true });
 
     // Modal should open — look for the roulette button in the left pane
     const rouletteBtn = page.locator('button', { hasText: /SKILL ROULETTE/i });
@@ -188,9 +188,9 @@ test('shop: open depot → select item → ACQUIRE → balance decrements', asyn
     await registerAndLand(page);
 
     // Open the neon shop modal
-    const shopBtn = page.getByText('SUPPLY').first();
+    const shopBtn = page.getByTestId('shop-button');
     await expect(shopBtn).toBeVisible({ timeout: 10_000 });
-    await shopBtn.click();
+    await shopBtn.click({ force: true });
 
     // ShopModal: "Supply Depot" title (use heading role to avoid ambiguity with nav link)
     await expect(page.getByRole('heading', { name: 'Supply Depot' })).toBeVisible({ timeout: 5_000 });
@@ -237,8 +237,8 @@ test('equip: purchase item → open character modal → link item → slot refle
     await registerAndLand(page);
 
     // ── Step 1: Buy Combat Knife (cheapest weapon, 100 CR) ──────────────────
-    const shopBtn = page.getByText('SUPPLY').first();
-    await shopBtn.click();
+    const shopBtn = page.getByTestId('shop-button');
+    await shopBtn.click({ force: true });
     await expect(page.getByRole('heading', { name: 'Supply Depot' })).toBeVisible({ timeout: 5_000 });
 
     // Find "Combat Knife" in the list (may need to scroll in very small viewports)

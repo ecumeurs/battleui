@@ -70,7 +70,7 @@ const canUpgrade = computed(() => cp.value.spent < cp.value.max);
                 </div>
                 <h3 
                     v-else 
-                    @click.stop="startRename"
+                    @click="startRename"
                     class="font-scifi text-base text-white truncate cursor-pointer hover:text-upsilon-cyan transition-colors tracking-widest uppercase"
                 >
                     {{ character.name }}

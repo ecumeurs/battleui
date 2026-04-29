@@ -30,7 +30,7 @@ defineEmits(['upgrade']);
             
             <button 
                 v-if="canUpgrade && stat.classA" 
-                @click="$emit('upgrade', stat.key)"
+                @click.stop="$emit('upgrade', stat.key)"
                 class="opacity-0 group-hover/row:opacity-100 ml-1 text-upsilon-lime hover:scale-125 transition-all"
                 :title="`Upgrade (${stat.cpCost} CP)`"
             >

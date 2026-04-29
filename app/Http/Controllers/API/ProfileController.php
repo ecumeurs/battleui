@@ -42,7 +42,7 @@ class ProfileController extends Controller
     public function getCharacter(Request $request, string $characterId)
     {
         $user = $request->user();
-        $character = Character::findOrFail($characterId);
+        $character = Character::with(['player'])->findOrFail($characterId);
         $this->authorize('view', $character);
 
         return $this->success(new CharacterResource($character), 'Character retrieved.');
@@ -54,7 +54,7 @@ class ProfileController extends Controller
     public function getCharacters(Request $request)
     {
         $user = $request->user();
-        $characters = Character::where('player_id', $user->id)->get();
+        $characters = Character::with(['player'])->where('player_id', $user->id)->get();
 
         return $this->success(CharacterResource::collection($characters), 'Characters retrieved.');
     }

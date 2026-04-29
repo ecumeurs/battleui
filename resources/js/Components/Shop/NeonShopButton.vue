@@ -6,6 +6,7 @@ defineEmits(['click']);
 <template>
     <button
         @click="$emit('click')"
+        data-testid="shop-button"
         class="neon-shop-btn relative w-full px-6 py-8 flex flex-col items-center gap-3 group transition-all duration-300"
     >
         <!-- Corner accents -->

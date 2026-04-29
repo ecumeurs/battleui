@@ -20,7 +20,7 @@ const slotIcons = {
 
 <template>
     <div 
-        @click="$emit('click')"
+        @click.stop="$emit('click')"
         class="flex items-center gap-2 p-1.5 bg-black/40 border border-upsilon-steel/20 cursor-pointer hover:border-upsilon-cyan/60 transition-all group/slot relative overflow-hidden"
     >
         <div class="absolute -top-px -left-px w-1 h-1 border-t border-l border-upsilon-steel/40 group-hover/slot:border-upsilon-cyan"></div>

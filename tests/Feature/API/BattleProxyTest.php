@@ -64,7 +64,7 @@ class BattleProxyTest extends TestCase
         $this->mock(UpsilonApiServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('sendAction')
                 ->once()
-                ->with($this->match->id, $this->user->id, $this->character->id, 'Move', [1, 1])
+                ->with($this->match->id, $this->user->id, $this->character->id, 'Move', [1, 1], null)
                 ->andReturn([
                     'success' => true,
                     'message' => 'Action processed',

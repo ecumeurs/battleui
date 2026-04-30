@@ -121,7 +121,7 @@ class ShopItemsSeeder extends Seeder
                 'name'       => 'Stim Pack',
                 'type'       => 'utility',
                 'slot'       => 'utility',
-                'properties' => json_encode(['HPBonus' => 5]),
+                'properties' => json_encode(['HP' => 5]),
                 'cost'       => 250,
                 'available'  => true,
                 'version'    => '2.0',
@@ -135,7 +135,7 @@ class ShopItemsSeeder extends Seeder
                 'slot'       => 'utility',
                 'properties' => json_encode([
                     'Movement'     => 1,
-                    'DefenseBonus' => 2,
+                    'Defense' => 2,
                 ]),
                 'cost'       => 700,
                 'available'  => true,

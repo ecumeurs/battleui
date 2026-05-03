@@ -2,7 +2,7 @@
      @spec-link [[ui_shop]] -->
 <script setup>
 import { ref, computed, watch } from 'vue';
-import ListDetailModal from '@/Components/Modals/ListDetailModal.vue';
+import ListDetailModal from '@/Components/Shared/Modals/ListDetailModal.vue';
 import ShopItemDetail from '@/Components/Shop/ShopItemDetail.vue';
 import PurchaseConfirmModal from '@/Components/Shop/PurchaseConfirmModal.vue';
 import shopService from '@/services/shop';

@@ -4,15 +4,15 @@ import { Head, router } from '@inertiajs/vue3';
 import { getAuthUser } from '@/services/auth';
 import { ref, onMounted } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
-import CharacterRoster from '@/Components/CharacterRoster.vue';
-import IdentitySection from '@/Components/IdentitySection.vue';
-import EngagementHub from '@/Components/EngagementHub.vue';
-import LeaderboardComponent from '@/Components/LeaderboardComponent.vue';
+import CharacterRoster from '@/Components/Dashboard/CharacterRoster.vue';
+import IdentitySection from '@/Components/Dashboard/IdentitySection.vue';
+import EngagementHub from '@/Components/Dashboard/EngagementHub.vue';
+import LeaderboardComponent from '@/Components/Dashboard/LeaderboardComponent.vue';
 import NeonShopButton from '@/Components/Shop/NeonShopButton.vue';
-import InventoryModal from '@/Components/Modals/InventoryModal.vue';
-import ShopModal from '@/Components/Modals/ShopModal.vue';
-import CharacterDetailModal from '@/Components/Modals/CharacterDetailModal.vue';
-import SkillRouletteModal from '@/Components/Modals/SkillRouletteModal.vue';
+import InventoryModal from '@/Components/Dashboard/Modals/InventoryModal.vue';
+import ShopModal from '@/Components/Dashboard/Modals/ShopModal.vue';
+import CharacterDetailModal from '@/Components/Dashboard/Modals/CharacterDetailModal.vue';
+import SkillRouletteModal from '@/Components/Dashboard/Modals/SkillRouletteModal.vue';
 
 import auth from '@/services/auth';
 

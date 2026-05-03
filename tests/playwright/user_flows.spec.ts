@@ -277,3 +277,68 @@ test('equip: purchase item → open character modal → link item → slot refle
     // After equipping, the weapon slot row should show "Combat Knife" (not "Empty")
     await expect(page.locator('div.font-scifi', { hasText: /combat knife/i })).toBeVisible({ timeout: 8_000 });
 });
+
+// ---------------------------------------------------------------------------
+// Skill icon + name visible after roulette reveal
+// @test-link [[shared:req_skill_generation_overhaul]]
+// @test-link [[upsilonbattle:mech_skill_name_generation]]
+// @test-link [[battleui:ui_skill_icon]]
+// FIXME: marked fixme — UI rework in progress; test logic is correct but
+//        SkillIcon component does not exist yet.
+// ---------------------------------------------------------------------------
+test.fixme('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
+    await registerAndLand(page);
+
+    // Open character modal
+    await waitForRoster(page);
+    const characterCard = page.locator('.cursor-pointer').first();
+    await characterCard.click();
+    await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
+
+    // Open roulette (button labelled "SKILL ROULETTE" or similar)
+    const rouletteBtn = page.getByRole('button', { name: /roulette/i }).first();
+    await expect(rouletteBtn).toBeVisible({ timeout: 8_000 });
+    await rouletteBtn.click();
+
+    // Initiate spin
+    const spinBtn = page.getByRole('button', { name: /initiate spin/i });
+    await expect(spinBtn).toBeVisible({ timeout: 5_000 });
+    await spinBtn.click();
+
+    // Stop spin → triggers actual roll
+    const stopBtn = page.getByRole('button', { name: /stop/i });
+    await expect(stopBtn).toBeVisible({ timeout: 5_000 });
+    await stopBtn.click();
+
+    // Wait for the revealed state
+    await expect(page.getByText(/skill acquired/i)).toBeVisible({ timeout: 10_000 });
+
+    // 1. SkillIcon component must be present (data-testid="skill-icon" to be added to SkillIcon.vue)
+    await expect(page.locator('[data-testid="skill-icon"]')).toBeVisible({ timeout: 5_000 });
+
+    // 2. Name must not equal a known raw property key
+    const RAW_KEYS = ['Damage', 'Heal', 'Shield', 'Accuracy', 'New Skill'];
+    const nameEl = page.locator('.font-scifi').filter({ hasText: /[A-Z][a-z]/ }).first();
+    await expect(nameEl).toBeVisible({ timeout: 3_000 });
+    const name = await nameEl.textContent() ?? '';
+    for (const raw of RAW_KEYS) {
+        expect(name.trim()).not.toBe(raw);
+    }
+
+    // Accept and close
+    const acceptBtn = page.getByRole('button', { name: /accept/i });
+    await acceptBtn.click();
+    await expect(page.getByText(/skill acquired/i)).not.toBeVisible({ timeout: 5_000 });
+});
+
+// ---------------------------------------------------------------------------
+// Battle Arena: active skill buttons + passive rail
+// @test-link [[battleui:ui_action_panel]]
+// @test-link [[battleui:ui_skill_icon]]
+// FIXME: stub only — ActionPanel skill split not implemented yet.
+// ---------------------------------------------------------------------------
+test.fixme('battle arena action panel renders active skills and passive rail', async ({ page }) => {
+    // Full flow: register → equip a passive skill + an active skill → start a PvE match → assert panel split.
+    // Implementation pending ActionPanel.vue rework.
+    expect(true).toBe(true);
+});

@@ -5,9 +5,9 @@
 import { ref, onMounted } from 'vue';
 import auth from '@/services/auth';
 import inventoryService from '@/services/inventory';
-import CharacterCard from './Character/CharacterCard.vue';
-import EquipDrawer from './Inventory/EquipDrawer.vue';
-import ConfirmModal from '@/Components/Modals/ConfirmModal.vue';
+import CharacterCard from '../Character/CharacterCard.vue';
+import EquipDrawer from '../Inventory/EquipDrawer.vue';
+import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
 
 const props = defineProps({
     user: {

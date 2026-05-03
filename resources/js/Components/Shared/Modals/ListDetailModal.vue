@@ -2,7 +2,7 @@
      Wraps ModalBox; width set to 5xl by default for comfortable 2-column layout.
      @spec-link [[ui_theme]] -->
 <script setup>
-import ModalBox from '@/Components/ModalBox.vue';
+import ModalBox from '@/Components/Shared/ModalBox.vue';
 
 const props = defineProps({
     show: {

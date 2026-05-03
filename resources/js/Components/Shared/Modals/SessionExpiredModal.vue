@@ -1,7 +1,7 @@
 <!-- @spec-link [[req_ui_session_timeout]] -->
 <script setup>
 import { router } from '@inertiajs/vue3';
-import ModalBox from '@/Components/ModalBox.vue';
+import ModalBox from '@/Components/Shared/ModalBox.vue';
 import { isSessionExpired } from '@/services/auth';
 
 const reauthenticate = () => {

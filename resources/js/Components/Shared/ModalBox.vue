@@ -1,6 +1,6 @@
 <!-- @spec-link [[ui_modal_box]] -->
 <script setup>
-import Modal from '@/Components/Modal.vue';
+import Modal from '@/Components/Shared/Modal.vue';
 
 defineProps({
     show: Boolean,

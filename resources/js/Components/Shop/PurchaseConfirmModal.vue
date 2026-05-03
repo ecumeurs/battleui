@@ -1,6 +1,6 @@
 <!-- @spec-link [[ui_shop]] -->
 <script setup>
-import ConfirmModal from '@/Components/Modals/ConfirmModal.vue';
+import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
 
 const props = defineProps({
     show: Boolean,

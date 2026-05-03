@@ -1,7 +1,7 @@
 <!-- @spec-link [[ui_landing]] -->
 <script setup>
 import { Head, Link } from '@inertiajs/vue3';
-import TacticalFooter from '@/Components/TacticalFooter.vue';
+import TacticalFooter from '@/Components/Shared/TacticalFooter.vue';
 
 defineProps({
     canLogin: Boolean,

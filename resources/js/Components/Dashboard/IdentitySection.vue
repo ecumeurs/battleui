@@ -1,8 +1,8 @@
 <script setup>
 /** @spec-link [[requirement_customer_user_account]] */
 import { ref } from 'vue';
-import EditIdentityModal from '@/Components/Modals/EditIdentityModal.vue';
-import ChangePasswordModal from '@/Components/Modals/ChangePasswordModal.vue';
+import EditIdentityModal from '@/Components/Shared/Modals/EditIdentityModal.vue';
+import ChangePasswordModal from '@/Components/Shared/Modals/ChangePasswordModal.vue';
 import { router } from '@inertiajs/vue3';
 import auth from '@/services/auth';
 

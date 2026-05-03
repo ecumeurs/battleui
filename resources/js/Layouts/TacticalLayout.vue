@@ -1,8 +1,8 @@
 <!-- @spec-link [[ui_tactical_layout]] -->
 <script setup>
-import TacticalHeader from '@/Components/TacticalHeader.vue';
-import TacticalFooter from '@/Components/TacticalFooter.vue';
-import SessionExpiredModal from '@/Components/Modals/SessionExpiredModal.vue';
+import TacticalHeader from '@/Components/Shared/TacticalHeader.vue';
+import TacticalFooter from '@/Components/Shared/TacticalFooter.vue';
+import SessionExpiredModal from '@/Components/Shared/Modals/SessionExpiredModal.vue';
 
 const props = defineProps({
     user: {

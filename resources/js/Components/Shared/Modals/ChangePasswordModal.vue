@@ -1,6 +1,6 @@
 <script setup>
 import { ref } from 'vue';
-import ModalBox from '@/Components/ModalBox.vue';
+import ModalBox from '@/Components/Shared/ModalBox.vue';
 import auth from '@/services/auth';
 
 const props = defineProps({

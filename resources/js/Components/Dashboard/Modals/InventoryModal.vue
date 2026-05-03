@@ -2,7 +2,7 @@
      equipment actions live in the Character modal. @spec-link [[ui_inventory]] -->
 <script setup>
 import { ref, onMounted, watch } from 'vue';
-import ListDetailModal from '@/Components/Modals/ListDetailModal.vue';
+import ListDetailModal from '@/Components/Shared/Modals/ListDetailModal.vue';
 import InventoryDetail from '@/Components/Inventory/InventoryDetail.vue';
 import inventoryService from '@/services/inventory';
 

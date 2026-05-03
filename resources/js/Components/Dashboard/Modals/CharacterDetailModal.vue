@@ -4,7 +4,7 @@
      @spec-link [[entity_character_skill_inventory]] -->
 <script setup>
 import { ref, computed, watch, onMounted } from 'vue';
-import ModalBox from '@/Components/ModalBox.vue';
+import ModalBox from '@/Components/Shared/ModalBox.vue';
 import SkillDetail from '@/Components/Skill/SkillDetail.vue';
 import SkillSlotPill from '@/Components/Skill/SkillSlotPill.vue';
 import SkillCard from '@/Components/Skill/SkillCard.vue';

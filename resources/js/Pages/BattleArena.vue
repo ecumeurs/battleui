@@ -15,7 +15,7 @@ import ThreeGrid from '@/Components/Arena/ThreeGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
-import ConfirmModal from '@/Components/Modals/ConfirmModal.vue';
+import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
 
 const user = ref(getAuthUser());
 const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));

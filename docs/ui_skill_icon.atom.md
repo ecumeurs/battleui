@@ -9,10 +9,9 @@ priority: 4
 tags: [ui, skills, icons, neon, polygons]
 parents:
   - [[req_ui_look_and_feel]]
-  - [[ui_theme]]
   - [[shared:req_skill_generation_overhaul]]
-dependents:
-  - [[ui_action_panel]]
+  - [[ui_theme]]
+dependents: []
 ---
 
 # Skill Icon Component

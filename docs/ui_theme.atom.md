@@ -7,6 +7,7 @@ dependents:
   - [[ui_character_full_stat_panel]]
   - [[ui_inventory]]
   - [[ui_shop]]
+  - [[ui_skill_icon]]
 type: UI
 layer: ARCHITECTURE
 version: 1.0

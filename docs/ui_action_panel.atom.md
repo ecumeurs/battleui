@@ -4,11 +4,10 @@ status: STABLE
 type: UI
 version: 1.1
 parents:
+  - [[shared:req_skill_generation_overhaul]]
   - [[ui_battle_arena]]
   - [[upsilonbattle:mech_action_economy]]
-  - [[shared:req_skill_generation_overhaul]]
-dependents:
-  - [[ui_skill_icon]]
+dependents: []
 human_name: Action Panel Component
 layer: ARCHITECTURE
 priority: 4

@@ -17,8 +17,8 @@ class SkillService {
         return await auth.get(`/profile/character/${characterId}/skills`);
     }
 
-    async roll(characterId) {
-        return await auth.post(`/profile/character/${characterId}/skills/roll`);
+    async roll(characterId, grade = 'I') {
+        return await auth.post(`/profile/character/${characterId}/skills/roll`, {}, { params: { grade } });
     }
 
     async equip(characterId, skillId) {

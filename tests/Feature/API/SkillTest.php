@@ -15,6 +15,7 @@ use Tests\TestCase;
  * @test-link [[api_character_skill_inventory]]
  * @test-link [[rule_character_skill_slots]]
  * @test-link [[api_skill_template_browse]]
+ * @test-link [[shared:req_skill_generation]]
  */
 class SkillTest extends TestCase
 {
@@ -133,6 +134,74 @@ class SkillTest extends TestCase
             'character_id' => $this->character->id,
             'source'       => 'roll',
         ]);
+    }
+
+    public function test_roll_defaults_to_grade_I_when_no_param()
+    {
+        Http::fake([
+            '*/v1/skills/generate' => Http::response([
+                'success' => true,
+                'data'    => [
+                    'id'              => 'aaaaaaaa-bbbb-cccc-dddd-eeeeeeeeeeee',
+                    'name'            => 'Void_Bolt v2',
+                    'behavior'        => 'Direct',
+                    'targeting'       => [],
+                    'costs'           => [],
+                    'effect'          => [],
+                    'grade'           => 'I',
+                    'weight_positive' => 80,
+                    'weight_negative' => 80,
+                    'tags'            => ['ranged'],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/v1/profile/character/{$this->character->id}/skills/roll");
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.instance_data.grade', 'I')
+            ->assertJsonPath('data.instance_data.tags', ['ranged']);
+    }
+
+    public function test_roll_rejects_grade_above_win_window()
+    {
+        // user has 0 wins — only grades I and II are allowed
+        $this->actingAs($this->user)
+            ->postJson("/api/v1/profile/character/{$this->character->id}/skills/roll?grade=III")
+            ->assertStatus(422)
+            ->assertJsonPath('meta.reason', 'ERR_GRADE_OUT_OF_WINDOW');
+    }
+
+    public function test_roll_accepts_grade_within_win_window()
+    {
+        $this->user->total_wins = 10;
+        $this->user->save();
+        $this->character->setRelation('player', $this->user);
+
+        Http::fake([
+            '*/v1/skills/generate' => Http::response([
+                'success' => true,
+                'data'    => [
+                    'id'              => 'bbbbbbbb-bbbb-cccc-dddd-eeeeeeeeeeee',
+                    'name'            => 'Razor Strike_Z',
+                    'behavior'        => 'Direct',
+                    'targeting'       => [],
+                    'costs'           => [],
+                    'effect'          => [],
+                    'grade'           => 'III',
+                    'weight_positive' => 350,
+                    'weight_negative' => 350,
+                    'tags'            => ['melee', 'crit'],
+                ],
+            ], 200),
+        ]);
+
+        $response = $this->actingAs($this->user)
+            ->postJson("/api/v1/profile/character/{$this->character->id}/skills/roll?grade=III");
+
+        $response->assertStatus(201)
+            ->assertJsonPath('data.instance_data.grade', 'III');
     }
 
     public function test_roll_returns_503_when_engine_unreachable()

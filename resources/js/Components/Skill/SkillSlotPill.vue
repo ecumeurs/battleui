@@ -2,6 +2,8 @@
      Click emits @click so the parent can open swap UI.
      @spec-link [[rule_character_skill_slots]] -->
 <script setup>
+import SkillIcon from './SkillIcon.vue';
+
 defineProps({
     slot: {
         type: Number,
@@ -48,6 +50,13 @@ const gradeColors = {
         </span>
 
         <div v-if="skill" class="flex-1 flex items-center gap-2 min-w-0">
+            <SkillIcon
+                :tags="getData(skill).tags ?? []"
+                :grade="getData(skill).grade ?? 'I'"
+                :behavior="getData(skill).behavior"
+                :size="16"
+                class="shrink-0"
+            />
             <span class="font-scifi text-[10px] uppercase tracking-widest truncate text-white">
                 {{ getData(skill).name }}
             </span>

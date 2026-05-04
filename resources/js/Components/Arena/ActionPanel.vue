@@ -1,7 +1,11 @@
 <!-- @spec-link [[ui_action_panel]] -->
 <!-- @spec-link [[mech_action_economy]] -->
+<!-- @spec-link [[shared:req_skill_generation]] -->
 <!-- Action Panel — turn-aware combat action dispatcher -->
 <script setup>
+import { computed } from 'vue';
+import SkillIcon from '@/Components/Skill/SkillIcon.vue';
+
 const props = defineProps({
     isPlayerTurn:    { type: Boolean, default: false },
     isProcessing:    { type: Boolean, default: false },
@@ -15,13 +19,37 @@ const props = defineProps({
     activeCharacter: { type: Object,  default: null },
     /** Name of the player currently holding the turn */
     activePlayerName:{ type: String,  default: '' },
+    /** Equipped skills for the active character (from board state) */
+    equippedSkills:  { type: Array,   default: () => [] },
 });
 
 const emit = defineEmits(['action']);
 
+const activeSkills = computed(() =>
+    props.equippedSkills.filter(s => ['Direct', 'Reaction', 'Counter', 'Trap'].includes(s.behavior))
+);
+
+const passiveSkills = computed(() =>
+    props.equippedSkills.filter(s => s.behavior === 'Passive')
+);
+
 function fire(type) {
     if (!props.isPlayerTurn || props.isProcessing) return;
     emit('action', type);
+}
+
+function fireSkill(skillId) {
+    if (!props.isPlayerTurn || props.isProcessing) return;
+    emit('action', { type: 'skill', skillId });
+}
+
+function costSummary(sk) {
+    const parts = [];
+    const costs = sk.costs ?? {};
+    if (costs.MPLeech?.value)  parts.push(`-${costs.MPLeech.value} MP`);
+    if (costs.Cooldown?.max)   parts.push(`CD ${costs.Cooldown.max}`);
+    if (costs.Delay?.max)      parts.push(`+${costs.Delay.max}d`);
+    return parts.join(' · ') || '—';
 }
 </script>
 
@@ -104,6 +132,36 @@ function fire(type) {
                 <span class="ap-btn__label">PASS</span>
                 <span class="ap-btn__cost">+{{ passCost }}</span>
             </button>
+
+            <!-- ── Active Skills ────────────────────────────────── -->
+            <template v-if="activeSkills.length">
+                <div class="ap-btn-sep"></div>
+                <button
+                    v-for="sk in activeSkills"
+                    :key="sk.skill_id"
+                    class="ap-btn ap-btn--skill"
+                    :class="{ 'ap-btn--selected': selectedAction === sk.skill_id }"
+                    :disabled="!isPlayerTurn || isProcessing"
+                    @click="fireSkill(sk.skill_id)"
+                >
+                    <SkillIcon :tags="sk.tags ?? []" :behavior="sk.behavior" :size="18" />
+                    <span class="ap-btn__label ap-btn__label--skill">{{ sk.name }}</span>
+                    <span class="ap-btn__cost">{{ costSummary(sk) }}</span>
+                </button>
+            </template>
+
+            <!-- ── Passive Rail ─────────────────────────────────── -->
+            <template v-if="passiveSkills.length">
+                <div class="ap-btn-sep"></div>
+                <div
+                    v-for="sk in passiveSkills"
+                    :key="sk.skill_id"
+                    class="ap-passive"
+                >
+                    <SkillIcon :tags="sk.tags ?? []" :behavior="sk.behavior" :size="16" />
+                    <span class="ap-passive__name">{{ sk.name }}</span>
+                </div>
+            </template>
 
             <!-- Divider -->
             <div class="ap-btn-sep"></div>
@@ -370,6 +428,55 @@ function fire(type) {
     box-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
 }
 .ap-btn--pass:hover:not(:disabled) .ap-btn__icon { color: #ff8c00; }
+
+/* Skill buttons */
+.ap-btn--skill:hover:not(:disabled) {
+    border-color: #00f2ff;
+    box-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
+}
+.ap-btn--skill:hover:not(:disabled) .ap-btn__label { color: #00f2ff; }
+
+.ap-btn--skill.ap-btn--selected {
+    background: rgba(0, 242, 255, 0.1);
+    border-color: #00f2ff;
+    box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
+}
+
+.ap-btn__label--skill {
+    max-width: 56px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+/* Passive rail */
+.ap-passive {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 2px;
+    padding: 4px 8px;
+    opacity: 0.55;
+    cursor: default;
+    animation: ap-passive-pulse 3s ease-in-out infinite;
+}
+
+.ap-passive__name {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 6px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    color: #4a4a4f;
+    max-width: 50px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+@keyframes ap-passive-pulse {
+    0%, 100% { opacity: 0.55; }
+    50%       { opacity: 0.35; }
+}
 
 /* Forfeit */
 .ap-btn--forfeit {

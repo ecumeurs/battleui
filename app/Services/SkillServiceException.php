@@ -13,6 +13,7 @@ class SkillServiceException extends \RuntimeException
     public const ERR_SKILL_NOT_OWNED          = 'ERR_SKILL_NOT_OWNED';
     public const ERR_SKILL_NOT_EQUIPPED       = 'ERR_SKILL_NOT_EQUIPPED';
     public const ERR_GENERATOR_UNREACHABLE    = 'ERR_GENERATOR_UNREACHABLE';
+    public const ERR_GRADE_OUT_OF_WINDOW     = 'ERR_GRADE_OUT_OF_WINDOW';
 
     public function __construct(string $message, int $httpStatus, public readonly string $reason)
     {

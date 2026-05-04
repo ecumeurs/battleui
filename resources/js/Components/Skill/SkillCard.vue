@@ -1,6 +1,8 @@
 <!-- Compact skill card for list contexts. Shows grade pill, behavior, name, equipped flag.
      @spec-link [[entity_character_skill_inventory]] -->
 <script setup>
+import SkillIcon from './SkillIcon.vue';
+
 defineProps({
     skill: {
         type: Object,
@@ -64,10 +66,14 @@ function getData(skill) {
                 {{ getData(skill).grade ?? 'I' }}
             </span>
 
-            <!-- Behavior icon -->
-            <span class="shrink-0 text-upsilon-steel font-mono text-sm w-4 text-center">
-                {{ behaviorIcons[getData(skill).behavior] ?? '?' }}
-            </span>
+            <!-- Skill icon -->
+            <SkillIcon
+                :tags="getData(skill).tags ?? []"
+                :grade="getData(skill).grade ?? 'I'"
+                :behavior="getData(skill).behavior"
+                :size="20"
+                class="shrink-0"
+            />
 
             <!-- Name -->
             <div class="flex-1 min-w-0">

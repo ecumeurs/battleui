@@ -3,6 +3,7 @@
      @spec-link [[entity_character_skill_inventory]] -->
 <script setup>
 import { computed } from 'vue';
+import SkillIcon from './SkillIcon.vue';
 
 const props = defineProps({
     skill: {
@@ -34,19 +35,37 @@ const data = computed(() => props.skill.instance_data ?? props.skill);
     <div class="space-y-5">
         <!-- Header -->
         <div>
-            <div class="flex items-center gap-3 mb-2">
-                <span class="px-2 py-0.5 border font-scifi text-[9px] font-bold"
-                    :class="gradeStyles[data.grade] ?? gradeStyles.I">
-                    GRADE {{ data.grade ?? 'I' }}
-                </span>
-                <span class="font-mono text-[9px] uppercase"
-                    :class="behaviorColors[data.behavior] ?? 'text-upsilon-steel'">
-                    {{ data.behavior ?? '—' }}
-                </span>
+            <div class="flex items-start gap-3 mb-2">
+                <SkillIcon
+                    :tags="data.tags ?? []"
+                    :grade="data.grade ?? 'I'"
+                    :behavior="data.behavior"
+                    :size="48"
+                    class="shrink-0 mt-0.5"
+                />
+                <div class="min-w-0">
+                    <div class="flex items-center gap-3 mb-1">
+                        <span class="px-2 py-0.5 border font-scifi text-[9px] font-bold"
+                            :class="gradeStyles[data.grade] ?? gradeStyles.I">
+                            GRADE {{ data.grade ?? 'I' }}
+                        </span>
+                        <span class="font-mono text-[9px] uppercase"
+                            :class="behaviorColors[data.behavior] ?? 'text-upsilon-steel'">
+                            {{ data.behavior ?? '—' }}
+                        </span>
+                    </div>
+                    <h3 class="font-scifi text-xl font-bold text-white uppercase tracking-wider">
+                        {{ data.name }}
+                    </h3>
+                    <div v-if="data.tags?.length" class="flex flex-wrap gap-1 mt-1.5">
+                        <span
+                            v-for="tag in data.tags"
+                            :key="tag"
+                            class="font-mono text-[7px] uppercase tracking-widest px-1.5 py-0.5 border border-upsilon-steel/20 text-upsilon-steel"
+                        >{{ tag }}</span>
+                    </div>
+                </div>
             </div>
-            <h3 class="font-scifi text-xl font-bold text-white uppercase tracking-wider">
-                {{ data.name }}
-            </h3>
         </div>
 
         <div class="border-t border-upsilon-steel/20"></div>

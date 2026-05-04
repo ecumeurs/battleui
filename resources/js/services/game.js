@@ -15,19 +15,20 @@ export const game = {
 
     /**
      * Send an action to the engine.
-     * @param {string} matchId 
-     * @param {string} playerId 
-     * @param {string} entityId 
-     * @param {string} type 'move' | 'attack' | 'pass'
-     * @param {Array<{x: number, y: number}>} targetCoords 
+     * @param {string} matchId
+     * @param {string} entityId
+     * @param {string} type 'move' | 'attack' | 'pass' | 'skill'
+     * @param {Array<{x: number, y: number}>} targetCoords
+     * @param {Object} extra  additional payload fields merged at root level (e.g. { skill_id })
      * @returns {Promise<Object>}
      */
-    async sendAction(matchId, entityId, type, targetCoords = []) {
+    async sendAction(matchId, entityId, type, targetCoords = [], extra = {}) {
         const payload = {
             entity_id: entityId,
             type,
+            ...extra,
         };
-        
+
         if (targetCoords && targetCoords.length > 0) {
             payload.target_coords = targetCoords;
         }

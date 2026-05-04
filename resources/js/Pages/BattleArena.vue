@@ -256,6 +256,20 @@ const isProcessing = ref(false);
 async function handleAction(type) {
     if (!isPlayerTurn.value || isProcessing.value) return;
 
+    // Skill activation — ActionPanel emits { type: 'skill', skillId }
+    if (typeof type === 'object' && type.type === 'skill') {
+        isProcessing.value = true;
+        try {
+            await game.sendAction(matchId.value, currentEntityId.value, 'skill', [], { skill_id: type.skillId });
+            selectedAction.value = null;
+        } catch (err) {
+            console.error('Skill action failed:', err);
+        } finally {
+            isProcessing.value = false;
+        }
+        return;
+    }
+
     if (type === 'pass') {
         isProcessing.value = true;
         try {
@@ -464,6 +478,7 @@ async function executeForfeit() {
                     <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"
                         :selected-action="selectedAction" :active-character="currentEntity"
                         :active-player-name="activePlayerName" :can-move="canMove" :can-attack="canAttack"
+                        :equipped-skills="currentEntity?.equipped_skills ?? []"
                         @action="handleAction" />
                 </div>
 

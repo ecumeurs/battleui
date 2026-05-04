@@ -22,13 +22,18 @@ class SkillGeneratorBridge
     /**
      * Call POST /v1/skills/generate and return the skill data array.
      *
-     * @return array{id: string, name: string, behavior: string, targeting: array, costs: array, effect: array, grade: string, weight_positive: int, weight_negative: int}
+     * @return array{id: string, name: string, behavior: string, targeting: array, costs: array, effect: array, grade: string, weight_positive: int, weight_negative: int, tags: array}
      * @throws SkillServiceException with ERR_GENERATOR_UNREACHABLE on failure.
      */
-    public function generate(): array
+    public function generate(string $grade = 'I', array $allowedTags = []): array
     {
+        $body = ['grade' => $grade];
+        if (! empty($allowedTags)) {
+            $body['allowed_tags'] = $allowedTags;
+        }
+
         try {
-            $response = Http::timeout(5)->post("{$this->baseUrl}/v1/skills/generate", []);
+            $response = Http::timeout(5)->post("{$this->baseUrl}/v1/skills/generate", $body);
 
             if (! $response->successful()) {
                 Log::error('[SkillGeneratorBridge] Engine returned non-2xx: ' . $response->status());

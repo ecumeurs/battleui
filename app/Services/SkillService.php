@@ -23,9 +23,9 @@ class SkillService
      * @return CharacterSkill
      * @throws SkillServiceException
      */
-    public function acquire(Character $character): CharacterSkill
+    public function acquire(Character $character, string $grade = 'I'): CharacterSkill
     {
-        $skillData = $this->generator->generate();
+        $skillData = $this->generator->generate($grade);
 
         return DB::transaction(function () use ($character, $skillData) {
             return CharacterSkill::create([

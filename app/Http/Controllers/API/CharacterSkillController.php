@@ -8,6 +8,7 @@ use App\Models\Character;
 use App\Models\CharacterSkill;
 use App\Services\SkillService;
 use App\Services\SkillServiceException;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 
 /**
@@ -38,16 +39,33 @@ class CharacterSkillController extends Controller
 
     /**
      * Roll (acquire) a new skill for the character.
+     * Accepts optional ?grade query param; enforces grade is within the character's win window.
      *
      * @spec-link [[rule_character_skill_slots]]
+     * @spec-link [[shared:req_skill_generation]]
      */
-    public function roll(Request $request, string $characterId)
+    public function roll(Request $request, string $characterId): JsonResponse
     {
         $character = Character::findOrFail($characterId);
         $this->authorize('acquireSkill', $character);
 
+        $grade = $request->query('grade', 'I');
+
+        $character->loadMissing('player');
+        $wins = $character->player?->total_wins ?? 0;
+        $allowed = $this->allowedGrades($wins);
+
+        if (! in_array($grade, $allowed, true)) {
+            return $this->error(
+                "Grade {$grade} is not yet unlocked (requires more wins).",
+                422,
+                null,
+                ['reason' => SkillServiceException::ERR_GRADE_OUT_OF_WINDOW],
+            );
+        }
+
         try {
-            $skill = $this->skills->acquire($character);
+            $skill = $this->skills->acquire($character, $grade);
         } catch (SkillServiceException $e) {
             return $this->error($e->getMessage(), $e->httpStatus(), null, ['reason' => $e->reason]);
         }
@@ -61,6 +79,27 @@ class CharacterSkillController extends Controller
             'Skill acquired.',
             201,
         );
+    }
+
+    /**
+     * Grades available based on total player wins.
+     * I–II always available; III at 10+, IV at 20+, V at 30+.
+     *
+     * @return string[]
+     */
+    private function allowedGrades(int $wins): array
+    {
+        $grades = ['I', 'II'];
+        if ($wins >= 10) {
+            $grades[] = 'III';
+        }
+        if ($wins >= 20) {
+            $grades[] = 'IV';
+        }
+        if ($wins >= 30) {
+            $grades[] = 'V';
+        }
+        return $grades;
     }
 
     /**

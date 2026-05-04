@@ -59,6 +59,7 @@ class UpsilonEntityResource extends JsonResource
                     'targeting' => $data['targeting'] ?? [],
                     'costs'     => $data['costs'] ?? [],
                     'effect'    => $data['effect'] ?? [],
+                    'tags'      => $data['tags'] ?? [],
                     'origin'    => 'inventory',
                 ];
             }

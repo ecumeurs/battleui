@@ -9,7 +9,7 @@ priority: 4
 tags: [ui, skills, icons, neon, polygons]
 parents:
   - [[req_ui_look_and_feel]]
-  - [[shared:req_skill_generation_overhaul]]
+  - [[shared:req_skill_generation]]
   - [[ui_theme]]
 dependents: []
 ---

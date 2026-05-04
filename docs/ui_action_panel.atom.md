@@ -4,7 +4,7 @@ status: STABLE
 type: UI
 version: 1.1
 parents:
-  - [[shared:req_skill_generation_overhaul]]
+  - [[shared:req_skill_generation]]
   - [[ui_battle_arena]]
   - [[upsilonbattle:mech_action_economy]]
 dependents: []

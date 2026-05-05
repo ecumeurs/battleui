@@ -40,7 +40,7 @@ const submit = async () => {
         <div class="absolute inset-0 bg-panel-texture bg-repeat opacity-20"></div>
 
         <!-- Layout decorations -->
-        <div class="absolute top-4 left-4 font-mono text-upsilon-cyan text-[10px] tracking-widest uppercase">
+        <div class="absolute top-4 left-4 font-mono text-upsilon-cyan text-ui-sm tracking-widest uppercase">
             [ AUTH_PROTOCOL_LOGIN ]
         </div>
 
@@ -49,33 +49,33 @@ const submit = async () => {
                 <Link href="/" class="text-4xl font-scifi font-bold text-white uppercase tracking-tighter">
                     UPSILON<span class="text-upsilon-cyan italic">BATTLE</span>
                 </Link>
-                <div class="mt-2 text-upsilon-lime font-mono text-xs uppercase tracking-[.2em]">IDENTIFICATION_REQUIRED</div>
+                <div class="mt-2 text-upsilon-lime font-mono text-ui-sm uppercase tracking-[.2em]">IDENTIFICATION_REQUIRED</div>
             </div>
 
             <form @submit.prevent="submit" class="space-y-6">
                 <div>
-                    <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2 tracking-widest">Account Name</label>
+                    <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2 tracking-widest">Account Name</label>
                     <input 
                         v-model="form.account_name"
                         type="text" 
                         class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-3 font-mono focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan transition-colors"
                         placeholder="SURVIVOR_ID"
                     />
-                    <p v-if="errors.account_name" class="mt-1 text-upsilon-magenta text-xs font-mono uppercase">{{ errors.account_name[0] }}</p>
+                    <p v-if="errors.account_name" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.account_name[0] }}</p>
                 </div>
 
                 <div>
-                    <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2 tracking-widest">Password</label>
+                    <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2 tracking-widest">Password</label>
                     <input 
                         v-model="form.password"
                         type="password" 
                         class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-3 font-mono focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan transition-colors"
                         placeholder="********"
                     />
-                    <p v-if="errors.password" class="mt-1 text-upsilon-magenta text-xs font-mono uppercase">{{ errors.password[0] }}</p>
+                    <p v-if="errors.password" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.password[0] }}</p>
                 </div>
 
-                <div v-if="errors.global" class="p-3 border border-upsilon-magenta bg-upsilon-magenta/10 text-upsilon-magenta text-xs font-mono uppercase text-center">
+                <div v-if="errors.global" class="p-3 border border-upsilon-magenta bg-upsilon-magenta/10 text-upsilon-magenta text-ui-sm font-mono uppercase text-center">
                     {{ errors.global }}
                 </div>
 
@@ -88,7 +88,7 @@ const submit = async () => {
                 </button>
 
                 <div class="text-center mt-8">
-                    <p class="text-upsilon-lime text-xs font-mono uppercase">
+                    <p class="text-upsilon-lime text-ui-sm font-mono uppercase">
                         New survivor? 
                         <Link href="/register" class="text-upsilon-magenta hover:underline">Establish Link</Link>
                     </p>

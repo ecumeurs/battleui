@@ -60,7 +60,7 @@ function getData(skill) {
         <div class="flex items-center gap-3">
             <!-- Grade pill -->
             <span
-                class="shrink-0 px-1.5 py-0.5 border font-scifi text-[8px] font-bold"
+                class="shrink-0 px-1.5 py-0.5 border font-scifi text-ui-xs font-bold"
                 :class="gradeStyles[getData(skill).grade] ?? gradeStyles.I"
             >
                 {{ getData(skill).grade ?? 'I' }}
@@ -77,16 +77,16 @@ function getData(skill) {
 
             <!-- Name -->
             <div class="flex-1 min-w-0">
-                <div class="font-scifi text-[10px] text-white uppercase tracking-widest truncate">
+                <div class="font-scifi text-ui-sm text-white uppercase tracking-widest truncate">
                     {{ getData(skill).name }}
                 </div>
-                <div class="font-mono text-[7px] text-upsilon-steel uppercase">
+                <div class="font-mono text-ui-xs text-upsilon-steel uppercase">
                     {{ getData(skill).behavior ?? '—' }}
                 </div>
             </div>
 
             <!-- Equipped badge -->
-            <span v-if="equipped" class="shrink-0 font-mono text-[7px] text-upsilon-lime uppercase tracking-widest">
+            <span v-if="equipped" class="shrink-0 font-mono text-ui-xs text-upsilon-lime uppercase tracking-widest">
                 ● ACTIVE
             </span>
         </div>

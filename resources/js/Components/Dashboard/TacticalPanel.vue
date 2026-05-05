@@ -31,7 +31,7 @@ onUnmounted(() => document.removeEventListener('keydown', onKeydown));
         <!-- Panel -->
         <div
             data-testid="tactical-panel"
-            class="fixed inset-y-0 right-0 z-40 w-[880px] flex flex-col relative
+            class="fixed inset-y-0 right-0 z-40 w-[880px] flex flex-col
                    bg-upsilon-gunmetal/90 backdrop-blur-xl
                    border-l border-upsilon-cyan/30
                    border-t-2 border-t-upsilon-cyan/60"

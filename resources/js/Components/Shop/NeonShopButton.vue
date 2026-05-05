@@ -15,7 +15,7 @@ defineEmits(['click']);
 
         <!-- Neon sign icon — stylised SHOP sigil -->
         <div class="relative flex flex-col items-center gap-1">
-            <div class="text-upsilon-cyan font-scifi text-[9px] uppercase tracking-[0.5em] animate-pulse">
+            <div class="text-upsilon-cyan font-scifi text-ui-xs uppercase tracking-[0.5em] animate-pulse">
                 ◈ OPEN ◈
             </div>
             <div class="relative">
@@ -28,7 +28,7 @@ defineEmits(['click']);
                     DEPOT
                 </span>
             </div>
-            <div class="text-upsilon-lime font-mono text-[8px] uppercase tracking-[0.4em] mt-1 opacity-70 group-hover:opacity-100 transition-opacity">
+            <div class="text-upsilon-lime font-mono text-ui-xs uppercase tracking-[0.4em] mt-1 opacity-70 group-hover:opacity-100 transition-opacity">
                 — FULL CATALOG —
             </div>
         </div>

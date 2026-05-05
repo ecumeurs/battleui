@@ -32,7 +32,7 @@ defineEmits(['close']);
                     <h2 class="text-2xl font-scifi font-bold text-white uppercase tracking-tighter">
                         {{ title }}
                     </h2>
-                    <div v-if="subtitle" class="mt-1 text-upsilon-lime font-mono text-[10px] uppercase tracking-[.2em]">{{ subtitle }}</div>
+                    <div v-if="subtitle" class="mt-1 text-upsilon-lime font-mono text-ui-sm uppercase tracking-[.2em]">{{ subtitle }}</div>
                 </div>
                 <button v-if="closeable" @click="$emit('close')" class="text-upsilon-lime hover:text-upsilon-magenta transition-colors">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">

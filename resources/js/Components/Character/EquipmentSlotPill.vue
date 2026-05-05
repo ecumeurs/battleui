@@ -25,14 +25,14 @@ const slotIcons = {
     >
         <div class="absolute -top-px -left-px w-1 h-1 border-t border-l border-upsilon-steel/40 group-hover/slot:border-upsilon-cyan"></div>
         
-        <div class="w-5 h-5 flex items-center justify-center bg-upsilon-gunmetal text-[10px] grayscale group-hover/slot:grayscale-0 transition-all">
+        <div class="w-5 h-5 flex items-center justify-center bg-upsilon-gunmetal text-ui-sm grayscale group-hover/slot:grayscale-0 transition-all">
             {{ slotIcons[slot] }}
         </div>
         
         <div class="flex-1 min-w-0">
-            <div class="text-[7px] text-upsilon-steel uppercase font-mono tracking-tighter">{{ slot }}</div>
+            <div class="text-ui-xs text-upsilon-steel uppercase font-mono tracking-tighter">{{ slot }}</div>
             <div 
-                class="text-[9px] truncate font-scifi uppercase"
+                class="text-ui-xs truncate font-scifi uppercase"
                 :class="item ? 'text-white' : 'text-upsilon-steel/40'"
             >
                 {{ item?.shop_item?.name || 'Empty Slot' }}

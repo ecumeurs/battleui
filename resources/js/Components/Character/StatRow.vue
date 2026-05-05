@@ -17,13 +17,13 @@ defineEmits(['upgrade']);
 <template>
     <div class="flex justify-between items-center py-1 border-b border-upsilon-steel/10 group/row">
         <div class="flex items-center gap-2">
-            <span class="font-scifi text-[9px] tracking-wider" :class="stat.classA ? 'text-upsilon-lime' : 'text-upsilon-steel'">
+            <span class="font-scifi text-ui-xs tracking-wider" :class="stat.classA ? 'text-upsilon-lime' : 'text-upsilon-steel'">
                 {{ stat.label }}
             </span>
-            <span v-if="!stat.classA" class="text-[7px] text-upsilon-steel/60 uppercase font-mono">(Item only)</span>
+            <span v-if="!stat.classA" class="text-ui-xs text-upsilon-steel/60 uppercase font-mono">(Item only)</span>
         </div>
         
-        <div class="flex items-center gap-2 font-mono text-[10px]">
+        <div class="flex items-center gap-2 font-mono text-ui-sm">
             <span class="text-white/40">{{ stat.base }}</span>
             <span v-if="stat.bonus > 0" class="text-upsilon-cyan">+{{ stat.bonus }}</span>
             <span class="text-white min-w-[20px] text-right">{{ stat.effective }}</span>

@@ -16,7 +16,7 @@ const props = defineProps({
             <h1 class="text-4xl font-scifi text-upsilon-magenta uppercase tracking-tighter mb-2 shadow-glow-magenta/20">
                 Administrative Terminal
             </h1>
-            <p class="text-upsilon-magenta/60 font-mono text-xs uppercase tracking-widest mb-12">
+            <p class="text-upsilon-magenta/60 font-mono text-ui-sm uppercase tracking-widest mb-12">
                 System Integrity & Maintenance Hub
             </p>
 
@@ -26,7 +26,7 @@ const props = defineProps({
                     href="/admin/users"
                     class="group relative p-8 bg-black/40 border border-upsilon-magenta/30 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all duration-500 overflow-hidden"
                 >
-                    <div class="absolute top-0 right-0 p-2 text-[8px] font-mono text-upsilon-magenta/40 uppercase">UC-08</div>
+                    <div class="absolute top-0 right-0 p-2 text-ui-xs font-mono text-upsilon-magenta/40 uppercase">UC-08</div>
                     <div class="relative z-10 flex flex-col items-center text-center space-y-4">
                         <div class="w-16 h-16 rounded-full border border-upsilon-magenta/40 flex items-center justify-center group-hover:scale-110 group-hover:bg-upsilon-magenta/10 transition-all duration-500">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-upsilon-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -35,7 +35,7 @@ const props = defineProps({
                         </div>
                         <div>
                             <h2 class="text-xl font-scifi text-white uppercase tracking-tight">User Management</h2>
-                            <p class="text-[10px] font-mono text-upsilon-magenta/60 uppercase tracking-widest mt-1">Audit, Anonymize, Terminate</p>
+                            <p class="text-ui-sm font-mono text-upsilon-magenta/60 uppercase tracking-widest mt-1">Audit, Anonymize, Terminate</p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-0 bg-upsilon-magenta group-hover:w-full transition-all duration-700"></div>
@@ -46,7 +46,7 @@ const props = defineProps({
                     href="/admin/history"
                     class="group relative p-8 bg-black/40 border border-upsilon-magenta/30 hover:border-upsilon-magenta hover:bg-upsilon-magenta/5 transition-all duration-500 overflow-hidden"
                 >
-                    <div class="absolute top-0 right-0 p-2 text-[8px] font-mono text-upsilon-magenta/40 uppercase">UC-09</div>
+                    <div class="absolute top-0 right-0 p-2 text-ui-xs font-mono text-upsilon-magenta/40 uppercase">UC-09</div>
                     <div class="relative z-10 flex flex-col items-center text-center space-y-4">
                         <div class="w-16 h-16 rounded-full border border-upsilon-magenta/40 flex items-center justify-center group-hover:scale-110 group-hover:bg-upsilon-magenta/10 transition-all duration-500">
                             <svg xmlns="http://www.w3.org/2000/svg" class="h-8 w-8 text-upsilon-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -55,14 +55,14 @@ const props = defineProps({
                         </div>
                         <div>
                             <h2 class="text-xl font-scifi text-white uppercase tracking-tight">History Audit</h2>
-                            <p class="text-[10px] font-mono text-upsilon-magenta/60 uppercase tracking-widest mt-1">Match Logs & Maintenance</p>
+                            <p class="text-ui-sm font-mono text-upsilon-magenta/60 uppercase tracking-widest mt-1">Match Logs & Maintenance</p>
                         </div>
                     </div>
                     <div class="absolute bottom-0 left-0 h-1 w-0 bg-upsilon-magenta group-hover:w-full transition-all duration-700"></div>
                 </Link>
             </div>
 
-            <div class="mt-12 text-[8px] font-mono text-upsilon-magenta/30 uppercase tracking-[0.3em] animate-pulse">
+            <div class="mt-12 text-ui-xs font-mono text-upsilon-magenta/30 uppercase tracking-[0.3em] animate-pulse">
                 Authorized Personnel Only :: System Trace Active
             </div>
         </div>

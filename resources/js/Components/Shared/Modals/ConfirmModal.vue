@@ -52,7 +52,7 @@ const getBtnClass = () => {
                         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                     </svg>
                 </div>
-                <p class="text-white font-mono text-sm leading-relaxed tracking-wide opacity-90">
+                <p class="text-white font-mono text-ui-md leading-relaxed tracking-wide opacity-90">
                     {{ message }}
                 </p>
             </div>
@@ -60,7 +60,7 @@ const getBtnClass = () => {
             <div class="flex gap-4 pt-4 border-t border-upsilon-steel/10">
                 <button 
                     @click="handleCancel"
-                    class="flex-1 py-3 border border-upsilon-steel/30 text-upsilon-steel hover:text-white hover:border-white font-mono text-xs uppercase tracking-widest transition-all duration-300"
+                    class="flex-1 py-3 border border-upsilon-steel/30 text-upsilon-steel hover:text-white hover:border-white font-mono text-ui-sm uppercase tracking-widest transition-all duration-300"
                 >
                     {{ cancelText }}
                 </button>

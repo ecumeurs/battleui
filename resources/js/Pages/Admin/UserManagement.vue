@@ -86,7 +86,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                     <h1 class="text-3xl font-scifi text-upsilon-magenta uppercase tracking-tighter">
                         User Management
                     </h1>
-                    <p class="text-upsilon-magenta/60 font-mono text-[10px] uppercase tracking-widest mt-1">
+                    <p class="text-upsilon-magenta/60 font-mono text-ui-sm uppercase tracking-widest mt-1">
                         Registry Audit // GDPR Compliance Terminal
                     </p>
                 </div>
@@ -98,7 +98,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                             @keyup.enter="handleSearch"
                             type="text" 
                             placeholder="SEARCH BY HANDLE / EMAIL..."
-                            class="bg-black/60 border border-upsilon-magenta/30 px-4 py-2 text-[10px] font-mono text-upsilon-magenta placeholder:text-upsilon-magenta/30 focus:outline-none focus:border-upsilon-magenta w-64 uppercase tracking-widest"
+                            class="bg-black/60 border border-upsilon-magenta/30 px-4 py-2 text-ui-sm font-mono text-upsilon-magenta placeholder:text-upsilon-magenta/30 focus:outline-none focus:border-upsilon-magenta w-64 uppercase tracking-widest"
                         />
                         <button 
                             @click="handleSearch"
@@ -114,7 +114,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                         </button>
                     </div>
 
-                    <div class="px-3 py-1 bg-upsilon-magenta/10 border border-upsilon-magenta/20 text-[10px] font-mono text-upsilon-magenta uppercase">
+                    <div class="px-3 py-1 bg-upsilon-magenta/10 border border-upsilon-magenta/20 text-ui-sm font-mono text-upsilon-magenta uppercase">
                         Entities: {{ userList.length }}{{ hasMore ? '+' : '' }}
                     </div>
                 </div>
@@ -122,8 +122,8 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
 
             <!-- Users Table -->
             <div class="bg-black/40 border border-upsilon-steel/20 overflow-hidden">
-                <table class="w-full text-left font-mono text-xs">
-                    <thead class="bg-upsilon-steel/10 text-upsilon-lime uppercase tracking-widest text-[9px]">
+                <table class="w-full text-left font-mono text-ui-sm">
+                    <thead class="bg-upsilon-steel/10 text-upsilon-lime uppercase tracking-widest text-ui-xs">
                         <tr>
                             <th class="px-4 py-3 border-b border-upsilon-steel/20">Handle</th>
                             <th class="px-4 py-3 border-b border-upsilon-steel/20">Email</th>
@@ -154,24 +154,24 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                                 <div class="flex justify-end gap-2" v-if="!target.deleted_at && target.id !== user.id">
                                     <button 
                                         @click="handleAnonymize(target.account_name)"
-                                        class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-[9px] hover:bg-upsilon-magenta hover:text-white transition-colors"
+                                        class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-ui-xs hover:bg-upsilon-magenta hover:text-white transition-colors"
                                         title="GDPR Right to be Forgotten"
                                     >
                                         Anonymize
                                     </button>
                                     <button 
                                         @click="handleDelete(target.account_name)"
-                                        class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-[9px] hover:bg-upsilon-magenta hover:text-white transition-colors"
+                                        class="px-3 py-1 border border-upsilon-magenta/40 text-upsilon-magenta uppercase text-ui-xs hover:bg-upsilon-magenta hover:text-white transition-colors"
                                     >
                                         Delete
                                     </button>
                                 </div>
-                                <span v-else-if="target.id === user.id" class="text-[9px] text-upsilon-steel italic uppercase px-3 py-1">Self (Active)</span>
-                                <span v-else class="text-[9px] text-upsilon-steel uppercase px-3 py-1">—</span>
+                                <span v-else-if="target.id === user.id" class="text-ui-xs text-upsilon-steel italic uppercase px-3 py-1">Self (Active)</span>
+                                <span v-else class="text-ui-xs text-upsilon-steel uppercase px-3 py-1">—</span>
                             </td>
                         </tr>
                         <tr v-if="userList.length === 0 && !isSearching">
-                            <td colspan="6" class="px-4 py-12 text-center text-upsilon-steel/40 uppercase tracking-widest text-[10px]">
+                            <td colspan="6" class="px-4 py-12 text-center text-upsilon-steel/40 uppercase tracking-widest text-ui-sm">
                                 No entities found matching current search criteria.
                             </td>
                         </tr>
@@ -184,7 +184,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                 <button 
                     @click="loadMore"
                     :disabled="isLoadingMore"
-                    class="group relative px-8 py-3 bg-black/40 border border-upsilon-magenta/30 text-upsilon-magenta font-mono text-[10px] uppercase tracking-[0.3em] overflow-hidden hover:border-upsilon-magenta transition-all active:scale-95 disabled:opacity-50"
+                    class="group relative px-8 py-3 bg-black/40 border border-upsilon-magenta/30 text-upsilon-magenta font-mono text-ui-sm uppercase tracking-[0.3em] overflow-hidden hover:border-upsilon-magenta transition-all active:scale-95 disabled:opacity-50"
                 >
                     <span v-if="!isLoadingMore">Load More Entities</span>
                     <span v-else class="flex items-center gap-2">
@@ -198,7 +198,7 @@ const formatDate = (date) => new Date(date).toLocaleDateString();
                 </button>
             </div>
 
-            <div class="flex items-center gap-2 text-[8px] font-mono text-upsilon-steel uppercase tracking-widest">
+            <div class="flex items-center gap-2 text-ui-xs font-mono text-upsilon-steel uppercase tracking-widest">
                 <svg xmlns="http://www.w3.org/2000/svg" class="h-3 w-3 text-upsilon-magenta" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
                 </svg>

@@ -40,25 +40,25 @@ onUnmounted(() => {
                 </div>
                 <div class="flex items-center space-x-2">
                     <div class="w-3 h-3 bg-green-500 rounded-full animate-pulse"></div>
-                    <span class="text-sm text-green-400">Live</span>
+                    <span class="text-ui-md text-green-400">Live</span>
                 </div>
             </header>
 
             <main>
                 <div v-if="events.length === 0" class="bg-gray-800 rounded-xl p-12 text-center border-2 border-dashed border-gray-700">
                     <p class="text-gray-500 text-lg">Waiting for events to arrive...</p>
-                    <p class="text-sm text-gray-600 mt-2">Trigger an event to see it appear here.</p>
+                    <p class="text-ui-md text-gray-600 mt-2">Trigger an event to see it appear here.</p>
                 </div>
 
                 <div v-else class="space-y-4">
                     <div v-for="event in events" :key="event.id" 
                          class="bg-gray-800 border border-gray-700 rounded-lg overflow-hidden transition-all hover:border-blue-500/50 shadow-lg">
                         <div class="bg-gray-700/50 px-4 py-2 flex justify-between items-center border-b border-gray-700">
-                            <span class="text-xs font-mono text-blue-300">.battle.event</span>
-                            <span class="text-xs text-gray-400">{{ event.timestamp }}</span>
+                            <span class="text-ui-sm font-mono text-blue-300">.battle.event</span>
+                            <span class="text-ui-sm text-gray-400">{{ event.timestamp }}</span>
                         </div>
                         <div class="p-4">
-                            <pre class="text-sm font-mono text-green-400 overflow-x-auto">{{ JSON.stringify(event.data, null, 2) }}</pre>
+                            <pre class="text-ui-md font-mono text-green-400 overflow-x-auto">{{ JSON.stringify(event.data, null, 2) }}</pre>
                         </div>
                     </div>
                 </div>

@@ -128,13 +128,13 @@ const modes = [
         <div class="absolute top-0 right-0 w-32 h-32 bg-upsilon-cyan/5 blur-3xl rounded-full translate-x-16 -translate-y-16"></div>
 
         <div class="relative z-10">
-            <h2 class="font-scifi text-[11px] text-upsilon-cyan uppercase tracking-[0.3em] mb-6 text-center">
+            <h2 class="font-scifi text-ui-sm text-upsilon-cyan uppercase tracking-[0.3em] mb-6 text-center">
                 <span v-if="status === 'idle'">Initiate Engagement</span>
                 <span v-else-if="status === 'queued'" class="animate-pulse">Strategic Alignment in Progress</span>
                 <span v-else>Link Established</span>
             </h2>
             
-            <div v-if="error" class="mb-4 p-3 bg-red-900/40 border border-red-500/50 text-red-200 text-[10px] font-mono uppercase tracking-widest text-center">
+            <div v-if="error" class="mb-4 p-3 bg-red-900/40 border border-red-500/50 text-red-200 text-ui-sm font-mono uppercase tracking-widest text-center">
                 {{ error }}
             </div>
 
@@ -151,7 +151,7 @@ const modes = [
                     ]"
                 >
                     <span class="block font-scifi text-lg text-white mb-1 uppercase tracking-tighter">{{ mode.name }}</span>
-                    <span class="block font-mono text-[9px] uppercase transition-colors"
+                    <span class="block font-mono text-ui-xs uppercase transition-colors"
                         :class="[
                             mode.color === 'upsilon-lime' ? 'text-upsilon-lime group-hover:text-upsilon-lime/70' : 'text-upsilon-magenta group-hover:text-upsilon-magenta/70'
                         ]"
@@ -172,16 +172,16 @@ const modes = [
                     <div class="absolute inset-0 border-2 border-upsilon-cyan/20 rounded-full"></div>
                     <div class="absolute inset-0 border-t-2 border-upsilon-cyan rounded-full animate-spin"></div>
                     <div class="absolute inset-4 border border-upsilon-lime/30 rounded-full animate-pulse"></div>
-                    <div class="absolute inset-0 flex items-center justify-center font-scifi text-upsilon-cyan text-xs">
+                    <div class="absolute inset-0 flex items-center justify-center font-scifi text-upsilon-cyan text-ui-sm">
                         {{ matchmakingData?.empty_slots }} REM
                     </div>
                 </div>
 
                 <div class="text-center space-y-2">
-                    <p class="font-mono text-[10px] text-upsilon-lime uppercase tracking-[0.2em]">
+                    <p class="font-mono text-ui-sm text-upsilon-lime uppercase tracking-[0.2em]">
                         Searching for compatible combatants...
                     </p>
-                    <p v-if="matchmakingData?.queued_at" class="font-mono text-[8px] text-upsilon-steel uppercase">
+                    <p v-if="matchmakingData?.queued_at" class="font-mono text-ui-xs text-upsilon-steel uppercase">
                         Active for: {{ (new Date() - new Date(matchmakingData.queued_at)) / 1000 | 0 }}s
                     </p>
                 </div>
@@ -189,7 +189,7 @@ const modes = [
                 <button 
                     @click="leaveQueue"
                     :disabled="loading"
-                    class="px-8 py-2 bg-upsilon-magenta/20 border border-upsilon-magenta text-upsilon-magenta font-scifi text-[10px] uppercase tracking-[0.2em] hover:bg-upsilon-magenta hover:text-black transition-all disabled:opacity-50"
+                    class="px-8 py-2 bg-upsilon-magenta/20 border border-upsilon-magenta text-upsilon-magenta font-scifi text-ui-sm uppercase tracking-[0.2em] hover:bg-upsilon-magenta hover:text-black transition-all disabled:opacity-50"
                 >
                     Abort Engagement
                 </button>
@@ -198,7 +198,7 @@ const modes = [
             <!-- Matched State -->
             <div v-else class="flex flex-col items-center py-8 space-y-4">
                 <div class="text-upsilon-lime font-scifi text-2xl animate-bounce uppercase">Target Locked</div>
-                <p class="font-mono text-[10px] text-upsilon-cyan uppercase tracking-[0.3em]">Synchronizing Neural Interface...</p>
+                <p class="font-mono text-ui-sm text-upsilon-cyan uppercase tracking-[0.3em]">Synchronizing Neural Interface...</p>
                 <div class="w-full bg-upsilon-cyan/10 h-1 mt-4 relative overflow-hidden">
                     <div class="absolute inset-0 bg-upsilon-cyan animate-progress"></div>
                 </div>
@@ -206,7 +206,7 @@ const modes = [
         </div>
 
         <div class="mt-8 text-center" v-if="status === 'idle'">
-            <p class="text-[10px] font-mono text-upsilon-lime uppercase tracking-[0.4em] animate-pulse">Standing by for command input...</p>
+            <p class="text-ui-sm font-mono text-upsilon-lime uppercase tracking-[0.4em] animate-pulse">Standing by for command input...</p>
         </div>
     </div>
 </template>

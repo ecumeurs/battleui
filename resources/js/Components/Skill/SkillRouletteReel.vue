@@ -90,7 +90,7 @@ defineExpose({ start, stop, reset });
         <div class="absolute inset-0 scanlines opacity-10 pointer-events-none"></div>
 
         <!-- Spinning / idle content -->
-        <div v-if="state === 'idle'" class="font-mono text-[9px] text-upsilon-steel/50 uppercase tracking-widest">
+        <div v-if="state === 'idle'" class="font-mono text-ui-xs text-upsilon-steel/50 uppercase tracking-widest">
             STANDBY
         </div>
 
@@ -99,7 +99,7 @@ defineExpose({ start, stop, reset });
             :class="state === 'spinning' ? 'blur-[0.5px]' : ''"
         >
             <div
-                class="font-scifi text-sm uppercase tracking-widest transition-colors duration-300"
+                class="font-scifi text-ui-md uppercase tracking-widest transition-colors duration-300"
                 :class="state === 'done' && isWinner ? 'text-upsilon-magenta neon-text' : 'text-white'"
             >
                 {{ displayName }}
@@ -108,7 +108,7 @@ defineExpose({ start, stop, reset });
 
         <!-- Winner crown overlay -->
         <div v-if="state === 'done' && isWinner"
-            class="absolute top-1 right-2 font-mono text-[7px] text-upsilon-magenta uppercase tracking-widest animate-pulse">
+            class="absolute top-1 right-2 font-mono text-ui-xs text-upsilon-magenta uppercase tracking-widest animate-pulse">
             SELECTED
         </div>
 

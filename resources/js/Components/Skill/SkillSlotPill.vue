@@ -45,7 +45,7 @@ const gradeColors = {
                 : 'bg-black/20 border-dashed border-upsilon-steel/20 hover:border-upsilon-steel/40'"
     >
         <!-- Slot index -->
-        <span class="shrink-0 font-scifi text-[8px] text-upsilon-steel uppercase w-5 text-center">
+        <span class="shrink-0 font-scifi text-ui-xs text-upsilon-steel uppercase w-5 text-center">
             {{ slot + 1 }}
         </span>
 
@@ -57,19 +57,19 @@ const gradeColors = {
                 :size="16"
                 class="shrink-0"
             />
-            <span class="font-scifi text-[10px] uppercase tracking-widest truncate text-white">
+            <span class="font-scifi text-ui-sm uppercase tracking-widest truncate text-white">
                 {{ getData(skill).name }}
             </span>
-            <span class="shrink-0 font-scifi text-[8px]"
+            <span class="shrink-0 font-scifi text-ui-xs"
                 :class="gradeColors[getData(skill).grade] ?? 'text-upsilon-steel'">
                 {{ getData(skill).grade }}
             </span>
         </div>
 
         <div v-else class="flex-1">
-            <span class="font-mono text-[8px] text-upsilon-steel/40 uppercase tracking-widest">EMPTY SLOT</span>
+            <span class="font-mono text-ui-xs text-upsilon-steel/40 uppercase tracking-widest">EMPTY SLOT</span>
         </div>
 
-        <span class="shrink-0 text-upsilon-steel/40 group-hover:text-upsilon-cyan/60 transition-colors text-xs">›</span>
+        <span class="shrink-0 text-upsilon-steel/40 group-hover:text-upsilon-cyan/60 transition-colors text-ui-sm">›</span>
     </button>
 </template>

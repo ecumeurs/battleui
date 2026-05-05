@@ -47,7 +47,7 @@ const submit = async () => {
         <div class="absolute inset-0 bg-panel-texture bg-repeat opacity-20"></div>
 
         <!-- Layout decorations -->
-        <div class="absolute top-4 left-4 font-mono text-upsilon-cyan text-[10px] tracking-widest uppercase">
+        <div class="absolute top-4 left-4 font-mono text-upsilon-cyan text-ui-sm tracking-widest uppercase">
             [ AUTH_PROTOCOL_REGISTRATION ]
         </div>
 
@@ -57,9 +57,9 @@ const submit = async () => {
                     <h1 class="text-3xl font-scifi font-bold text-white uppercase tracking-tighter">
                         Establish <span class="text-upsilon-magenta shadow-glow-magenta">Link</span>
                     </h1>
-                    <div class="mt-1 text-upsilon-lime font-mono text-[10px] uppercase tracking-[.2em]">NEW_ENTITY_CREATION</div>
+                    <div class="mt-1 text-upsilon-lime font-mono text-ui-sm uppercase tracking-[.2em]">NEW_ENTITY_CREATION</div>
                 </div>
-                <div class="font-mono text-upsilon-cyan text-[10px] text-right">
+                <div class="font-mono text-upsilon-cyan text-ui-sm text-right">
                     SECURE_CH: v1.02<br />
                     SIGNAL: STABLE
                 </div>
@@ -69,43 +69,43 @@ const submit = async () => {
                 <!-- Left Column -->
                 <div class="space-y-6">
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Account Name</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Account Name</label>
                         <input 
                             v-model="form.account_name"
                             type="text" 
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
                             placeholder="UNIQUE_ID"
                         />
-                        <p v-if="errors.account_name" class="mt-1 text-upsilon-magenta text-[10px] font-mono uppercase">{{ errors.account_name[0] }}</p>
+                        <p v-if="errors.account_name" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.account_name[0] }}</p>
                     </div>
 
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Email</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Email</label>
                         <input 
                             v-model="form.email"
                             type="email" 
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
                             placeholder="COMM_LINK"
                         />
-                        <p v-if="errors.email" class="mt-1 text-upsilon-magenta text-[10px] font-mono uppercase">{{ errors.email[0] }}</p>
+                        <p v-if="errors.email" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.email[0] }}</p>
                     </div>
 
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Password (Min 15 chars)</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Password (Min 15 chars)</label>
                         <input 
                             v-model="form.password"
                             type="password" 
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
                         />
-                        <p v-if="errors.password" class="mt-1 text-upsilon-magenta text-[10px] font-mono uppercase">{{ errors.password[0] }}</p>
+                        <p v-if="errors.password" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.password[0] }}</p>
                     </div>
 
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Confirm Password</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Confirm Password</label>
                         <input 
                             v-model="form.password_confirmation"
                             type="password" 
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
                         />
                     </div>
                 </div>
@@ -113,30 +113,30 @@ const submit = async () => {
                 <!-- Right Column -->
                 <div class="space-y-6">
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Full Residential Address</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Full Residential Address</label>
                         <textarea 
                             v-model="form.full_address"
                             rows="4"
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan resize-none"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan resize-none"
                             placeholder="GRID_COORDINATES"
                         ></textarea>
-                        <p v-if="errors.full_address" class="mt-1 text-upsilon-magenta text-[10px] font-mono uppercase">{{ errors.full_address[0] }}</p>
+                        <p v-if="errors.full_address" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.full_address[0] }}</p>
                     </div>
 
                     <div>
-                        <label class="block font-mono text-upsilon-cyan text-xs uppercase mb-2">Birth Date</label>
+                        <label class="block font-mono text-upsilon-cyan text-ui-sm uppercase mb-2">Birth Date</label>
                         <input 
                             v-model="form.birth_date"
                             type="date" 
-                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-sm focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
+                            class="w-full bg-black/50 border border-upsilon-steel text-white px-4 py-2 font-mono text-ui-md focus:outline-none focus:border-upsilon-cyan focus:ring-1 focus:ring-upsilon-cyan"
                         />
-                        <p v-if="errors.birth_date" class="mt-1 text-upsilon-magenta text-[10px] font-mono uppercase">{{ errors.birth_date[0] }}</p>
+                        <p v-if="errors.birth_date" class="mt-1 text-upsilon-magenta text-ui-sm font-mono uppercase">{{ errors.birth_date[0] }}</p>
                     </div>
                 </div>
 
                 <!-- Footer spanning columns -->
                 <div class="md:col-span-2 mt-4 space-y-6">
-                    <div v-if="errors.global" class="p-3 border border-upsilon-magenta bg-upsilon-magenta/10 text-upsilon-magenta text-xs font-mono uppercase text-center">
+                    <div v-if="errors.global" class="p-3 border border-upsilon-magenta bg-upsilon-magenta/10 text-upsilon-magenta text-ui-sm font-mono uppercase text-center">
                         {{ errors.global }}
                     </div>
 
@@ -149,7 +149,7 @@ const submit = async () => {
                     </button>
 
                     <div class="text-center">
-                        <p class="text-upsilon-lime text-xs font-mono uppercase">
+                        <p class="text-upsilon-lime text-ui-sm font-mono uppercase">
                             Already established? 
                             <Link href="/login" class="text-upsilon-magenta hover:underline">Re-Authenticate</Link>
                         </p>

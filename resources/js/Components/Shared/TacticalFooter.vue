@@ -11,7 +11,7 @@ const props = defineProps({
 
 <template>
     <footer
-        class="relative z-10 w-full px-8 py-2 bg-black/80 border-t border-upsilon-steel/20 flex justify-between items-center font-mono text-[8px] text-upsilon-cyan uppercase tracking-widest">
+        class="relative z-10 w-full px-8 py-2 bg-black/80 border-t border-upsilon-steel/20 flex justify-between items-center font-mono text-ui-xs text-upsilon-cyan uppercase tracking-widest">
         <div class="flex items-center gap-4">
             <span class="flex items-center gap-2">
                 <div class="w-1.5 h-1.5 rounded-full bg-upsilon-lime animate-pulse"></div>

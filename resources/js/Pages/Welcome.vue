@@ -35,7 +35,7 @@ defineProps({
             <!-- Main Content -->
             <main class="relative z-10 text-center max-w-4xl px-6">
                 <div class="mb-2">
-                    <span class="font-mono text-upsilon-cyan text-xs tracking-[0.5em] uppercase animate-pulse">
+                    <span class="font-mono text-upsilon-cyan text-ui-sm tracking-[0.5em] uppercase animate-pulse">
                         [ ACCESSING ARENA_NODE_07 ]
                     </span>
                 </div>
@@ -49,7 +49,7 @@ defineProps({
                 <p class="text-xl md:text-2xl text-upsilon-cyan font-medium mb-12 max-w-2xl mx-auto leading-relaxed shadow-glow-cyan/20">
                     Scavenge the wastes. Strategize your roster. Survive the arena.
                     <br />
-                    <span class="text-white/80 font-mono text-sm tracking-wide uppercase">Face the Bots or challenge other Survivors in the ultimate T-RPG skirmish.</span>
+                    <span class="text-white/80 font-mono text-ui-md tracking-wide uppercase">Face the Bots or challenge other Survivors in the ultimate T-RPG skirmish.</span>
                 </p>
 
                 <div class="flex flex-col sm:flex-row items-center justify-center gap-6">
@@ -79,15 +79,15 @@ defineProps({
                 <div class="mt-20 grid grid-cols-1 md:grid-cols-3 gap-8">
                     <div class="p-4 border border-upsilon-steel/30 bg-upsilon-gunmetal/20 backdrop-blur-sm">
                         <div class="text-upsilon-cyan font-mono text-2xl mb-1">1v1 / 2v2</div>
-                        <div class="text-upsilon-cyan/60 text-xs uppercase tracking-widest">Combat Modes</div>
+                        <div class="text-upsilon-cyan/60 text-ui-sm uppercase tracking-widest">Combat Modes</div>
                     </div>
                     <div class="p-4 border border-upsilon-steel/30 bg-upsilon-gunmetal/20 backdrop-blur-sm">
                         <div class="text-upsilon-magenta font-mono text-2xl mb-1">ARENA BOTS</div>
-                        <div class="text-upsilon-magenta/60 text-xs uppercase tracking-widest">Neural Training</div>
+                        <div class="text-upsilon-magenta/60 text-ui-sm uppercase tracking-widest">Neural Training</div>
                     </div>
                     <div class="p-4 border border-upsilon-steel/30 bg-upsilon-gunmetal/20 backdrop-blur-sm">
                         <div class="text-upsilon-lime font-mono text-2xl mb-1">WIN -> UP</div>
-                        <div class="text-upsilon-lime/60 text-xs uppercase tracking-widest">Stat Progression</div>
+                        <div class="text-upsilon-lime/60 text-ui-sm uppercase tracking-widest">Stat Progression</div>
                     </div>
                 </div>
             </main>

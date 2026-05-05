@@ -28,13 +28,6 @@ Route::get('/dashboard', function () {
     return inertia('Dashboard');
 })->name('dashboard');
 
-Route::get('/shop', function () {
-    return inertia('Shop');
-})->name('shop');
-
-Route::get('/inventory', function () {
-    return inertia('Inventory');
-})->name('inventory');
 
 Route::get('/battlearena', function () {
     return inertia('BattleArena');

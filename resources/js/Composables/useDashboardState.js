@@ -7,7 +7,7 @@ import inventoryService from '@/services/inventory';
 const characters  = ref([]);
 const inventory   = ref([]);
 const user        = ref(null);
-const loading     = ref(false);
+const loading     = ref(true);  // true until first init() completes, so waitForRoster() works correctly
 const initialized = ref(false);
 
 export function useDashboardState() {

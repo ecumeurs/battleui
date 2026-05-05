@@ -58,14 +58,14 @@ async function loginAndLand(page: Page, creds: { account_name: string; password:
 }
 
 /**
- * Wait for the character roster to finish loading (spinner gone).
+ * Wait for the character roster to finish loading.
+ * Waits for at least one character card to be visible, then for the network
+ * to settle — this ensures fetchGlobalStats() and init() are both complete
+ * before the test proceeds.
  */
 async function waitForRoster(page: Page) {
-    // The roster shows "Synchronizing..." while loading; wait for it to disappear.
-    await page.waitForFunction(
-        () => !document.body.textContent?.includes('Synchronizing...'),
-        { timeout: 15_000 },
-    );
+    await page.waitForSelector('[data-testid="character-card"]', { state: 'visible', timeout: 15_000 });
+    await page.waitForLoadState('networkidle', { timeout: 10_000 });
 }
 
 // ---------------------------------------------------------------------------

@@ -23,7 +23,7 @@ const props = defineProps({
 
 const emit = defineEmits(['character-select']);
 
-const { characters, inventory, loading, updateCharacter, refresh } = useDashboardState();
+const { characters, inventory, loading, initialized, updateCharacter, refresh } = useDashboardState();
 
 const error = ref(null);
 
@@ -106,7 +106,7 @@ const handleUnequip = async ({ characterId, slot }) => {
 
         <h2 class="font-scifi text-[10px] text-upsilon-lime uppercase tracking-[0.3em] mb-6 flex justify-between">
             Combatant Roster
-            <span class="text-upsilon-lime" v-if="!loading">Active</span>
+            <span class="text-upsilon-lime" v-if="initialized">Active</span>
             <span class="text-upsilon-cyan animate-pulse" v-else>Synchronizing...</span>
         </h2>
 
@@ -114,7 +114,7 @@ const handleUnequip = async ({ characterId, slot }) => {
             {{ error }}
         </div>
 
-        <div v-if="!loading" class="grid grid-cols-1 gap-6">
+        <div v-if="initialized" class="grid grid-cols-1 gap-6">
             <div
                 v-for="char in characters"
                 :key="char.id"
@@ -133,7 +133,7 @@ const handleUnequip = async ({ characterId, slot }) => {
             </div>
         </div>
 
-        <!-- Loading Skeleton -->
+        <!-- Loading Skeleton — shown only before first init completes -->
         <div v-else class="grid grid-cols-1 gap-6 animate-pulse">
             <div v-for="i in 2" :key="i" class="h-64 bg-upsilon-gunmetal/40 border border-upsilon-steel/20"></div>
         </div>

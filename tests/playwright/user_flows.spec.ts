@@ -139,14 +139,19 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     await registerAndLand(page);
     await waitForRoster(page);
 
-    // Click the first character card to open CharacterDetailModal
+    // Click the first character card to open the DiagnosticTerminal slide-out panel
     const characterCard = page.getByTestId('character-card').first();
     await characterCard.click({ force: true });
 
-    // Modal should open — look for the roulette button in the left pane
-    const rouletteBtn = page.locator('button', { hasText: /SKILL ROULETTE/i });
-    await expect(rouletteBtn).toBeVisible({ timeout: 10_000 });
-    await rouletteBtn.click();
+    // DiagnosticTerminal slides in — wait for the SCAVENGE SKILL button in the left pane
+    const scavengeBtn = page.locator('button', { hasText: /SCAVENGE SKILL/i });
+    await expect(scavengeBtn).toBeVisible({ timeout: 10_000 });
+    await scavengeBtn.click();
+
+    // RouletteConfirmNotification appears at top — click SCAVENGE A SKILL to confirm
+    const confirmBtn = page.locator('button', { hasText: /SCAVENGE A SKILL/i });
+    await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
+    await confirmBtn.click();
 
     // SkillRouletteModal opens
     await expect(page.getByText('Randomized Skill Acquisition')).toBeVisible({ timeout: 5_000 });
@@ -173,11 +178,10 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     // Roulette modal closes
     await expect(page.getByText('Randomized Skill Acquisition')).not.toBeVisible({ timeout: 5_000 });
 
-    // Re-open character modal — roulette button must be gone (roulette_available is now false)
-    await characterCard.click();
-    // Wait for the modal to load character data again
+    // Re-open DiagnosticTerminal — roulette button must be gone (roulette_available is now false)
+    await characterCard.click({ force: true });
     await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.getByRole('button', { name: /SKILL ROULETTE/i })).not.toBeVisible();
+    await expect(page.locator('button', { hasText: /SCAVENGE SKILL/i })).not.toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
@@ -255,12 +259,12 @@ test('equip: purchase item → open character modal → link item → slot refle
     await page.keyboard.press('Escape');
     await expect(page.getByText('Supply Depot')).not.toBeVisible({ timeout: 5_000 });
 
-    // ── Step 2: Open character modal ─────────────────────────────────────────
+    // ── Step 2: Open DiagnosticTerminal slide-out ────────────────────────────
     await waitForRoster(page);
     const characterCard = page.locator('.cursor-pointer').first();
     await characterCard.click();
 
-    // Wait for CharacterDetailModal to render stat grid
+    // Wait for DiagnosticTerminal to render stat grid
     await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
 
     // ── Step 3: Click the weapon equipment slot ───────────────────────────────
@@ -289,16 +293,19 @@ test('equip: purchase item → open character modal → link item → slot refle
 test.fixme('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
     await registerAndLand(page);
 
-    // Open character modal
+    // Open DiagnosticTerminal slide-out
     await waitForRoster(page);
     const characterCard = page.locator('.cursor-pointer').first();
     await characterCard.click();
     await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
 
-    // Open roulette (button labelled "SKILL ROULETTE" or similar)
-    const rouletteBtn = page.getByRole('button', { name: /roulette/i }).first();
-    await expect(rouletteBtn).toBeVisible({ timeout: 8_000 });
-    await rouletteBtn.click();
+    // SCAVENGE SKILL button → RouletteConfirmNotification → confirm
+    const scavengeBtn = page.locator('button', { hasText: /SCAVENGE SKILL/i }).first();
+    await expect(scavengeBtn).toBeVisible({ timeout: 8_000 });
+    await scavengeBtn.click();
+    const confirmRouletteBtn = page.locator('button', { hasText: /SCAVENGE A SKILL/i });
+    await expect(confirmRouletteBtn).toBeVisible({ timeout: 5_000 });
+    await confirmRouletteBtn.click();
 
     // Initiate spin
     const spinBtn = page.getByRole('button', { name: /initiate spin/i });

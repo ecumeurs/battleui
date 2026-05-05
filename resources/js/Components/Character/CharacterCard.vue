@@ -14,7 +14,11 @@ const props = defineProps({
     user: {
         type: Object,
         required: true
-    }
+    },
+    selected: {
+        type: Boolean,
+        default: false,
+    },
 });
 
 const emit = defineEmits(['rename', 'reroll', 'upgrade', 'manage-equipment']);
@@ -46,9 +50,10 @@ const canUpgrade = computed(() => cp.value.spent < cp.value.max);
 </script>
 
 <template>
-    <div 
+    <div
         data-testid="character-card"
-        class="p-4 bg-upsilon-gunmetal/30 border border-upsilon-steel/20 hover:border-upsilon-cyan/40 transition-all relative group shadow-lg backdrop-blur-md"
+        class="p-4 bg-upsilon-gunmetal/30 border hover:border-upsilon-cyan/40 transition-all relative group shadow-lg backdrop-blur-md"
+        :class="selected ? 'border-upsilon-cyan border-l-2' : 'border-upsilon-steel/20'"
     >
         <!-- Accent corners -->
         <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-upsilon-cyan/40 group-hover:border-upsilon-cyan transition-colors"></div>

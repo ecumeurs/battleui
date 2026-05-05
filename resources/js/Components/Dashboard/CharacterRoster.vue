@@ -2,9 +2,10 @@
 <!-- @spec-link [[mechanic_mech_frontend_auth_bridge]] -->
 <!-- @spec-link [[rule_character_renaming]] -->
 <script setup>
-import { ref, onMounted } from 'vue';
+import { ref } from 'vue';
 import auth from '@/services/auth';
 import inventoryService from '@/services/inventory';
+import { useDashboardState } from '@/Composables/useDashboardState';
 import CharacterCard from '../Character/CharacterCard.vue';
 import EquipDrawer from '../Inventory/EquipDrawer.vue';
 import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
@@ -12,19 +13,22 @@ import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
 const props = defineProps({
     user: {
         type: Object,
-        required: true
-    }
+        required: true,
+    },
+    selectedCharacterId: {
+        type: String,
+        default: null,
+    },
 });
 
-const emit = defineEmits(['character-click']);
+const emit = defineEmits(['character-select']);
 
-const characters = ref([]);
-const inventory = ref([]);
-const loading = ref(true);
+const { characters, inventory, loading, updateCharacter, refresh } = useDashboardState();
+
 const error = ref(null);
 
 const showEquipDrawer = ref(false);
-const selectedCharacter = ref(null);
+const selectedCharacterForDrawer = ref(null);
 const activeSlot = ref(null);
 const showRerollConfirm = ref(false);
 const rerollTargetId = ref(null);
@@ -32,29 +36,9 @@ const rerollTargetId = ref(null);
 const handleRename = async ({ id, name }) => {
     try {
         const data = await auth.post(`/profile/character/${id}/rename`, { name });
-        const index = characters.value.findIndex(c => c.id === id);
-        if (index !== -1) {
-            characters.value[index] = data;
-        }
+        updateCharacter(data);
     } catch (err) {
         alert(err.message || 'Rename failed');
-    }
-};
-
-const fetchData = async () => {
-    loading.value = true;
-    try {
-        const [charsData, invData] = await Promise.all([
-            auth.get('/profile/characters'),
-            inventoryService.listInventory()
-        ]);
-        characters.value = charsData;
-        inventory.value = invData;
-    } catch (err) {
-        error.value = 'Failed to load character roster.';
-        console.error(err);
-    } finally {
-        loading.value = false;
     }
 };
 
@@ -70,10 +54,7 @@ const confirmReroll = async () => {
     if (!characterId) return;
     try {
         const data = await auth.post(`/profile/character/${characterId}/reroll`);
-        const index = characters.value.findIndex(c => c.id === characterId);
-        if (index !== -1) {
-            characters.value[index] = data.character;
-        }
+        updateCharacter(data.character);
     } catch (err) {
         alert(err.message || 'Reroll failed');
     }
@@ -83,12 +64,8 @@ const handleUpgrade = async ({ id, stat }) => {
     try {
         const payload = { stats: {} };
         payload.stats[stat] = 1;
-
         const data = await auth.post(`/profile/character/${id}/upgrade`, payload);
-        const index = characters.value.findIndex(c => c.id === id);
-        if (index !== -1) {
-            characters.value[index] = data;
-        }
+        updateCharacter(data);
     } catch (err) {
         alert(err.message || 'Upgrade failed');
     }
@@ -97,7 +74,7 @@ const handleUpgrade = async ({ id, stat }) => {
 const handleManageEquipment = ({ id, slot }) => {
     const char = characters.value.find(c => c.id === id);
     if (char) {
-        selectedCharacter.value = char;
+        selectedCharacterForDrawer.value = char;
         activeSlot.value = slot;
         showEquipDrawer.value = true;
     }
@@ -106,7 +83,7 @@ const handleManageEquipment = ({ id, slot }) => {
 const handleEquip = async ({ characterId, itemId }) => {
     try {
         await inventoryService.equip(characterId, itemId);
-        await fetchData(); // Refresh everything
+        await refresh();
     } catch (err) {
         alert(err.message || 'Linking failed');
     }
@@ -115,20 +92,18 @@ const handleEquip = async ({ characterId, itemId }) => {
 const handleUnequip = async ({ characterId, slot }) => {
     try {
         await inventoryService.unequip(characterId, slot);
-        await fetchData(); // Refresh everything
+        await refresh();
     } catch (err) {
         alert(err.message || 'Link termination failed');
     }
 };
-
-onMounted(fetchData);
 </script>
 
 <template>
     <div class="p-5 bg-upsilon-gunmetal/20 border border-upsilon-steel/30 backdrop-blur-sm relative group">
         <div class="absolute -top-px -left-px w-2 h-2 border-t border-l border-upsilon-cyan"></div>
         <div class="absolute -bottom-px -right-px w-2 h-2 border-b border-r border-upsilon-cyan"></div>
-        
+
         <h2 class="font-scifi text-[10px] text-upsilon-lime uppercase tracking-[0.3em] mb-6 flex justify-between">
             Combatant Roster
             <span class="text-upsilon-lime" v-if="!loading">Active</span>
@@ -144,11 +119,12 @@ onMounted(fetchData);
                 v-for="char in characters"
                 :key="char.id"
                 class="cursor-pointer"
-                @click="emit('character-click', char.id)"
+                @click="emit('character-select', char.id)"
             >
                 <CharacterCard
                     :character="char"
                     :user="props.user"
+                    :selected="selectedCharacterId === char.id"
                     @rename="handleRename"
                     @reroll="handleReroll"
                     @upgrade="handleUpgrade"
@@ -164,7 +140,7 @@ onMounted(fetchData);
 
         <EquipDrawer
             :show="showEquipDrawer"
-            :character="selectedCharacter"
+            :character="selectedCharacterForDrawer"
             :inventory="inventory"
             :active-slot="activeSlot"
             @close="showEquipDrawer = false"
@@ -185,13 +161,12 @@ onMounted(fetchData);
     </div>
 </template>
 
-
 <style scoped>
 @keyframes pulse {
     0%, 100% { opacity: 1; }
     50% { opacity: 0.5; }
 }
 .animate-pulse {
-    animation: pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+    animation: pulse 2s linear infinite;
 }
 </style>

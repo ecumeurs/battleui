@@ -1,122 +1,98 @@
-<!-- @spec-link [[ui_character_full_stat_panel]] -->
+<!-- Read-only summary tile. All actions (rename, reroll, equip, skills) live in TacticalPanel.
+     @spec-link [[ui_character_full_stat_panel]] -->
 <script setup>
-import { ref, computed } from 'vue';
-import { useCharacterStats } from '@/Composables/useCharacterStats';
-import CharacterStatPanel from './CharacterStatPanel.vue';
-import CharacterEquipmentPanel from './CharacterEquipmentPanel.vue';
-import CpEconomySummary from './CpEconomySummary.vue';
+import { computed } from 'vue';
 
 const props = defineProps({
-    character: {
-        type: Object,
-        required: true
-    },
-    user: {
-        type: Object,
-        required: true
-    },
-    selected: {
-        type: Boolean,
-        default: false,
-    },
+    character: { type: Object, required: true },
+    user:      { type: Object, required: true },
+    selected:  { type: Boolean, default: false },
 });
 
-const emit = defineEmits(['rename', 'reroll', 'upgrade', 'manage-equipment']);
+const keyStats = computed(() => {
+    const c = props.character;
+    return [
+        { label: 'HP',  value: c.hp       ?? 0 },
+        { label: 'ATK', value: c.attack    ?? 0 },
+        { label: 'DEF', value: c.defense   ?? 0 },
+        { label: 'MOV', value: c.movement  ?? 0 },
+    ];
+});
 
-const { calculateStats, calculateCp } = useCharacterStats();
-
-const stats = computed(() => calculateStats(props.character));
-const cp = computed(() => calculateCp(props.character, props.user.total_wins));
-
-const editing = ref(false);
-const nameInput = ref(props.character.name);
-
-const startRename = () => {
-    editing.value = true;
-    nameInput.value = props.character.name;
-};
-
-const cancelRename = () => {
-    editing.value = false;
-};
-
-const submitRename = () => {
-    if (nameInput.value.trim().length < 3) return;
-    emit('rename', { id: props.character.id, name: nameInput.value });
-    editing.value = false;
-};
-
-const canUpgrade = computed(() => cp.value.spent < cp.value.max);
+const slotIcons = { armor: '◈', weapon: '⚔', utility: '◉' };
+const equippedSlots = computed(() => {
+    const eq = props.character.equipment ?? {};
+    return ['armor', 'weapon', 'utility'].map(slot => ({
+        slot,
+        icon: slotIcons[slot],
+        name: eq[`${slot}_item`]?.shop_item?.name ?? eq[slot]?.shop_item?.name ?? null,
+    }));
+});
 </script>
 
 <template>
     <div
         data-testid="character-card"
-        class="p-4 bg-upsilon-gunmetal/30 border hover:border-upsilon-cyan/40 transition-all relative group shadow-lg backdrop-blur-md"
+        class="p-4 bg-upsilon-gunmetal/30 border hover:border-upsilon-cyan/40 relative group shadow-lg backdrop-blur-md max-h-[320px] overflow-hidden"
         :class="selected ? 'border-upsilon-cyan border-l-2' : 'border-upsilon-steel/20'"
+        style="transition: border-color 150ms linear;"
     >
         <!-- Accent corners -->
         <div class="absolute top-0 left-0 w-2 h-2 border-t-2 border-l-2 border-upsilon-cyan/40 group-hover:border-upsilon-cyan transition-colors"></div>
         <div class="absolute bottom-0 right-0 w-2 h-2 border-b-2 border-r-2 border-upsilon-cyan/40 group-hover:border-upsilon-cyan transition-colors"></div>
 
-        <!-- Header: Name & Actions -->
-        <div class="flex justify-between items-start mb-6">
-            <div class="flex-1 min-w-0">
-                <div v-if="editing" class="flex gap-2 items-center">
-                    <input 
-                        v-model="nameInput" 
-                        class="bg-black/60 border border-upsilon-cyan text-white text-[10px] px-2 py-1 flex-1 font-mono focus:outline-none"
-                        @keyup.enter="submitRename"
-                        @keyup.esc="cancelRename"
-                        autoFocus
-                    />
-                    <button @click.stop="submitRename" class="text-upsilon-lime font-mono text-[8px] border border-upsilon-lime/30 px-2 py-1 hover:bg-upsilon-lime/10">SAVE</button>
-                    <button @click.stop="cancelRename" class="text-upsilon-steel font-mono text-[8px] border border-upsilon-steel/30 px-2 py-1 hover:bg-upsilon-steel/10">CANCEL</button>
-                </div>
-                <h3 
-                    v-else 
-                    @click="startRename"
-                    class="font-scifi text-base text-white truncate cursor-pointer hover:text-upsilon-cyan transition-colors tracking-widest uppercase"
-                >
-                    {{ character.name }}
-                </h3>
-                <div class="text-[7px] text-upsilon-steel font-mono uppercase tracking-[0.2em] mt-1">
-                    System ID: {{ character.id.split('-')[0] }}
-                </div>
+        <!-- Name + ID -->
+        <div class="mb-4">
+            <h3 class="font-scifi text-base text-white truncate tracking-widest uppercase">
+                {{ character.name }}
+            </h3>
+            <div class="text-ui-xs text-upsilon-steel font-mono uppercase tracking-[0.2em] mt-0.5">
+                SYS {{ character.id.split('-')[0] }}
             </div>
-            
-            <button 
-                v-if="user.total_wins === 0"
-                @click.stop="$emit('reroll', character.id)"
-                class="text-[8px] font-scifi text-upsilon-rust border border-upsilon-rust/40 px-2 py-1 hover:bg-upsilon-rust/10 transition-colors"
+        </div>
+
+        <!-- Key stats (2×2 grid) -->
+        <div class="grid grid-cols-4 gap-1 mb-4">
+            <div
+                v-for="stat in keyStats"
+                :key="stat.label"
+                class="flex flex-col items-center py-1.5 bg-black/40 border border-upsilon-cyan/10"
             >
-                REROLL
-            </button>
-        </div>
-
-        <!-- Body: Stats & Equipment -->
-        <div class="grid grid-cols-5 gap-4">
-            <!-- Stats Panel (Left) -->
-            <div class="col-span-3">
-                <div class="text-[8px] font-scifi text-upsilon-steel uppercase mb-2 border-b border-upsilon-steel/10 pb-1">Biometric Data</div>
-                <CharacterStatPanel 
-                    :stats="stats" 
-                    :can-upgrade="canUpgrade"
-                    @upgrade="$emit('upgrade', { id: character.id, stat: $event })"
-                />
-            </div>
-
-            <!-- Equipment Panel (Right) -->
-            <div class="col-span-2">
-                <div class="text-[8px] font-scifi text-upsilon-steel uppercase mb-2 border-b border-upsilon-steel/10 pb-1">Hardware Link</div>
-                <CharacterEquipmentPanel 
-                    :equipment="character.equipment" 
-                    @manage="$emit('manage-equipment', { id: character.id, slot: $event })"
-                />
+                <span class="font-mono text-ui-xs text-upsilon-cyan/60 uppercase">{{ stat.label }}</span>
+                <span class="font-scifi text-ui-md text-white font-bold">{{ stat.value }}</span>
             </div>
         </div>
 
-        <!-- Footer: CP Summary -->
-        <CpEconomySummary :cp="cp" />
+        <!-- Equipment summary -->
+        <div class="space-y-0.5">
+            <div v-for="slot in equippedSlots" :key="slot.slot" class="flex items-center gap-2">
+                <span class="font-mono text-ui-xs text-upsilon-steel/60">{{ slot.icon }}</span>
+                <span class="font-mono text-ui-xs truncate"
+                    :class="slot.name ? 'text-upsilon-lime' : 'text-upsilon-steel/30'">
+                    {{ slot.name ?? 'EMPTY' }}
+                </span>
+            </div>
+        </div>
+
+        <!-- Roulette indicator -->
+        <div v-if="character.roulette_available" class="mt-3 flex items-center gap-1.5">
+            <span class="w-1.5 h-1.5 rounded-full bg-upsilon-magenta animate-pulse"></span>
+            <span class="font-mono text-ui-xs text-upsilon-magenta/70 uppercase tracking-widest">Skill available</span>
+        </div>
+
+        <!-- Click hint -->
+        <div class="absolute bottom-2 right-3 font-mono text-ui-xs text-upsilon-cyan/20 group-hover:text-upsilon-cyan/60 uppercase tracking-widest transition-colors">
+            ›
+        </div>
     </div>
 </template>
+
+<style scoped>
+@keyframes pulse {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.animate-pulse {
+    animation: pulse 2s linear infinite;
+}
+</style>

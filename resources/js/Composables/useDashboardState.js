@@ -2,15 +2,25 @@
 import { ref } from 'vue';
 import auth from '@/services/auth';
 import inventoryService from '@/services/inventory';
+import skillService from '@/services/skill';
 
-// Module-level singleton refs — shared across all component instances that call this composable.
-const characters  = ref([]);
-const inventory   = ref([]);
-const user        = ref(null);
-const loading     = ref(true);  // true until first init() completes, so waitForRoster() works correctly
-const initialized = ref(false);
+// ---------------------------------------------------------------------------
+// Module-level singleton refs — shared across all component instances.
+// ---------------------------------------------------------------------------
+const characters       = ref([]);
+const inventory        = ref([]);
+const user             = ref(null);
+const loading          = ref(true);
+const initialized      = ref(false);
+
+// Per-character detail cache: { [characterId]: { character, skills, equipment, loading } }
+const characterDetails = ref({});
 
 export function useDashboardState() {
+
+    // -----------------------------------------------------------------------
+    // Dashboard initialisation (called once on mount)
+    // -----------------------------------------------------------------------
     async function init(authUser) {
         if (initialized.value) return;
         user.value   = authUser;
@@ -28,6 +38,9 @@ export function useDashboardState() {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Full roster + inventory refresh (after equip/purchase etc.)
+    // -----------------------------------------------------------------------
     async function refresh() {
         loading.value = true;
         try {
@@ -42,6 +55,9 @@ export function useDashboardState() {
         }
     }
 
+    // -----------------------------------------------------------------------
+    // Shallow-merge a character update into the roster list
+    // -----------------------------------------------------------------------
     function updateCharacter(updated) {
         const i = characters.value.findIndex(c => c.id === updated.id);
         if (i !== -1) characters.value[i] = { ...characters.value[i], ...updated };
@@ -51,5 +67,96 @@ export function useDashboardState() {
         user.value = { ...user.value, ...patch };
     }
 
-    return { characters, inventory, user, loading, initialized, init, refresh, updateCharacter, updateUser };
+    // -----------------------------------------------------------------------
+    // Per-character detail cache
+    // -----------------------------------------------------------------------
+
+    async function loadCharacterDetails(id) {
+        if (!id) return;
+        if (characterDetails.value[id]?.loading) return;
+
+        characterDetails.value = {
+            ...characterDetails.value,
+            [id]: { ...(characterDetails.value[id] ?? {}), loading: true, error: null },
+        };
+
+        try {
+            const [charData, skillsData, equipData] = await Promise.all([
+                auth.get(`/profile/character/${id}`),
+                skillService.listCharacterSkills(id),
+                inventoryService.getEquipment(id),
+            ]);
+            characterDetails.value = {
+                ...characterDetails.value,
+                [id]: {
+                    loading:   false,
+                    error:     null,
+                    character: charData,
+                    skills:    Array.isArray(skillsData) ? skillsData : [],
+                    equipment: {
+                        armor:   equipData?.armor   ?? null,
+                        weapon:  equipData?.weapon  ?? null,
+                        utility: equipData?.utility ?? null,
+                    },
+                },
+            };
+        } catch (e) {
+            characterDetails.value = {
+                ...characterDetails.value,
+                [id]: { ...(characterDetails.value[id] ?? {}), loading: false, error: e?.message ?? 'Load failed.' },
+            };
+        }
+    }
+
+    function patchCharacterDetail(id, patch) {
+        const entry = characterDetails.value[id];
+        if (!entry) return;
+        characterDetails.value = {
+            ...characterDetails.value,
+            [id]: { ...entry, character: { ...entry.character, ...patch } },
+        };
+        updateCharacter({ id, ...patch });
+    }
+
+    function addSkillToCharacter(id, skill) {
+        const entry = characterDetails.value[id];
+        if (!entry) return;
+        characterDetails.value = {
+            ...characterDetails.value,
+            [id]: { ...entry, skills: [...entry.skills, skill] },
+        };
+    }
+
+    function setCharacterEquipmentSlot(id, slot, item) {
+        const entry = characterDetails.value[id];
+        if (!entry) return;
+        characterDetails.value = {
+            ...characterDetails.value,
+            [id]: { ...entry, equipment: { ...entry.equipment, [slot]: item } },
+        };
+    }
+
+    function clearCharacterDetails(id) {
+        const next = { ...characterDetails.value };
+        delete next[id];
+        characterDetails.value = next;
+    }
+
+    return {
+        characters,
+        inventory,
+        user,
+        loading,
+        initialized,
+        characterDetails,
+        init,
+        refresh,
+        updateCharacter,
+        updateUser,
+        loadCharacterDetails,
+        patchCharacterDetail,
+        addSkillToCharacter,
+        setCharacterEquipmentSlot,
+        clearCharacterDetails,
+    };
 }

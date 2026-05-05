@@ -9,51 +9,24 @@ import IdentitySection from '@/Components/Dashboard/IdentitySection.vue';
 import EngagementHub from '@/Components/Dashboard/EngagementHub.vue';
 import LeaderboardComponent from '@/Components/Dashboard/LeaderboardComponent.vue';
 import NeonShopButton from '@/Components/Shop/NeonShopButton.vue';
-import InventoryModal from '@/Components/Dashboard/Modals/InventoryModal.vue';
-import ShopModal from '@/Components/Dashboard/Modals/ShopModal.vue';
-import DiagnosticTerminal from '@/Components/Dashboard/DiagnosticTerminal.vue';
-import RouletteConfirmNotification from '@/Components/Dashboard/RouletteConfirmNotification.vue';
-import SkillRouletteModal from '@/Components/Dashboard/Modals/SkillRouletteModal.vue';
+import TacticalPanel from '@/Components/Dashboard/TacticalPanel.vue';
 import { useDashboardState } from '@/Composables/useDashboardState';
 import auth from '@/services/auth';
 
 const { user, loading, initialized, init, updateUser } = useDashboardState();
 
-const showInventoryModal = ref(false);
-const showShopModal = ref(false);
+// Panel state
+const panelMode        = ref(null);   // null | 'character' | 'shop' | 'inventory' | 'identity'
+const panelCharacterId = ref(null);
 
-// Diagnostic terminal
-const selectedCharacterId = ref(null);
-
-// Roulette two-step
-const showRouletteNotify   = ref(false);
-const rouletteNotifyChar   = ref(null);  // { id, name }
-const showRouletteModal    = ref(false);
-const rouletteCharacterId  = ref(null);
-
-function handleCharacterSelect(id) {
-    selectedCharacterId.value = selectedCharacterId.value === id ? null : id;
+function openPanel(mode, characterId = null) {
+    panelMode.value        = mode;
+    panelCharacterId.value = characterId;
 }
 
-function handleRouletteClick({ id, name }) {
-    rouletteNotifyChar.value  = { id, name };
-    showRouletteNotify.value  = true;
-}
-
-function confirmRoulette() {
-    showRouletteNotify.value = false;
-    rouletteCharacterId.value = rouletteNotifyChar.value?.id;
-    showRouletteModal.value   = true;
-}
-
-function dismissRouletteNotify() {
-    showRouletteNotify.value = false;
-    rouletteNotifyChar.value = null;
-}
-
-function closeRoulette() {
-    showRouletteModal.value   = false;
-    rouletteCharacterId.value = null;
+function closePanel() {
+    panelMode.value        = null;
+    panelCharacterId.value = null;
 }
 
 const globalStats = ref({
@@ -121,8 +94,8 @@ onUnmounted(() => {
             <aside class="lg:col-span-3">
                 <CharacterRoster
                     :user="user"
-                    :selected-character-id="selectedCharacterId"
-                    @character-select="handleCharacterSelect"
+                    :selected-character-id="panelMode === 'character' ? panelCharacterId : null"
+                    @character-select="openPanel('character', $event)"
                 />
             </aside>
 
@@ -132,11 +105,11 @@ onUnmounted(() => {
                 <div class="grid grid-cols-2 gap-4">
                     <div class="p-4 bg-black/50 border border-upsilon-steel/20 text-center">
                         <div class="text-3xl font-scifi text-upsilon-lime">{{ globalStats.waiting }}</div>
-                        <div class="text-[8px] font-mono text-upsilon-lime uppercase tracking-tighter">Waiting Players</div>
+                        <div class="text-ui-xs font-mono text-upsilon-lime uppercase tracking-tighter">Waiting Players</div>
                     </div>
                     <div class="p-4 bg-black/50 border border-upsilon-steel/20 text-center">
                         <div class="text-3xl font-scifi text-upsilon-cyan">{{ globalStats.active }}</div>
-                        <div class="text-[8px] font-mono text-upsilon-lime uppercase tracking-tighter">Active Matches</div>
+                        <div class="text-ui-xs font-mono text-upsilon-lime uppercase tracking-tighter">Active Matches</div>
                     </div>
                 </div>
 
@@ -149,12 +122,16 @@ onUnmounted(() => {
 
             <!-- Right Column: Identity, Shop & Inventory -->
             <div class="lg:col-span-3 space-y-4">
-                <IdentitySection :user="user" :playerStats="playerStats" />
+                <IdentitySection
+                    :user="user"
+                    :playerStats="playerStats"
+                    @open-identity="openPanel('identity')"
+                />
 
                 <!-- Inventory access -->
                 <button
-                    @click="showInventoryModal = true"
-                    class="w-full px-4 py-3 border border-upsilon-cyan/40 bg-black/40 text-upsilon-cyan font-mono text-[10px] uppercase tracking-[0.3em] hover:bg-upsilon-cyan/10 hover:border-upsilon-cyan flex items-center justify-between group"
+                    @click="openPanel('inventory')"
+                    class="w-full px-4 py-3 border border-upsilon-cyan/40 bg-black/40 text-upsilon-cyan font-mono text-ui-sm uppercase tracking-[0.3em] hover:bg-upsilon-cyan/10 hover:border-upsilon-cyan flex items-center justify-between group"
                     style="transition: background-color 150ms linear, border-color 150ms linear;"
                 >
                     <span>◈ Inventory Archive</span>
@@ -162,43 +139,16 @@ onUnmounted(() => {
                 </button>
 
                 <!-- Neon shop CTA -->
-                <NeonShopButton @click="showShopModal = true" />
+                <NeonShopButton @click="openPanel('shop')" />
             </div>
         </div>
 
-        <!-- Modals (unchanged) -->
-        <InventoryModal :show="showInventoryModal" @close="showInventoryModal = false" />
-        <ShopModal
-            :show="showShopModal"
+        <!-- Universal TacticalPanel -->
+        <TacticalPanel
+            :mode="panelMode"
+            :character-id="panelCharacterId"
             :user="user"
-            @close="showShopModal = false"
-            @credits-updated="updateUser({ credits: $event })"
-        />
-
-        <!-- Skill Roulette Modal -->
-        <SkillRouletteModal
-            v-if="rouletteCharacterId"
-            :show="showRouletteModal"
-            :character-id="rouletteCharacterId"
-            @close="closeRoulette"
-            @skill-acquired="closeRoulette"
-        />
-
-        <!-- Diagnostic Terminal slide-out -->
-        <DiagnosticTerminal
-            :character-id="selectedCharacterId"
-            :user="user"
-            @close="selectedCharacterId = null"
-            @credits-updated="updateUser({ credits: $event })"
-            @roulette-click="handleRouletteClick"
-        />
-
-        <!-- Roulette two-step notification -->
-        <RouletteConfirmNotification
-            :show="showRouletteNotify"
-            :character-name="rouletteNotifyChar?.name ?? ''"
-            @confirm="confirmRoulette"
-            @dismiss="dismissRouletteNotify"
+            @close="closePanel"
         />
     </TacticalLayout>
 </template>

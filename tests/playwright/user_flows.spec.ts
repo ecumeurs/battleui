@@ -59,13 +59,20 @@ async function loginAndLand(page: Page, creds: { account_name: string; password:
 
 /**
  * Wait for the character roster to finish loading.
- * Waits for at least one character card to be visible, then for the network
- * to settle — this ensures fetchGlobalStats() and init() are both complete
- * before the test proceeds.
  */
 async function waitForRoster(page: Page) {
     await page.waitForSelector('[data-testid="character-card"]', { state: 'visible', timeout: 15_000 });
     await page.waitForLoadState('networkidle', { timeout: 10_000 });
+}
+
+/**
+ * Open TacticalPanel in character mode by clicking the first character card.
+ * Waits for the stat grid to be visible before returning.
+ */
+async function openCharacterPanel(page: Page) {
+    const card = page.getByTestId('character-card').first();
+    await card.click();
+    await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
 }
 
 // ---------------------------------------------------------------------------
@@ -75,9 +82,7 @@ async function waitForRoster(page: Page) {
 test('registration: fill form → submit → land on dashboard', async ({ page }) => {
     await registerAndLand(page);
 
-    // Dashboard should be visible
     await expect(page).toHaveURL(/\/dashboard/);
-    // Roster header is a reliable dashboard landmark
     await expect(page.getByText('Combatant Roster')).toBeVisible({ timeout: 10_000 });
 });
 
@@ -86,10 +91,8 @@ test('registration: fill form → submit → land on dashboard', async ({ page }
 // ---------------------------------------------------------------------------
 
 test('login: credentials → submit → land on dashboard', async ({ page }) => {
-    // Register first so we have a known account
     const user = await registerAndLand(page);
 
-    // Log out by navigating away (clear storage, then go to /login)
     await page.evaluate(() => {
         localStorage.removeItem('upsilon_token');
         localStorage.removeItem('upsilon_user');
@@ -102,36 +105,37 @@ test('login: credentials → submit → land on dashboard', async ({ page }) => 
 });
 
 // ---------------------------------------------------------------------------
-// Test: Character reroll (themed confirm modal)
+// Test: Character reroll (inline confirm in TacticalPanel)
 // ---------------------------------------------------------------------------
 
-test('reroll: confirm via themed modal → stats regenerated', async ({ page }) => {
-    // Fresh account starts with 0 wins, so the REROLL button is visible
+test('reroll: confirm via inline panel → stats regenerated', async ({ page }) => {
+    // Fresh account starts with 0 wins, so the REROLL button is visible in the panel
     await registerAndLand(page);
     await waitForRoster(page);
 
-    // Each character card has a REROLL button (only shown when total_wins === 0)
+    // Open TacticalPanel in character mode
+    await openCharacterPanel(page);
+
+    // REROLL button is in the left pane (only visible when total_wins === 0)
     const rerollBtn = page.getByRole('button', { name: /reroll/i }).first();
     await expect(rerollBtn).toBeVisible({ timeout: 10_000 });
     await rerollBtn.click();
 
-    // Themed ConfirmModal should appear (not a browser native confirm())
+    // Right pane shows inline "Reroll Protocol" confirm view
     await expect(page.getByText('Reroll Protocol')).toBeVisible({ timeout: 5_000 });
 
-    // ConfirmModal confirm button has text matching confirmText prop ("Reroll").
-    // The modal heading "Reroll Protocol" is unique on the page; scope to its container.
+    // Click the Reroll confirm button scoped to the confirm block
     const confirmBtn = page.locator('div').filter({ hasText: /Reroll Protocol/ })
         .getByRole('button', { name: /^Reroll$/i }).last();
     await confirmBtn.click();
 
-    // Modal should close; roster re-renders (no error banner)
+    // Confirm view closes; panel stays open, no error
     await expect(page.getByText('Reroll Protocol')).not.toBeVisible({ timeout: 8_000 });
-    // Roster should still show character data (no error state)
     await expect(page.getByText('Combatant Roster')).toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
-// Test: Skill roulette
+// Test: Skill roulette (inline in TacticalPanel right pane)
 // ---------------------------------------------------------------------------
 
 test('roulette: spin → stop → accept → button disappears', async ({ page }) => {
@@ -139,21 +143,15 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     await registerAndLand(page);
     await waitForRoster(page);
 
-    // Click the first character card to open the DiagnosticTerminal slide-out panel
-    const characterCard = page.getByTestId('character-card').first();
-    await characterCard.click({ force: true });
+    // Open TacticalPanel in character mode
+    await openCharacterPanel(page);
 
-    // DiagnosticTerminal slides in — wait for the SCAVENGE SKILL button in the left pane
+    // SCAVENGE SKILL button in the left pane opens inline roulette in the right pane
     const scavengeBtn = page.locator('button', { hasText: /SCAVENGE SKILL/i });
     await expect(scavengeBtn).toBeVisible({ timeout: 10_000 });
     await scavengeBtn.click();
 
-    // RouletteConfirmNotification appears at top — click SCAVENGE A SKILL to confirm
-    const confirmBtn = page.locator('button', { hasText: /SCAVENGE A SKILL/i });
-    await expect(confirmBtn).toBeVisible({ timeout: 5_000 });
-    await confirmBtn.click();
-
-    // SkillRouletteModal opens
+    // Roulette UI appears inline (no separate modal, no confirm notification step)
     await expect(page.getByText('Randomized Skill Acquisition')).toBeVisible({ timeout: 5_000 });
 
     // Click INITIATE SPIN
@@ -161,12 +159,12 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     await expect(spinBtn).toBeVisible();
     await spinBtn.click();
 
-    // Reels are spinning — STOP button appears
-    const stopBtn = page.getByRole('button', { name: /^stop$/i });
+    // Reels spinning — STOP button appears
+    const stopBtn = page.locator('button', { hasText: /STOP/i });
     await expect(stopBtn).toBeVisible({ timeout: 5_000 });
     await stopBtn.click();
 
-    // Wait for "revealing" → "revealed" (API call + reel deceleration: ~2.5 s max)
+    // Wait for API + reel deceleration (~2.5 s max)
     const acquiredBanner = page.getByText(/SKILL ACQUIRED/i);
     await expect(acquiredBanner).toBeVisible({ timeout: 15_000 });
 
@@ -175,13 +173,10 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
     await expect(acceptBtn).toBeVisible();
     await acceptBtn.click();
 
-    // Roulette modal closes
+    // Roulette UI disappears; left pane should no longer show SCAVENGE SKILL
+    // (state is patched reactively — no reopen needed)
     await expect(page.getByText('Randomized Skill Acquisition')).not.toBeVisible({ timeout: 5_000 });
-
-    // Re-open DiagnosticTerminal — roulette button must be gone (roulette_available is now false)
-    await characterCard.click({ force: true });
-    await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
-    await expect(page.locator('button', { hasText: /SCAVENGE SKILL/i })).not.toBeVisible();
+    await expect(page.locator('button', { hasText: /SCAVENGE SKILL/i })).not.toBeVisible({ timeout: 5_000 });
 });
 
 // ---------------------------------------------------------------------------
@@ -191,95 +186,82 @@ test('roulette: spin → stop → accept → button disappears', async ({ page }
 test('shop: open depot → select item → ACQUIRE → balance decrements', async ({ page }) => {
     await registerAndLand(page);
 
-    // Open the neon shop modal
+    // Open TacticalPanel in shop mode
     const shopBtn = page.getByTestId('shop-button');
     await expect(shopBtn).toBeVisible({ timeout: 10_000 });
-    await shopBtn.click({ force: true });
+    await shopBtn.click();
 
-    // ShopModal: "Supply Depot" title (use heading role to avoid ambiguity with nav link)
-    await expect(page.getByRole('heading', { name: 'Supply Depot' })).toBeVisible({ timeout: 5_000 });
-
-    // Wait for items to load and click the first one
-    const firstItem = page.locator('[data-testid="shop-item"]').first()
-        .or(page.locator('.space-y-1 > button').first());
+    // Panel opens — wait for a shop item to appear (proves the panel is mounted and loaded)
+    const firstItem = page.locator('[data-testid="shop-item"]').first();
     await expect(firstItem).toBeVisible({ timeout: 10_000 });
-
-    // Capture the item name for later verification
-    const itemName = await firstItem.locator('.font-scifi').first().textContent();
-
-    // Read current credits from the right panel (visible after selection)
     await firstItem.click();
 
     // ACQUIRE ASSET button appears in the detail pane
     const acquireBtn = page.getByRole('button', { name: /ACQUIRE ASSET/i });
     await expect(acquireBtn).toBeVisible({ timeout: 5_000 });
-
-    // Note credits before purchase (shown in detail pane)
-    const balanceBefore = await page.locator('text=/\\d+ CR/').nth(1).textContent();
-
     await acquireBtn.click();
 
-    // PurchaseConfirmModal: "Transaction Validation"
+    // Inline "Transaction Validation" confirm banner appears
     await expect(page.getByText('Transaction Validation')).toBeVisible({ timeout: 5_000 });
 
-    // Confirm (button text: "Acquire")
-    await page.getByRole('button', { name: /^Acquire$/i }).click();
+    // Confirm button in the inline banner
+    const confirmAcquireBtn = page.getByRole('button', { name: /^Acquire$/i });
+    await expect(confirmAcquireBtn).toBeVisible({ timeout: 5_000 });
+    await confirmAcquireBtn.click();
 
-    // Confirm modal closes
+    // Confirm banner disappears; no error message
     await expect(page.getByText('Transaction Validation')).not.toBeVisible({ timeout: 8_000 });
-
-    // The shop modal stays open; no error message should appear
-    await expect(page.getByText('Supply Depot')).toBeVisible();
+    // Panel still open (shop items still listed); no error icon
+    await expect(page.locator('[data-testid="shop-item"]').first()).toBeVisible({ timeout: 5_000 });
     await expect(page.locator('text=⚠')).not.toBeVisible();
 });
 
 // ---------------------------------------------------------------------------
-// Test: Equip a purchased item via the character modal
+// Test: Equip a purchased item via the character panel
 // ---------------------------------------------------------------------------
 
-test('equip: purchase item → open character modal → link item → slot reflects name', async ({ page }) => {
+test('equip: purchase item → open character panel → link item → slot reflects name', async ({ page }) => {
     await registerAndLand(page);
 
     // ── Step 1: Buy Combat Knife (cheapest weapon, 100 CR) ──────────────────
     const shopBtn = page.getByTestId('shop-button');
-    await shopBtn.click({ force: true });
-    await expect(page.getByRole('heading', { name: 'Supply Depot' })).toBeVisible({ timeout: 5_000 });
+    await expect(shopBtn).toBeVisible({ timeout: 10_000 });
+    await shopBtn.click();
 
-    // Find "Combat Knife" in the list (may need to scroll in very small viewports)
-    const knifeBtn = page.locator('button', { hasText: /combat knife/i }).first();
+    const knifeBtn = page.locator('[data-testid="shop-item"]', { hasText: /combat knife/i });
     await expect(knifeBtn).toBeVisible({ timeout: 10_000 });
     await knifeBtn.click();
 
-    await page.getByRole('button', { name: /ACQUIRE ASSET/i }).click();
+    const acquireEquipBtn = page.getByRole('button', { name: /ACQUIRE ASSET/i });
+    await expect(acquireEquipBtn).toBeVisible({ timeout: 5_000 });
+    await acquireEquipBtn.click();
+
     await expect(page.getByText('Transaction Validation')).toBeVisible({ timeout: 5_000 });
-    await page.getByRole('button', { name: /^Acquire$/i }).click();
+    const confirmEquipBtn = page.getByRole('button', { name: /^Acquire$/i });
+    await expect(confirmEquipBtn).toBeVisible({ timeout: 5_000 });
+    await confirmEquipBtn.click();
     await expect(page.getByText('Transaction Validation')).not.toBeVisible({ timeout: 8_000 });
 
-    // Close shop modal
+    // Close shop panel via Escape; items disappear from DOM
     await page.keyboard.press('Escape');
-    await expect(page.getByText('Supply Depot')).not.toBeVisible({ timeout: 5_000 });
+    await expect(page.locator('[data-testid="shop-item"]').first()).not.toBeVisible({ timeout: 5_000 });
 
-    // ── Step 2: Open DiagnosticTerminal slide-out ────────────────────────────
+    // ── Step 2: Open TacticalPanel in character mode ─────────────────────────
     await waitForRoster(page);
-    const characterCard = page.locator('.cursor-pointer').first();
-    await characterCard.click();
-
-    // Wait for DiagnosticTerminal to render stat grid
-    await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
+    await openCharacterPanel(page);
 
     // ── Step 3: Click the weapon equipment slot ───────────────────────────────
-    // Equipment slots render as <div> elements showing the slot name (lowercase).
-    const weaponSlot = page.locator('div.font-mono', { hasText: /^weapon$/i }).first();
+    const weaponSlot = page.locator('[data-testid="diagnostic-terminal"] .font-mono', { hasText: /^weapon$/i }).first();
     await expect(weaponSlot).toBeVisible({ timeout: 5_000 });
     await weaponSlot.click();
 
-    // Right pane should show compatible inventory with a "Link" button
+    // Right pane shows compatible inventory with a "Link" button
     const linkBtn = page.getByRole('button', { name: /^Link$/i }).first();
     await expect(linkBtn).toBeVisible({ timeout: 8_000 });
     await linkBtn.click();
 
-    // After equipping, the weapon slot row should show "Combat Knife" (not "Empty")
-    await expect(page.locator('div.font-scifi', { hasText: /combat knife/i })).toBeVisible({ timeout: 8_000 });
+    // After equipping, weapon slot should show "Combat Knife"
+    await expect(page.locator('[data-testid="diagnostic-terminal"] .font-scifi', { hasText: /combat knife/i })).toBeVisible({ timeout: 8_000 });
 });
 
 // ---------------------------------------------------------------------------
@@ -293,19 +275,13 @@ test('equip: purchase item → open character modal → link item → slot refle
 test.fixme('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
     await registerAndLand(page);
 
-    // Open DiagnosticTerminal slide-out
     await waitForRoster(page);
-    const characterCard = page.locator('.cursor-pointer').first();
-    await characterCard.click();
-    await expect(page.getByText(/HP|ATK|DEF/i).first()).toBeVisible({ timeout: 10_000 });
+    await openCharacterPanel(page);
 
-    // SCAVENGE SKILL button → RouletteConfirmNotification → confirm
+    // SCAVENGE SKILL → inline roulette (no intermediate notification step)
     const scavengeBtn = page.locator('button', { hasText: /SCAVENGE SKILL/i }).first();
     await expect(scavengeBtn).toBeVisible({ timeout: 8_000 });
     await scavengeBtn.click();
-    const confirmRouletteBtn = page.locator('button', { hasText: /SCAVENGE A SKILL/i });
-    await expect(confirmRouletteBtn).toBeVisible({ timeout: 5_000 });
-    await confirmRouletteBtn.click();
 
     // Initiate spin
     const spinBtn = page.getByRole('button', { name: /initiate spin/i });
@@ -332,7 +308,6 @@ test.fixme('skill roulette → revealed skill has diegetic name and SkillIcon', 
         expect(name.trim()).not.toBe(raw);
     }
 
-    // Accept and close
     const acceptBtn = page.getByRole('button', { name: /accept/i });
     await acceptBtn.click();
     await expect(page.getByText(/skill acquired/i)).not.toBeVisible({ timeout: 5_000 });

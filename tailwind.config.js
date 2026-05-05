@@ -34,6 +34,12 @@ export default {
                 'glow-magenta': '0 0 10px rgba(255, 0, 255, 0.5), 0 0 20px rgba(255, 0, 255, 0.2)',
                 'neon': '0 0 5px theme("colors.upsilon.cyan"), 0 0 20px theme("colors.upsilon.cyan")',
             },
+            fontSize: {
+                'ui-xs': ['11px', { lineHeight: '1.4' }],
+                'ui-sm': ['13px', { lineHeight: '1.5' }],
+                'ui-md': ['15px', { lineHeight: '1.5' }],
+                'ui-lg': ['17px', { lineHeight: '1.4' }],
+            },
             backgroundImage: {
                 'panel-texture': "url('/assets/textures/rusty_metal.png')",
                 'hero-bg': "url('/assets/textures/hero_bg.png')",

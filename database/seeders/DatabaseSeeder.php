@@ -21,6 +21,7 @@ class DatabaseSeeder extends Seeder
 
         /** @spec-link [[entity_skill_template]] */
         $this->call(SkillTemplatesSeeder::class);
+        $this->call(TestAccountSeeder::class);
 
 
         /** @spec-link [[infra_seed_admin]] */

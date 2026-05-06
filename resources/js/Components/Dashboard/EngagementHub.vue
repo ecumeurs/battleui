@@ -4,7 +4,6 @@
 import { ref, onMounted, onUnmounted } from 'vue';
 import { router } from '@inertiajs/vue3';
 import auth from '@/services/auth';
-import { connection } from '@/services/connection';
 
 const props = defineProps({
     user: {
@@ -79,35 +78,26 @@ const redirectToArena = (matchId) => {
 
 let statusInterval = null;
 
-onMounted(() => {
-    fetchStatus();
-    // Poll as fallback for websocket
-    statusInterval = setInterval(fetchStatus, 5000);
+const matchFoundHandler = (e) => {
+    const matchId = e.data?.match_id || e.match_id;
+    status.value = 'matched';
+    redirectToArena(matchId);
+};
 
-    // WebSocket listener
-    if (window.Echo && props.user.ws_channel_key) {
+onMounted(() => {
+    if (window.Echo && props.user?.ws_channel_key) {
         window.Echo.private(`user.${props.user.ws_channel_key}`)
-            .subscribed(() => {
-                connection.setPrivateLinked(true);
-            })
-            .listen('.match.found', (e) => {
-                console.log("Match Found via WebSocket!", e);
-                const matchId = e.data?.match_id || e.match_id; // Robust check
-                status.value = 'matched';
-                redirectToArena(matchId);
-            })
-            .error((err) => {
-                console.error("Private channel subscription error", err);
-                connection.setPrivateLinked(false);
-            });
+            .listen('.match.found', matchFoundHandler);
     }
+    fetchStatus();
+    statusInterval = setInterval(fetchStatus, 5000);
 });
 
 onUnmounted(() => {
     if (statusInterval) clearInterval(statusInterval);
-    if (window.Echo && props.user.ws_channel_key) {
-        window.Echo.leave(`user.${props.user.ws_channel_key}`);
-        connection.setPrivateLinked(false);
+    if (window.Echo && props.user?.ws_channel_key) {
+        window.Echo.private(`user.${props.user.ws_channel_key}`)
+            .stopListening('.match.found', matchFoundHandler);
     }
 });
 

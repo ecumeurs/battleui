@@ -21,11 +21,18 @@ export default defineConfig({
         },
     ],
 
-    webServer: process.env.PLAYWRIGHT_SKIP_SERVER ? undefined : {
-        command: 'php artisan serve --host=0.0.0.0 --port=8000',
-        url: 'http://localhost:8000/up',
-        reuseExistingServer: !process.env.CI,
-    },
+    webServer: process.env.PLAYWRIGHT_SKIP_SERVER ? undefined : [
+        {
+            command: 'php artisan serve --host=0.0.0.0 --port=8000',
+            url: 'http://localhost:8000/up',
+            reuseExistingServer: !process.env.CI,
+        },
+        {
+            command: 'php artisan reverb:start --host=0.0.0.0 --port=8080',
+            url: 'http://127.0.0.1:8080',
+            reuseExistingServer: !process.env.CI,
+        },
+    ],
 
     use: {
         baseURL: 'http://localhost:8000',

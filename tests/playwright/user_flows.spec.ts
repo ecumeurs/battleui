@@ -1,5 +1,6 @@
 // @test-link [[ui_registration]]
 // @test-link [[ui_login]]
+// @test-link [[api_websocket_user_notifications]]
 // @test-link [[us_character_reroll]]
 // @test-link [[entity_character_skill_inventory]]
 // @test-link [[ui_shop]]
@@ -86,6 +87,13 @@ test('registration: fill form → submit → land on dashboard', async ({ page }
     await expect(page.getByText('Combatant Roster')).toBeVisible({ timeout: 10_000 });
 });
 
+test('registration: private WS LED lit after landing on dashboard', async ({ page }) => {
+    await registerAndLand(page);
+
+    const privateLed = page.locator('[data-testid="led-private"]');
+    await expect(privateLed).toHaveClass(/bg-upsilon-lime/, { timeout: 15_000 });
+});
+
 // ---------------------------------------------------------------------------
 // Test: Login
 // ---------------------------------------------------------------------------
@@ -102,6 +110,20 @@ test('login: credentials → submit → land on dashboard', async ({ page }) => 
 
     await expect(page).toHaveURL(/\/dashboard/);
     await expect(page.getByText('Combatant Roster')).toBeVisible({ timeout: 10_000 });
+});
+
+test('login: private WS LED lit after landing on dashboard', async ({ page }) => {
+    const user = await registerAndLand(page);
+
+    await page.evaluate(() => {
+        localStorage.removeItem('upsilon_token');
+        localStorage.removeItem('upsilon_user');
+    });
+
+    await loginAndLand(page, user);
+
+    const privateLed = page.locator('[data-testid="led-private"]');
+    await expect(privateLed).toHaveClass(/bg-upsilon-lime/, { timeout: 15_000 });
 });
 
 // ---------------------------------------------------------------------------

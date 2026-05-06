@@ -39,6 +39,9 @@ class AuthController extends Controller
             return $this->error('Invalid credentials.', 401);
         }
 
+        // Rotate the WS channel key at EVERY login for tactical security
+        $user->update(['ws_channel_key' => (string) \Illuminate\Support\Str::uuid()]);
+
         $token = $user->createToken('auth_token', expiresAt: now()->addMinutes(15))->plainTextToken;
 
         return $this->success([

@@ -11,9 +11,11 @@ import LeaderboardComponent from '@/Components/Dashboard/LeaderboardComponent.vu
 import NeonShopButton from '@/Components/Shop/NeonShopButton.vue';
 import TacticalPanel from '@/Components/Dashboard/TacticalPanel.vue';
 import { useDashboardState } from '@/Composables/useDashboardState';
+import { usePrivateChannel } from '@/Composables/usePrivateChannel';
 import auth from '@/services/auth';
 
-const { user, loading, initialized, init, updateUser } = useDashboardState();
+const { user, loading, initialized, init, updateUser, reset } = useDashboardState();
+usePrivateChannel(user);
 
 // Panel state
 const panelMode        = ref(null);   // null | 'character' | 'shop' | 'inventory' | 'identity'
@@ -80,6 +82,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
     if (statsInterval) clearInterval(statsInterval);
+    reset();
 });
 </script>
 

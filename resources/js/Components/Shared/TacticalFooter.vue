@@ -19,13 +19,13 @@ const props = defineProps({
             </span>
             <span class="text-upsilon-lime">|</span>
             <span class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full transition-colors duration-500" 
+                <div data-testid="led-private" class="w-1.5 h-1.5 rounded-full transition-colors duration-500"
                     :class="connection.isPrivateLinked ? 'bg-upsilon-lime shadow-[0_0_5px_theme(\'colors.upsilon.lime\')]' : 'bg-upsilon-steel/30'"></div>
                 Link[Private]
             </span>
             <span class="text-upsilon-lime">|</span>
             <span class="flex items-center gap-1.5">
-                <div class="w-1.5 h-1.5 rounded-full transition-colors duration-500" 
+                <div data-testid="led-tactical" class="w-1.5 h-1.5 rounded-full transition-colors duration-500"
                     :class="connection.isBoardLinked ? 'bg-upsilon-cyan shadow-[0_0_5px_theme(\'colors.upsilon.cyan\')]' : 'bg-upsilon-steel/30'"></div>
                 Link[Tactical]
             </span>

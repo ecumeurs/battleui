@@ -24,6 +24,7 @@
                  'full_address' => 'Test Street 1',
                  'birth_date' => '1990-01-01',
                  'credits' => 1000,
+                 'ws_channel_key' => '00000000-0000-0000-0000-000000000001',
              ]
          );
  

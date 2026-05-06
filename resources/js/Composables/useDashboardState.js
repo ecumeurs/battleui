@@ -16,12 +16,23 @@ const initialized      = ref(false);
 // Per-character detail cache: { [characterId]: { character, skills, equipment, loading } }
 const characterDetails = ref({});
 
+function reset() {
+    user.value             = null;
+    characters.value       = [];
+    inventory.value        = [];
+    characterDetails.value = {};
+    initialized.value      = false;
+    loading.value          = true;
+}
+
 export function useDashboardState() {
 
     // -----------------------------------------------------------------------
     // Dashboard initialisation (called once on mount)
     // -----------------------------------------------------------------------
     async function init(authUser) {
+        // Reset when a different user logs in within the same SPA session.
+        if (user.value && user.value.id !== authUser?.id) reset();
         if (initialized.value) return;
         user.value   = authUser;
         loading.value = true;
@@ -150,6 +161,7 @@ export function useDashboardState() {
         initialized,
         characterDetails,
         init,
+        reset,
         refresh,
         updateCharacter,
         updateUser,

@@ -2,6 +2,7 @@ import { test, expect, type Page } from '@playwright/test';
 
 // @test-link [[ui_battle_arena]]
 // @test-link [[rule_password_policy]]
+// @test-link [[api_websocket_arena_updates]]
 
 const TEST_PASSWORD = 'Playwright!TestPass99'; // Compliant with rule_password_policy (15+ chars, Upper, Digit, Symbol)
 
@@ -110,6 +111,10 @@ test.describe('1v1 PVE Battle Arena', () => {
         const pawnOverlays = page.locator('.pawn-overlay');
         // We'll wait a bit more for 3D initialization
         await expect(pawnOverlays, '6 Pawn overlays should be visible in the 3D scene').toHaveCount(6, { timeout: 30000 });
+
+        // 6. Board WS LED must light up — confirms board channel subscription succeeded
+        const tacticalLed = page.locator('[data-testid="led-tactical"]');
+        await expect(tacticalLed).toHaveClass(/bg-upsilon-cyan/, { timeout: 15_000 });
 
         expect(consoleErrors, `Console errors detected`).toHaveLength(0);
         expect(consoleWarnings, `Console warnings detected`).toHaveLength(0);

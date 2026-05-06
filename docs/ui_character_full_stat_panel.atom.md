@@ -11,7 +11,8 @@ parents:
   - [[shared:rule_stat_taxonomy]]
   - [[ui_dashboard]]
   - [[ui_theme]]
-dependents: []
+dependents:
+  - [[ui_diagnostic_terminal]]
 layer: ARCHITECTURE
 version: 2.0
 ---

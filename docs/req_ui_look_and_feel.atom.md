@@ -5,6 +5,7 @@ dependents:
   - [[ui_battle_arena]]
   - [[ui_character_equipment_panel]]
   - [[ui_character_full_stat_panel]]
+  - [[ui_diagnostic_terminal]]
   - [[ui_inventory]]
   - [[ui_shop]]
   - [[ui_skill_icon]]

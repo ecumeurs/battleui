@@ -8,9 +8,9 @@ version: 1.0
 priority: 4
 tags: [ui, dashboard, character]
 parents:
-  - [[ui_dashboard]]
   - [[req_ui_look_and_feel]]
   - [[ui_character_full_stat_panel]]
+  - [[ui_dashboard]]
 dependents: []
 ---
 

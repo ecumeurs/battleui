@@ -1,6 +1,7 @@
 // @spec-link [[ui_battle_arena]]
 // @spec-link [[api_websocket_game_events]]
 import auth from './auth';
+import { connection } from './connection';
 
 export const game = {
     /**
@@ -65,7 +66,8 @@ export const game = {
         
         // Listen on the private user channel for tactical updates
         const channel = window.Echo.private(`user.${user.ws_channel_key}`);
-        
+        channel.subscribed(() => connection.setBoardLinked(true));
+
         const events = ['.board.updated', '.game.started', '.turn.started', '.game.ended', '.game.forfeited'];
         
         events.forEach(eventName => {

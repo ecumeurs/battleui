@@ -14,7 +14,7 @@ defineProps({
 
 <template>
     <Transition name="fade">
-        <div v-if="show && action" class="action-report">
+        <div v-if="show && action" class="action-report" data-testid="action-report">
             <div class="action-report__type">{{ action.type.toUpperCase() }}</div>
             <div class="action-report__details">
                 <template v-if="action.type === 'attack'">
@@ -45,8 +45,8 @@ defineProps({
     pointer-events: none;
     text-align: center;
     background: rgba(10, 10, 11, 0.85);
-    border-top: 2px solid #00f2ff;
-    border-bottom: 2px solid #00f2ff;
+    border-top: 2px solid var(--color-cyan);
+    border-bottom: 2px solid var(--color-cyan);
     padding: 20px 60px;
     backdrop-filter: blur(10px);
     box-shadow: 0 0 30px rgba(0, 242, 255, 0.2);
@@ -57,28 +57,28 @@ defineProps({
     font-size: 24px;
     font-weight: 800;
     letter-spacing: 0.4em;
-    color: #00f2ff;
+    color: var(--color-cyan);
     margin-bottom: 8px;
     text-shadow: 0 0 10px rgba(0, 242, 255, 0.5);
 }
 
 .action-report__details {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    color: #e0e0e0;
+    font-size: var(--fs-sm);
+    color: var(--color-text);
     text-transform: uppercase;
     letter-spacing: 0.1em;
 }
 
 .action-report__hp-change {
-    font-size: 11px;
+    font-size: var(--fs-xs);
     margin-top: 4px;
     opacity: 0.7;
 }
 
-.text-danger { color: #ff2020; }
-.text-warning { color: #ff9f43; }
-.text-info { color: #00a8ff; }
+.text-danger { color: var(--color-red); }
+.text-warning { color: var(--color-orange); }
+.text-info { color: var(--color-blue); }
 
 /* Transitions */
 .fade-enter-active,

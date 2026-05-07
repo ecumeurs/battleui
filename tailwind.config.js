@@ -22,7 +22,24 @@ export default {
                     gunmetal: '#1a1a1e',
                     rust: '#3d2b1f',
                     steel: '#4a4a4f',
-                }
+                },
+                // Semantic combat tokens — backed by CSS vars in app.css
+                zone: {
+                    move:   'var(--color-zone-move)',
+                    attack: 'var(--color-zone-attack)',
+                    skill:  'var(--color-zone-skill)',
+                },
+                team: {
+                    self:   'var(--color-team-self)',
+                    ally:   'var(--color-team-ally)',
+                    enemy:  'var(--color-team-enemy)',
+                    enemy2: 'var(--color-team-enemy2)',
+                },
+                hp: {
+                    healthy:  'var(--color-hp-healthy)',
+                    warning:  'var(--color-hp-warning)',
+                    critical: 'var(--color-hp-critical)',
+                },
             },
             fontFamily: {
                 sans: ['Inter', ...defaultTheme.fontFamily.sans],

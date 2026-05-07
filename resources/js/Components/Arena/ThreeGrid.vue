@@ -1,6 +1,6 @@
 <!-- @spec-link [[ui_iso_board]] -->
 <script setup>
-import { computed, ref, onMounted } from 'vue';
+import { computed, ref } from 'vue';
 import { TresCanvas } from '@tresjs/core';
 import { OrbitControls } from '@tresjs/cientos';
 import * as THREE from 'three';
@@ -8,9 +8,10 @@ import Tile3D from './Tile3D.vue';
 import Obstacle3D from './Obstacle3D.vue';
 import Pawn3D from './Pawn3D.vue';
 import PostProcess from './PostProcess.vue';
-import HighlightMaterial from './HighlightMaterial.vue';
-import GridHighlight from './GridHighlight.vue';
+import ZoneOutline from './ZoneOutline.vue';
+import HoverDisc from './HoverDisc.vue';
 import FacingIndicator3D from './FacingIndicator3D.vue';
+import { PAWN_COLORS, SURFACE_COLORS } from '@/constants/theme.js';
 
 const props = defineProps({
     grid: { type: Object, required: true },
@@ -20,6 +21,8 @@ const props = defineProps({
     highlightedCells: { type: Array, default: () => [] },
     autoRotate: { type: Boolean, default: false },
     effects: { type: Boolean, default: false },
+    // animAction: { type: 'attack'|'skill', new_hp? } — drives pawn flash
+    animAction: { type: Object, default: null },
 });
 
 const ready = ref(false);
@@ -89,8 +92,7 @@ function tilePosition(tile) {
 }
 
 function tileColor(tile) {
-    if (tile.obstacle) return '#3d2b1f';
-    return '#4a4a4f'; // Worn Steel — ui_theme base color
+    return tile.obstacle ? SURFACE_COLORS.obstacle : SURFACE_COLORS.tile;
 }
 
 function highlightAt(x, y) {
@@ -111,15 +113,48 @@ function surfaceHeight(x, y) {
     return cell?.height ?? 0;
 }
 
+// Heuristic: entity being targeted by the current action (for flash animation)
+const targetedEntityId = computed(() => {
+    const a = props.animAction;
+    if (!a) return null;
+    if ((a.type === 'attack' || a.type === 'skill') && a.new_hp !== undefined) {
+        const hit = props.entities.find(e => e.hp === a.new_hp && e.id !== props.currentEntityId);
+        return hit?.id ?? null;
+    }
+    return null;
+});
+
 function entityColor(entity) {
     if (!entity) return '#ffffff';
-    if (entity.is_self) return '#39ff13';
+    if (entity.is_self) return PAWN_COLORS.self;
     const byPlayer = props.teamColors?.[entity.player_id];
     if (byPlayer) return byPlayer;
     const byNickname = props.teamColors?.[entity.nickname];
     if (byNickname) return byNickname;
-    return entity.team === 1 ? '#00a8ff' : '#ff2020';
+    return entity.team === 1 ? PAWN_COLORS.ally : PAWN_COLORS.enemy;
 }
+
+// ── Hover tracking for HoverDisc ────────────────────────────────────────────
+const hoveredCell = ref(null);
+
+function onTilePointerEnter(tile, e) {
+    e?.stopPropagation?.();
+    hoveredCell.value = { x: tile.x, y: tile.y };
+}
+
+function onTilePointerLeave(tile, e) {
+    e?.stopPropagation?.();
+    if (hoveredCell.value?.x === tile.x && hoveredCell.value?.y === tile.y) {
+        hoveredCell.value = null;
+    }
+}
+
+const hoveredHighlight = computed(() => {
+    if (!hoveredCell.value) return null;
+    return props.highlightedCells.find(
+        c => c.x === hoveredCell.value.x && c.y === hoveredCell.value.y
+    ) ?? null;
+});
 
 function onTileClick(tile, event) {
     event?.stopPropagation?.();
@@ -207,6 +242,8 @@ function onTileClick(tile, event) {
                     :tile-height="TILE_HEIGHT"
                     :effects="effects"
                     @click="(e) => onTileClick(tile, e)"
+                    @pointerenter="(e) => onTilePointerEnter(tile, e)"
+                    @pointerleave="(e) => onTilePointerLeave(tile, e)"
                 />
 
                 <!-- Obstacles -->
@@ -219,16 +256,23 @@ function onTileClick(tile, event) {
                     :effects="effects"
                 />
 
-                <!-- Movement / attack highlights -->
-                <GridHighlight
-                    v-for="h in highlightedCells"
-                    :key="'hl-' + h.x + '-' + h.y + '-' + h.type"
-                    :x="h.x"
-                    :y="h.y"
-                    :type="h.type"
+                <!-- Zone outline (neon perimeter) + hover disc -->
+                <ZoneOutline
+                    v-if="highlightedCells.length"
+                    :cells="highlightedCells"
+                    :type="highlightedCells[0]?.type ?? 'move'"
                     :tile-size="TILE_SIZE"
                     :tile-height="TILE_HEIGHT"
-                    :surface-height="surfaceHeight(h.x, h.y)"
+                    :grid="grid"
+                />
+                <HoverDisc
+                    v-if="hoveredHighlight"
+                    :x="hoveredHighlight.x"
+                    :y="hoveredHighlight.y"
+                    :type="hoveredHighlight.type"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
+                    :surface-height="surfaceHeight(hoveredHighlight.x, hoveredHighlight.y)"
                 />
 
                 <!-- Pawns -->
@@ -238,6 +282,7 @@ function onTileClick(tile, event) {
                     :entity="entity"
                     :color="entityColor(entity)"
                     :is-current="entity.id === currentEntityId"
+                    :is-targeted="entity.id === targetedEntityId"
                     :surface-height="surfaceHeight(entity.position.x, entity.position.y)"
                     :tile-size="TILE_SIZE"
                     :tile-height="TILE_HEIGHT"

@@ -69,6 +69,20 @@ const FIXTURES = [
             </div>
         </section>
 
+        <!-- Link to Battle Arena Sandbox -->
+        <section class="fixture-section">
+            <div class="fixture-section__header">
+                <span class="fixture-section__label" style="color: rgba(251,191,36,0.5)">BATTLE ARENA SANDBOX</span>
+                <span class="fixture-section__desc">Logic & UI fixture harness — HP bars, skills, movement, animations</span>
+            </div>
+            <div>
+                <a href="/__test/battle/" class="battle-sandbox-link">
+                    <span>OPEN BATTLE ARENA SANDBOX →</span>
+                    <span style="opacity:0.5; font-size:10px;">/__test/battle/</span>
+                </a>
+            </div>
+        </section>
+
         <footer class="terminal__footer">
             <span>{{ FIXTURES.length }} FIXTURES REGISTERED</span>
             <span>·</span>
@@ -258,5 +272,27 @@ const FIXTURES = [
 
 .terminal__home-link:hover {
     color: #00f2ff;
+}
+
+.battle-sandbox-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 24px;
+    background: rgba(251, 191, 36, 0.06);
+    border: 1px solid rgba(251, 191, 36, 0.25);
+    color: #fbbf24;
+    text-decoration: none;
+    font-family: 'Orbitron', sans-serif;
+    font-size: 12px;
+    letter-spacing: 0.15em;
+    text-transform: uppercase;
+    transition: border-color 0.15s, box-shadow 0.15s, background 0.15s;
+}
+
+.battle-sandbox-link:hover {
+    border-color: rgba(251, 191, 36, 0.5);
+    box-shadow: 0 0 16px rgba(251, 191, 36, 0.1);
+    background: rgba(251, 191, 36, 0.1);
 }
 </style>

@@ -1,3 +1,41 @@
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
+
+/* @spec-link [[ui_theme]] */
+/* Centralized design tokens — mirrors constants/theme.js for CSS-land.
+   Use these in <style scoped> blocks and any non-Tailwind CSS. */
+:root {
+    /* ─── Font scale (matches tailwind fontSize.ui-*) ─── */
+    --fs-xs: 11px;
+    --fs-sm: 13px;
+    --fs-md: 15px;
+    --fs-lg: 17px;
+
+    /* ─── Zone action colors ─── */
+    --color-zone-move:   #00f2ff;
+    --color-zone-attack: #ff2020;
+    --color-zone-skill:  #fbbf24;
+
+    /* ─── Team identity colors ─── */
+    --color-team-self:   #00a8ff;
+    --color-team-ally:   #39ff13;
+    --color-team-enemy:  #ff2020;
+    --color-team-enemy2: #b030ff;
+
+    /* ─── HP bar state colors ─── */
+    --color-hp-healthy:  #39ff13;
+    --color-hp-warning:  #ff8c00;
+    --color-hp-critical: #ff2020;
+
+    /* ─── UI accent palette ─── */
+    --color-cyan:    #00f2ff;
+    --color-magenta: #ff00ff;
+    --color-lime:    #39ff13;
+    --color-blue:    #00a8ff;
+    --color-red:     #ff2020;
+    --color-gold:    #fbbf24;
+    --color-purple:  #b030ff;
+    --color-orange:  #ff8c00;
+    --color-text:    #e0e0e0;
+}

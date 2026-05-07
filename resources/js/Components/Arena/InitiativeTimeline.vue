@@ -1,6 +1,7 @@
 <!-- @spec-link [[ui_initiative_timeline]] -->
 <script setup>
 import { computed } from 'vue';
+import { TEAM_COLORS } from '@/constants/theme.js';
 
 const props = defineProps({
     turns: { type: Array, required: true }, // [{player_id, entity_id, delay, name}]
@@ -18,8 +19,8 @@ function tokenPosition(delay) {
 }
 
 function tokenColor(turn) {
-    if (turn.is_self) return '#00a8ff';
-    return props.teamColors[turn.team] || '#ff00ff';
+    if (turn.is_self) return TEAM_COLORS.self;
+    return props.teamColors[turn.team] || TEAM_COLORS.enemy2;
 }
 </script>
 
@@ -57,6 +58,8 @@ function tokenColor(turn) {
                     '--token-color': tokenColor(turn),
                 }"
                 :title="turn.name + ' (Delay: ' + turn.delay + ')'"
+                data-testid="turn-token"
+                :data-entity-id="turn.entity_id"
             >
                 <div class="timeline__token-pip"></div>
                 <span class="timeline__token-name">{{ turn.name }}</span>
@@ -78,7 +81,7 @@ function tokenColor(turn) {
 
 .timeline__header {
     font-family: 'Orbitron', sans-serif;
-    font-size: 7px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: rgba(0, 242, 255, 0.5);
@@ -89,7 +92,7 @@ function tokenColor(turn) {
 }
 
 .timeline__header-icon {
-    font-size: 8px;
+    font-size: var(--fs-xs);
 }
 
 .timeline__track {
@@ -130,7 +133,7 @@ function tokenColor(turn) {
     left: 50%;
     transform: translateX(-50%);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 6px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.35);
 }
 
@@ -166,7 +169,7 @@ function tokenColor(turn) {
 
 .timeline__token-name {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 6px;
+    font-size: var(--fs-xs);
     color: #e0e0e0;
     text-transform: uppercase;
     white-space: nowrap;
@@ -175,7 +178,7 @@ function tokenColor(turn) {
 
 .timeline__token-delay {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 7px;
+    font-size: var(--fs-xs);
     color: var(--token-color);
     opacity: 0.7;
 }

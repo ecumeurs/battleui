@@ -1,7 +1,8 @@
 <script setup>
 // @spec-link [[ui_character_pawn]]
 // @spec-link [[mech_hologram_shader]]
-import { ref, computed, watch, nextTick, onMounted } from 'vue';
+import { ref, shallowRef, computed, watch, onMounted } from 'vue';
+import { useLoop } from '@tresjs/core';
 import { Html } from '@tresjs/cientos';
 import * as THREE from 'three';
 import HologramMaterial from './HologramMaterial.vue';
@@ -10,6 +11,7 @@ const props = defineProps({
     entity: { type: Object, required: true },
     color: { type: String, default: '#ffffff' },
     isCurrent: { type: Boolean, default: false },
+    isTargeted: { type: Boolean, default: false },
     surfaceHeight: { type: Number, default: 0 },
     tileSize: { type: Number, default: 1.0 },
     tileHeight: { type: Number, default: 0.25 },
@@ -20,25 +22,74 @@ const props = defineProps({
 const mounted = ref(false);
 const meshReady = ref(false);
 
-onMounted(() => {
-    mounted.value = true;
-});
-
-function onMeshReady() {
-    meshReady.value = true;
-}
+onMounted(() => { mounted.value = true; });
+function onMeshReady() { meshReady.value = true; }
 
 const showOverlay = computed(() => mounted.value && props.gridReady);
 
-const position = computed(() => {
-    if (!props.entity?.position) return [0, 0, 0];
+// ─── Movement tween ───────────────────────────────────────────────────────────
+const groupRef = shallowRef(null);
+const _targetPos = new THREE.Vector3();
+const _lerpSpeed = 8; // units/sec multiplier; covers 1 tile (~1 unit) in ~125ms
+let _initialized = false;
+
+function _syncTargetPos() {
+    if (!props.entity?.position) return;
     const surface = (props.surfaceHeight + 1) * props.tileHeight;
-    const pawnH = 0.8;
-    return [
+    _targetPos.set(
         (props.entity.position.x + 0.5) * props.tileSize,
-        surface + (pawnH / 2) + 0.02, // 0.02 safety margin above surface
+        surface + 0.4 + 0.02,
         (props.entity.position.y + 0.5) * props.tileSize,
-    ];
+    );
+}
+
+_syncTargetPos(); // Set on script setup so first frame is close
+
+watch(() => [props.entity?.position?.x, props.entity?.position?.y, props.surfaceHeight], () => {
+    _syncTargetPos();
+}, { deep: false });
+
+// Flash animation state for attack/skill hit
+const _flashTime = ref(0); // counts down from 0.6s to 0
+
+const { onRender } = useLoop();
+onRender(({ delta }) => {
+    if (!groupRef.value) return;
+
+    // Snap to correct position on first frame
+    if (!_initialized) {
+        groupRef.value.position.copy(_targetPos);
+        _initialized = true;
+        return;
+    }
+
+    // Lerp toward target
+    const dist = groupRef.value.position.distanceTo(_targetPos);
+    if (dist > 0.005) {
+        groupRef.value.position.lerp(_targetPos, Math.min(1, delta * _lerpSpeed));
+    } else {
+        groupRef.value.position.copy(_targetPos);
+    }
+
+    // Flash timer countdown
+    if (_flashTime.value > 0) {
+        _flashTime.value = Math.max(0, _flashTime.value - delta);
+    }
+});
+
+// Trigger flash when isTargeted activates
+watch(() => props.isTargeted, (v) => {
+    if (v) _flashTime.value = 0.6;
+});
+
+// Emissive intensity: base + flash pulse
+const emissiveIntensity = computed(() => {
+    const base = props.isCurrent ? 0.8 : 0.2;
+    if (_flashTime.value > 0) {
+        const pulse = Math.sin((_flashTime.value / 0.6) * Math.PI);
+        return base + pulse * 2.5;
+    }
+    return base;
 });
 
 const hpPct = computed(() => {
@@ -48,7 +99,7 @@ const hpPct = computed(() => {
 </script>
 
 <template>
-    <TresGroup :position="position">
+    <TresGroup ref="groupRef">
         <!-- Pawn Mesh -->
         <TresMesh cast-shadow @ready="onMeshReady">
             <TresConeGeometry :args="[0.3, 0.8, 6]" />
@@ -63,7 +114,7 @@ const hpPct = computed(() => {
                 v-else
                 :color="color"
                 :emissive="color"
-                :emissive-intensity="isCurrent ? 0.8 : 0.2"
+                :emissive-intensity="emissiveIntensity"
                 :roughness="0.35"
                 :metalness="0.75"
             />
@@ -102,7 +153,7 @@ const hpPct = computed(() => {
 
 .pawn-overlay__name {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
+    font-size: var(--fs-xs);
     font-weight: 800;
     color: #ffffff;
     text-transform: uppercase;

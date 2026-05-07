@@ -1,5 +1,6 @@
 <script setup>
 import { computed } from 'vue';
+import { hpColor } from '@/constants/theme.js';
 
 const props = defineProps({
     teamHp: { type: Number, required: true },
@@ -15,9 +16,7 @@ const hpPct = computed(() => {
 });
 
 function barColor(pct) {
-    if (pct > 60) return '#39ff13';
-    if (pct > 30) return '#ff8c00';
-    return '#ff2020';
+    return hpColor(pct, 100);
 }
 
 function barGlow(pct) {
@@ -33,7 +32,11 @@ function barGlow(pct) {
             <span class="team-summary__char-icon" v-for="n in totalChars" :key="n" :class="{ 'team-summary__char-icon--alive': n <= charsRemaining }">◆</span>
         </div>
 
-        <div class="team-summary__hp-bar-container">
+        <div class="team-summary__hp-bar-container"
+             :data-testid="isEnemy ? 'team-hp-enemy' : 'team-hp-ally'"
+             :aria-valuenow="teamHp"
+             :aria-valuemax="teamMaxHp"
+        >
             <span v-if="isEnemy" class="team-summary__hp-text team-summary__hp-text--right" :style="{ color: barColor(hpPct) }">{{ teamHp }}</span>
             
             <div class="team-summary__hp-bar" :class="{ 'team-summary__hp-bar--left': !isEnemy, 'team-summary__hp-bar--right': isEnemy }">
@@ -82,18 +85,18 @@ function barGlow(pct) {
 }
 
 .team-summary__char-icon {
-    font-size: 10px;
+    font-size: var(--fs-xs);
     color: #2a2a2f;
     transition: color 0.3s;
 }
 
 .team-summary__char-icon--alive {
-    color: #39ff13;
+    color: var(--color-lime);
     text-shadow: 0 0 6px #39ff1380;
 }
 
 .team-summary__char-icon--enemy {
-    color: #ff2020;
+    color: var(--color-red);
     text-shadow: 0 0 6px #ff202080;
 }
 
@@ -143,7 +146,7 @@ function barGlow(pct) {
 
 .team-summary__hp-text {
     font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-sm);
     font-weight: 700;
     min-width: 36px;
     text-align: center;

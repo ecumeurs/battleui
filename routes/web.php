@@ -57,6 +57,12 @@ Route::prefix('__test/component')->group(function () {
     Route::get('/{name}', fn (string $name) => Inertia::render('TestComponent', ['name' => $name]));
 });
 
+/** @spec-link [[mech_frontend_test_seams]] */
+Route::prefix('__test/battle')->group(function () {
+    Route::get('/', fn () => Inertia::render('BattleArenaSandboxIndex'));
+    Route::get('/{name}', fn (string $name) => Inertia::render('BattleArenaSandbox', ['name' => $name]));
+});
+
 /** @spec-link [[mech_web_catchall_router]] */
 Route::get('/{any}', function () {
     return Inertia::render('Welcome');

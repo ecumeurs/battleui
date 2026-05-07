@@ -263,8 +263,8 @@ function onWheel(e) {
 
 .board-controls__zoom-level {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 10px;
-    color: #00f2ff;
+    font-size: var(--fs-xs);
+    color: var(--color-cyan);
     min-width: 36px;
     text-align: center;
 }
@@ -286,9 +286,9 @@ function onWheel(e) {
     height: 24px;
     background: rgba(26, 26, 30, 0.9);
     border: 1px solid rgba(0, 242, 255, 0.2);
-    color: #00f2ff;
+    color: var(--color-cyan);
     font-family: 'JetBrains Mono', monospace;
-    font-size: 11px;
+    font-size: var(--fs-xs);
     cursor: pointer;
     display: flex;
     align-items: center;
@@ -304,7 +304,7 @@ function onWheel(e) {
 }
 
 .board-ctrl-btn--center {
-    color: #ff00ff;
+    color: var(--color-magenta);
     border-color: rgba(255, 0, 255, 0.2);
 }
 

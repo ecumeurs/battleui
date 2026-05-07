@@ -14,7 +14,7 @@ const props = defineProps({
     moveCostPerTile: { type: Number,  default: 20 },
     attackCost:      { type: Number,  default: 100 },
     passCost:        { type: Number,  default: 300 },
-    selectedAction:  { type: String,  default: null },
+    selectedAction:  { type: [String, Object],  default: null },
     /** The entity currently acting — used for context display */
     activeCharacter: { type: Object,  default: null },
     /** Name of the player currently holding the turn */
@@ -38,9 +38,9 @@ function fire(type) {
     emit('action', type);
 }
 
-function fireSkill(skillId) {
+function fireSkill(sk) {
     if (!props.isPlayerTurn || props.isProcessing) return;
-    emit('action', { type: 'skill', skillId });
+    emit('action', { type: 'skill', skill: sk });
 }
 
 function costSummary(sk) {
@@ -104,6 +104,7 @@ function costSummary(sk) {
                 :class="{ 'ap-btn--selected': selectedAction === 'move' }"
                 :disabled="!isPlayerTurn || !canMove || isProcessing"
                 @click="fire('move')"
+                data-testid="action-btn-move"
             >
                 <span class="ap-btn__icon">⬡</span>
                 <span class="ap-btn__label">MOVE</span>
@@ -116,6 +117,7 @@ function costSummary(sk) {
                 :class="{ 'ap-btn--selected': selectedAction === 'attack' }"
                 :disabled="!isPlayerTurn || !canAttack || isProcessing"
                 @click="fire('attack')"
+                data-testid="action-btn-attack"
             >
                 <span class="ap-btn__icon">⚔</span>
                 <span class="ap-btn__label">ATTACK</span>
@@ -127,6 +129,7 @@ function costSummary(sk) {
                 class="ap-btn ap-btn--pass"
                 :disabled="!isPlayerTurn || isProcessing"
                 @click="fire('pass')"
+                data-testid="action-btn-pass"
             >
                 <span class="ap-btn__icon">⏭</span>
                 <span class="ap-btn__label">PASS</span>
@@ -140,9 +143,12 @@ function costSummary(sk) {
                     v-for="sk in activeSkills"
                     :key="sk.skill_id"
                     class="ap-btn ap-btn--skill"
-                    :class="{ 'ap-btn--selected': selectedAction === sk.skill_id }"
+                    :class="{ 'ap-btn--selected': selectedAction?.skill?.skill_id === sk.skill_id }"
                     :disabled="!isPlayerTurn || isProcessing"
-                    @click="fireSkill(sk.skill_id)"
+                    @click="fireSkill(sk)"
+                    data-testid="skill-btn"
+                    :data-skill-id="sk.skill_id"
+                    :data-behavior="sk.behavior"
                 >
                     <SkillIcon :tags="sk.tags ?? []" :behavior="sk.behavior" :size="18" />
                     <span class="ap-btn__label ap-btn__label--skill">{{ sk.name }}</span>
@@ -171,6 +177,7 @@ function costSummary(sk) {
                 class="ap-btn ap-btn--forfeit"
                 :disabled="!isPlayerTurn || isProcessing"
                 @click="fire('forfeit')"
+                data-testid="action-btn-forfeit"
             >
                 <span class="ap-btn__icon">⚠</span>
                 <span class="ap-btn__label">FORFEIT</span>
@@ -251,8 +258,8 @@ function costSummary(sk) {
 }
 
 .ap-status--yours .ap-status__dot {
-    background: #00f2ff;
-    box-shadow: 0 0 6px #00f2ff;
+    background: var(--color-cyan);
+    box-shadow: 0 0 6px var(--color-cyan);
     animation: ap-pulse 1.4s ease-in-out infinite;
 }
 
@@ -262,11 +269,11 @@ function costSummary(sk) {
 
 .ap-status__text {
     font-family: 'Orbitron', sans-serif;
-    font-size: 8px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.2em;
 }
 
-.ap-status--yours .ap-status__text   { color: #00f2ff; }
+.ap-status--yours .ap-status__text   { color: var(--color-cyan); }
 .ap-status--waiting .ap-status__text { color: rgba(224, 224, 224, 0.6); }
 
 /* Context info */
@@ -280,7 +287,7 @@ function costSummary(sk) {
 
 .ap-context__name {
     font-family: 'Orbitron', sans-serif;
-    font-size: 9px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.15em;
     color: #e0e0e0;
     white-space: nowrap;
@@ -288,20 +295,20 @@ function costSummary(sk) {
 
 .ap-context__sep {
     color: rgba(224, 224, 224, 0.4);
-    font-size: 9px;
+    font-size: var(--fs-xs);
 }
 
 .ap-context__hp,
 .ap-context__mv {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.45);
     white-space: nowrap;
 }
 
 .ap-context__placeholder {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    font-size: var(--fs-xs);
     color: rgba(224, 224, 224, 0.4);
     font-style: italic;
 }
@@ -313,7 +320,7 @@ function costSummary(sk) {
 
 .ap-owner__label {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
+    font-size: var(--fs-xs);
     color: rgba(224, 224, 224, 0.5);
     letter-spacing: 0.05em;
     white-space: nowrap;
@@ -379,66 +386,66 @@ function costSummary(sk) {
     cursor: not-allowed;
 }
 
-.ap-btn__icon  { font-size: 13px; }
+.ap-btn__icon  { font-size: var(--fs-sm); }
 
 .ap-btn__label {
     font-family: 'Orbitron', sans-serif;
-    font-size: 7px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.2em;
     text-transform: uppercase;
 }
 
 .ap-btn__cost {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 7px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.4);
 }
 
 /* Move */
 .ap-btn--move:hover:not(:disabled) {
-    border-color: #00f2ff;
+    border-color: var(--color-cyan);
     box-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
 }
-.ap-btn--move:hover:not(:disabled) .ap-btn__icon { color: #00f2ff; }
+.ap-btn--move:hover:not(:disabled) .ap-btn__icon { color: var(--color-cyan); }
 
 .ap-btn--move.ap-btn--selected {
     background: rgba(0, 242, 255, 0.12);
-    border-color: #00f2ff;
+    border-color: var(--color-cyan);
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.35);
 }
-.ap-btn--move.ap-btn--selected .ap-btn__icon { color: #00f2ff; }
+.ap-btn--move.ap-btn--selected .ap-btn__icon { color: var(--color-cyan); }
 
 /* Attack */
 .ap-btn--attack:hover:not(:disabled) {
-    border-color: #ff00ff;
+    border-color: var(--color-magenta);
     box-shadow: 0 0 8px rgba(255, 0, 255, 0.3);
 }
-.ap-btn--attack:hover:not(:disabled) .ap-btn__icon { color: #ff00ff; }
+.ap-btn--attack:hover:not(:disabled) .ap-btn__icon { color: var(--color-magenta); }
 
 .ap-btn--attack.ap-btn--selected {
     background: rgba(255, 0, 255, 0.12);
-    border-color: #ff00ff;
+    border-color: var(--color-magenta);
     box-shadow: 0 0 10px rgba(255, 0, 255, 0.35);
 }
-.ap-btn--attack.ap-btn--selected .ap-btn__icon { color: #ff00ff; }
+.ap-btn--attack.ap-btn--selected .ap-btn__icon { color: var(--color-magenta); }
 
 /* Pass */
 .ap-btn--pass:hover:not(:disabled) {
-    border-color: #ff8c00;
+    border-color: var(--color-orange);
     box-shadow: 0 0 8px rgba(255, 140, 0, 0.3);
 }
-.ap-btn--pass:hover:not(:disabled) .ap-btn__icon { color: #ff8c00; }
+.ap-btn--pass:hover:not(:disabled) .ap-btn__icon { color: var(--color-orange); }
 
 /* Skill buttons */
 .ap-btn--skill:hover:not(:disabled) {
-    border-color: #00f2ff;
+    border-color: var(--color-cyan);
     box-shadow: 0 0 8px rgba(0, 242, 255, 0.3);
 }
-.ap-btn--skill:hover:not(:disabled) .ap-btn__label { color: #00f2ff; }
+.ap-btn--skill:hover:not(:disabled) .ap-btn__label { color: var(--color-cyan); }
 
 .ap-btn--skill.ap-btn--selected {
     background: rgba(0, 242, 255, 0.1);
-    border-color: #00f2ff;
+    border-color: var(--color-cyan);
     box-shadow: 0 0 10px rgba(0, 242, 255, 0.3);
 }
 
@@ -463,7 +470,7 @@ function costSummary(sk) {
 
 .ap-passive__name {
     font-family: 'Orbitron', sans-serif;
-    font-size: 6px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.15em;
     text-transform: uppercase;
     color: #4a4a4f;
@@ -483,11 +490,11 @@ function costSummary(sk) {
     border-color: rgba(255, 32, 32, 0.18);
 }
 .ap-btn--forfeit:hover:not(:disabled) {
-    border-color: #ff2020;
+    border-color: var(--color-red);
     box-shadow: 0 0 8px rgba(255, 32, 32, 0.3);
     background: rgba(255, 32, 32, 0.06);
 }
-.ap-btn--forfeit:hover:not(:disabled) .ap-btn__icon { color: #ff2020; }
+.ap-btn--forfeit:hover:not(:disabled) .ap-btn__icon { color: var(--color-red); }
 
 /* ── Lock overlay ────────────────────────────────────────────── */
 .ap-lock-overlay {
@@ -506,13 +513,13 @@ function costSummary(sk) {
 }
 
 .ap-lock-overlay__icon {
-    font-size: 10px;
+    font-size: var(--fs-xs);
     opacity: 0.3;
 }
 
 .ap-lock-overlay__text {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 8px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.12em;
     color: rgba(224, 224, 224, 0.6);
     text-transform: uppercase;
@@ -526,8 +533,8 @@ function costSummary(sk) {
 
 /* ── Keyframes ───────────────────────────────────────────────── */
 @keyframes ap-pulse {
-    0%, 100% { opacity: 1; box-shadow: 0 0 6px #00f2ff; }
-    50%       { opacity: 0.4; box-shadow: 0 0 3px #00f2ff; }
+    0%, 100% { opacity: 1; box-shadow: 0 0 6px var(--color-cyan); }
+    50%       { opacity: 0.4; box-shadow: 0 0 3px var(--color-cyan); }
 }
 
 @keyframes ap-blink {

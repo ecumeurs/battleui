@@ -13,6 +13,7 @@ import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
 import ThreeGrid from '@/Components/Arena/ThreeGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
+import { TEAM_COLORS } from '@/constants/theme.js';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
 import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
@@ -28,7 +29,9 @@ const isSocketConnected = ref(false);
 const lastAction = ref(null);
 const showActionReport = ref(false);
 const showForfeitModal = ref(false);
+const animAction = ref(null);
 let actionTimeout = null;
+let animTimeout = null;
 
 const myPlayer = computed(() => tactical.myPlayer(gameState.value));
 const currentPlayerId = computed(() => {
@@ -83,15 +86,18 @@ onMounted(async () => {
             });
         }
 
-        // Watch for actions to trigger feedback
+        // Watch for actions to trigger feedback and animations
         watch(() => gameState.value?.action, (newAction) => {
             if (newAction && newAction.type) {
                 lastAction.value = newAction;
                 showActionReport.value = true;
                 if (actionTimeout) clearTimeout(actionTimeout);
-                actionTimeout = setTimeout(() => {
-                    showActionReport.value = false;
-                }, 3000);
+                actionTimeout = setTimeout(() => { showActionReport.value = false; }, 3000);
+
+                // Brief animation overlay (detectable by Playwright + drives Pawn3D flash)
+                animAction.value = newAction;
+                if (animTimeout) clearTimeout(animTimeout);
+                animTimeout = setTimeout(() => { animAction.value = null; }, 800);
             }
         }, { deep: true });
 
@@ -135,7 +141,30 @@ onMounted(async () => {
         const to = new Date(gameState.value.timeout).getTime();
         shotClock.value = Math.max(0, Math.ceil((to - Date.now()) / 1000));
     }, 1000);
+
+    window.addEventListener('keydown', handleKeydown);
 });
+
+function handleKeydown(e) {
+    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
+    if (e.key === 'Escape') {
+        selectedAction.value = null;
+        selectedPath.value = [];
+        highlightedCells.value = [];
+        return;
+    }
+    if (!isPlayerTurn.value || isProcessing.value) return;
+    if (e.code === 'KeyM') handleAction('move');
+    else if (e.code === 'KeyA') handleAction('attack');
+    else if (e.code === 'KeyP' || e.code === 'Space') { e.preventDefault(); handleAction('pass'); }
+    else if (e.key >= '1' && e.key <= '5') {
+        const idx = parseInt(e.key) - 1;
+        const actionable = (currentEntity.value?.equipped_skills ?? []).filter(
+            s => s.behavior === 'Direct' || s.behavior === 'Trap',
+        );
+        if (actionable[idx]) handleAction({ type: 'skill', skill: actionable[idx] });
+    }
+}
 
 onUnmounted(() => {
     if (matchId.value) {
@@ -144,6 +173,7 @@ onUnmounted(() => {
     }
     clearInterval(matchTimerInterval);
     clearInterval(shotTimerInterval);
+    window.removeEventListener('keydown', handleKeydown);
 });
 
 // ─── COMPUTED STATE ──────────────────────────────────────────
@@ -199,16 +229,15 @@ const teamColors = computed(() => {
     gameState.value.players.forEach(p => {
         let color = '#ffffff';
         if (p.is_self) {
-            color = '#00a8ff'; // Blue
+            color = TEAM_COLORS.self;
         } else if (p.team === myTeam.value) {
-            color = '#39ff13'; // Green
+            color = TEAM_COLORS.ally;
         } else {
-            // Check if it's the primary foe
             const foes = enemyParticipants.value;
             if (foes[0] && (foes[0].player_id === p.player_id || foes[0].nickname === p.nickname)) {
-                color = '#ff2020'; // Red
+                color = TEAM_COLORS.enemy;
             } else {
-                color = '#b030ff'; // Purple
+                color = TEAM_COLORS.enemy2;
             }
         }
         
@@ -256,17 +285,31 @@ const isProcessing = ref(false);
 async function handleAction(type) {
     if (!isPlayerTurn.value || isProcessing.value) return;
 
-    // Skill activation — ActionPanel emits { type: 'skill', skillId }
+    // Skill activation — ActionPanel emits { type: 'skill', skill: <skillObj> }
     if (typeof type === 'object' && type.type === 'skill') {
-        isProcessing.value = true;
-        try {
-            await game.sendAction(matchId.value, currentEntityId.value, 'skill', [], { skill_id: type.skillId });
-            selectedAction.value = null;
-        } catch (err) {
-            console.error('Skill action failed:', err);
-        } finally {
-            isProcessing.value = false;
+        const skill = type.skill;
+        // Passive / auto-triggered skills cannot be manually activated
+        if (!skill || skill.behavior === 'Passive' || skill.behavior === 'Reaction' || skill.behavior === 'Counter') return;
+
+        const targetType = skill.targeting?.TargetType?.value ?? 'Entity';
+
+        // Self-targeting Direct skills fire immediately
+        if (skill.behavior === 'Direct' && targetType === 'Self') {
+            isProcessing.value = true;
+            try {
+                await game.sendAction(matchId.value, currentEntityId.value, 'skill', [], { skill_id: skill.skill_id });
+                selectedAction.value = null;
+            } catch (err) {
+                console.error('Skill action failed:', err);
+            } finally {
+                isProcessing.value = false;
+            }
+            return;
         }
+
+        // All other Direct / Trap skills require target selection
+        selectedAction.value = { type: 'skill', skill };
+        calculateSkillRange(skill);
         return;
     }
 
@@ -364,17 +407,50 @@ async function handleTileClick(x, y) {
             }
         }
     } else if (selectedAction.value === 'attack') {
-        const targetCell = highlightedCells.value.find(c => c.x === x && c.y === y && c.type === 'attack');
-        if (targetCell) {
-            isProcessing.value = true;
-            try {
-                await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{ x, y }]);
-                selectedAction.value = null;
-                highlightedCells.value = [];
-            } catch (err) {
-                console.error("Attack failed:", err);
-            } finally {
-                isProcessing.value = false;
+        const inZone = highlightedCells.value.some(c => c.x === x && c.y === y && c.type === 'attack');
+        if (inZone) {
+            const enemy = enemyEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
+            if (enemy) {
+                isProcessing.value = true;
+                try {
+                    await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{ x, y }]);
+                    selectedAction.value = null;
+                    highlightedCells.value = [];
+                } catch (err) {
+                    console.error("Attack failed:", err);
+                } finally {
+                    isProcessing.value = false;
+                }
+            }
+        }
+    } else if (selectedAction.value?.type === 'skill') {
+        const inZone = highlightedCells.value.some(c => c.x === x && c.y === y);
+        if (inZone) {
+            const skill = selectedAction.value.skill;
+            const targetType = skill.targeting?.TargetType?.value ?? 'Entity';
+            const cell = grid.value.cells[x]?.[y];
+            const enemyAtCell = enemyEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
+            const allyAtCell  = allyEntities.value.find(e => e.id !== currentEntityId.value && e.position.x === x && e.position.y === y && e.hp > 0);
+            const anyEntity   = allEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
+
+            let valid = false;
+            if (skill.behavior === 'Trap')           valid = !cell?.obstacle && !anyEntity;
+            else if (targetType === 'EnemyOnly')     valid = !!enemyAtCell;
+            else if (targetType === 'FriendOnly')    valid = !!allyAtCell;
+            else if (targetType === 'Tile')          valid = !cell?.obstacle;
+            else                                     valid = !!anyEntity;
+
+            if (valid) {
+                isProcessing.value = true;
+                try {
+                    await game.sendAction(matchId.value, currentEntityId.value, 'skill', [{ x, y }], { skill_id: skill.skill_id });
+                    selectedAction.value = null;
+                    highlightedCells.value = [];
+                } catch (err) {
+                    console.error("Skill action failed:", err);
+                } finally {
+                    isProcessing.value = false;
+                }
             }
         }
     }
@@ -408,21 +484,59 @@ function calculateMoveRange() {
     highlightedCells.value = highlighted;
 }
 
+// Highlight full melee ring (all adjacent non-obstacle cells); enemy validation at click time.
 function calculateAttackRange() {
-    if (!currentEntity.value) return;
+    if (!currentEntity.value || !grid.value) return;
     const start = currentEntity.value.position;
-
     const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
     const highlighted = [];
-
     for (const d of dirs) {
         const nx = start.x + d[0];
         const ny = start.y + d[1];
         if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
-            const enemy = enemyEntities.value.find(e => e.position.x === nx && e.position.y === ny && e.hp > 0);
-            if (enemy) {
-                highlighted.push({ x: nx, y: ny, type: 'attack' });
-            }
+            const cell = grid.value.cells[nx]?.[ny];
+            if (cell && !cell.obstacle) highlighted.push({ x: nx, y: ny, type: 'attack' });
+        }
+    }
+    highlightedCells.value = highlighted;
+}
+
+// LOS: trace intermediate cells between (sx,sy) and (tx,ty).
+// Both obstacles and live entities (except the caster) block sight.
+function hasLOS(sx, sy, tx, ty) {
+    const dx = tx - sx;
+    const dy = ty - sy;
+    const dist = Math.max(Math.abs(dx), Math.abs(dy));
+    if (dist <= 1) return true;
+    for (let i = 1; i < dist; i++) {
+        const cx = Math.round(sx + dx * i / dist);
+        const cy = Math.round(sy + dy * i / dist);
+        if (grid.value.cells[cx]?.[cy]?.obstacle) return false;
+        if (allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === cx && e.position.y === cy && e.hp > 0)) return false;
+    }
+    return true;
+}
+
+// Highlight the full reachable zone for a skill (all in-range, non-obstacle, LOS-clear cells).
+// Target-type validation (EnemyOnly, FriendOnly, etc.) is deferred to handleTileClick so the
+// zone outline shows the complete diamond the player can aim into.
+function calculateSkillRange(skill) {
+    if (!currentEntity.value || !grid.value) return;
+    const start = currentEntity.value.position;
+    const range = skill.targeting?.Range?.value ?? 1;
+    const highlighted = [];
+
+    for (let dx = -range; dx <= range; dx++) {
+        for (let dy = -range; dy <= range; dy++) {
+            if (dx === 0 && dy === 0) continue;
+            if (Math.abs(dx) + Math.abs(dy) > range) continue;
+            const nx = start.x + dx;
+            const ny = start.y + dy;
+            if (nx < 0 || nx >= grid.value.width || ny < 0 || ny >= grid.value.height) continue;
+            const cell = grid.value.cells[nx]?.[ny];
+            if (!cell || cell.obstacle) continue;
+            if (!hasLOS(start.x, start.y, nx, ny)) continue;
+            highlighted.push({ x: nx, y: ny, type: 'skill' });
         }
     }
     highlightedCells.value = highlighted;
@@ -464,6 +578,10 @@ async function executeForfeit() {
             <!-- ACTION REPORT OVERLAY -->
             <TacticalActionReport :action="lastAction" :show="showActionReport" />
 
+            <!-- Animation presence markers (pointer-events:none; used by Playwright + drives 3D flash) -->
+            <div v-if="animAction?.type === 'attack'" data-testid="anim-attack" class="anim-marker" />
+            <div v-if="animAction?.type === 'skill'"  data-testid="anim-skill"  class="anim-marker" />
+
             <!-- MAIN CONTENT: Rosters + Board -->
             <div class="arena__body">
                 <!-- LEFT ROSTER: Allied Forces -->
@@ -473,7 +591,8 @@ async function executeForfeit() {
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
                     <ThreeGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
-                        :team-colors="teamColors" :highlighted-cells="highlightedCells" effects @tile-click="handleTileClick" />
+                        :team-colors="teamColors" :highlighted-cells="highlightedCells"
+                        :anim-action="animAction" effects @tile-click="handleTileClick" />
 
                     <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"
                         :selected-action="selectedAction" :active-character="currentEntity"
@@ -576,7 +695,7 @@ async function executeForfeit() {
     bottom: 60px;
     right: 240px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 8px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: rgba(74, 74, 79, 0.15);
@@ -622,12 +741,12 @@ async function executeForfeit() {
 }
 
 .game-over--victory::before {
-    background: #00f2ff;
-    box-shadow: 0 0 20px #00f2ff;
+    background: var(--color-cyan);
+    box-shadow: 0 0 20px var(--color-cyan);
 }
 
 .game-over--victory .game-over__title {
-    color: #00f2ff;
+    color: var(--color-cyan);
     text-shadow: 0 0 16px rgba(0, 242, 255, 0.6);
 }
 
@@ -636,12 +755,12 @@ async function executeForfeit() {
 }
 
 .game-over--defeat::before {
-    background: #ff2020;
-    box-shadow: 0 0 20px #ff2020;
+    background: var(--color-red);
+    box-shadow: 0 0 20px var(--color-red);
 }
 
 .game-over--defeat .game-over__title {
-    color: #ff2020;
+    color: var(--color-red);
     text-shadow: 0 0 16px rgba(255, 32, 32, 0.6);
 }
 
@@ -655,8 +774,8 @@ async function executeForfeit() {
 
 .game-over__subtitle {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 14px;
-    color: #e0e0e0;
+    font-size: var(--fs-sm);
+    color: var(--color-text);
     margin: 0 0 40px 0;
     letter-spacing: 0.05em;
     opacity: 0.8;
@@ -665,7 +784,7 @@ async function executeForfeit() {
 .action-btn-back {
     display: inline-block;
     font-family: 'Orbitron', sans-serif;
-    font-size: 14px;
+    font-size: var(--fs-sm);
     letter-spacing: 0.1em;
     color: #fff;
     text-decoration: none;
@@ -703,15 +822,25 @@ async function executeForfeit() {
     font-family: 'Orbitron', sans-serif;
     font-size: 32px;
     letter-spacing: 0.2em;
-    color: #ff2020;
+    color: var(--color-red);
     text-shadow: 0 0 10px rgba(255, 32, 32, 0.5);
 }
 
 .arena-error__content p {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 16px;
+    font-size: var(--fs-md);
     color: #e0e0e0;
     line-height: 1.6;
     margin-bottom: 30px;
+}
+
+.anim-marker {
+    position: absolute;
+    pointer-events: none;
+    top: 0;
+    left: 0;
+    width: 1px;
+    height: 1px;
+    opacity: 0;
 }
 </style>

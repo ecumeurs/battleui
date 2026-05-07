@@ -95,7 +95,7 @@ const pawnColor = computed(() => {
 
 .pawn__name {
     font-family: 'JetBrains Mono', monospace;
-    font-size: 9px;
+    font-size: var(--fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.15em;
     color: #e0e0e0;

@@ -60,7 +60,7 @@ const props = defineProps({
 
 .roster-panel__header {
     font-family: 'Orbitron', sans-serif;
-    font-size: 9px;
+    font-size: var(--fs-xs);
     letter-spacing: 0.3em;
     text-transform: uppercase;
     color: rgba(0, 242, 255, 0.5);
@@ -72,7 +72,7 @@ const props = defineProps({
 }
 
 .roster-panel__header-icon {
-    font-size: 6px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.5);
 }
 
@@ -87,7 +87,7 @@ const props = defineProps({
 
 .roster-panel__player-name {
     font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
+    font-size: var(--fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.15em;
     padding: 4px 4px 6px;
@@ -97,7 +97,7 @@ const props = defineProps({
 }
 
 .roster-panel__player-icon {
-    font-size: 8px;
+    font-size: var(--fs-xs);
 }
 
 /* Scrollbar styling */

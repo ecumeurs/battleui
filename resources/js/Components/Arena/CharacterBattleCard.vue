@@ -1,5 +1,7 @@
 <!-- @spec-link [[ui_character_battle_card]] -->
 <script setup>
+import { hpColor } from '@/constants/theme.js';
+
 const props = defineProps({
     character: { type: Object, required: true },
     compact: { type: Boolean, default: false },
@@ -18,10 +20,7 @@ function movePercent() {
 }
 
 function hpBarColor() {
-    const pct = hpPercent();
-    if (pct > 60) return '#39ff13';
-    if (pct > 30) return '#ff8c00';
-    return '#ff2020';
+    return hpColor(props.character.hp, props.character.max_hp);
 }
 </script>
 
@@ -30,6 +29,8 @@ function hpBarColor() {
         class="char-card character-card-mini"
         :class="{ 'char-card--compact': compact, 'char-card--active': isActive }"
         :style="{ '--accent': accentColor }"
+        data-testid="roster-card"
+        :data-entity-id="character.id"
     >
         <div class="char-card__name">
             <span class="char-card__indicator" :style="{ background: accentColor }"></span>
@@ -39,7 +40,12 @@ function hpBarColor() {
         <!-- HP Bar -->
         <div class="char-card__bar-row">
             <span class="char-card__bar-label">HP</span>
-            <div class="char-card__bar-track">
+            <div class="char-card__bar-track"
+                 role="progressbar"
+                 :aria-valuenow="character.hp"
+                 :aria-valuemax="character.max_hp"
+                 aria-label="HP"
+            >
                 <div
                     class="char-card__bar-fill"
                     :style="{ width: hpPercent() + '%', background: hpBarColor(), boxShadow: '0 0 8px ' + hpBarColor() }"
@@ -102,7 +108,7 @@ function hpBarColor() {
     align-items: center;
     gap: 6px;
     font-family: 'Orbitron', sans-serif;
-    font-size: 10px;
+    font-size: var(--fs-xs);
     text-transform: uppercase;
     letter-spacing: 0.1em;
     color: #e0e0e0;
@@ -125,7 +131,7 @@ function hpBarColor() {
 }
 
 .char-card__bar-label {
-    font-size: 8px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.5);
     text-transform: uppercase;
     width: 18px;
@@ -146,7 +152,7 @@ function hpBarColor() {
 }
 
 .char-card__bar-value {
-    font-size: 8px;
+    font-size: var(--fs-xs);
     color: rgba(224, 224, 224, 0.6);
     width: 40px;
     text-align: right;
@@ -166,13 +172,13 @@ function hpBarColor() {
 }
 
 .char-card__stat-label {
-    font-size: 8px;
+    font-size: var(--fs-xs);
     color: rgba(0, 242, 255, 0.5);
     text-transform: uppercase;
 }
 
 .char-card__stat-value {
-    font-size: 10px;
+    font-size: var(--fs-xs);
     color: var(--accent);
     font-family: 'Orbitron', sans-serif;
 }

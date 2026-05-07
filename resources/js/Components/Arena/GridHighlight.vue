@@ -1,5 +1,6 @@
 <script setup>
 // @spec-link [[ui_selection_highlight]]
+import { computed } from 'vue';
 import HighlightMaterial from './HighlightMaterial.vue';
 
 const props = defineProps({
@@ -12,7 +13,8 @@ const props = defineProps({
     surfaceHeight: { type: Number, default: 0 },
 });
 
-const defaultColor = props.type === 'attack' ? '#ff00ff' : '#00f2ff';
+const TYPE_COLORS = { attack: '#ff00ff', skill: '#fbbf24', move: '#00f2ff' };
+const defaultColor = computed(() => TYPE_COLORS[props.type] ?? '#00f2ff');
 </script>
 
 <template>
@@ -29,5 +31,6 @@ const defaultColor = props.type === 'attack' ? '#ff00ff' : '#00f2ff';
             :color="color || defaultColor"
             :type="type"
         />
+
     </TresMesh>
 </template>

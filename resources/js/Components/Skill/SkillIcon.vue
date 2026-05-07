@@ -43,6 +43,7 @@ const tertiaryIcon = computed(() => gradeTier.value && effectiveTags.value[2] ? 
 
 <template>
     <svg
+        data-testid="skill-icon"
         :width="size"
         :height="size"
         viewBox="0 0 32 32"

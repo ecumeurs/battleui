@@ -291,10 +291,8 @@ test('equip: purchase item → open character panel → link item → slot refle
 // @test-link [[shared:req_skill_generation_overhaul]]
 // @test-link [[upsilonbattle:mech_skill_name_generation]]
 // @test-link [[battleui:ui_skill_icon]]
-// FIXME: marked fixme — UI rework in progress; test logic is correct but
-//        SkillIcon component does not exist yet.
 // ---------------------------------------------------------------------------
-test.fixme('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
+test('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
     await registerAndLand(page);
 
     await waitForRoster(page);

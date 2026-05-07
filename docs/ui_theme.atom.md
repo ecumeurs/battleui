@@ -8,11 +8,6 @@ dependents:
   - [[ui_inventory]]
   - [[ui_shop]]
   - [[ui_skill_icon]]
-  - [[ui_battle_arena]]
-  - [[ui_selection_highlight]]
-  - [[ui_initiative_timeline]]
-  - [[ui_action_panel]]
-  - [[ui_character_battle_card]]
 type: UI
 layer: ARCHITECTURE
 version: 2.0

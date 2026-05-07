@@ -11,6 +11,7 @@ import PostProcess from './PostProcess.vue';
 import ZoneOutline from './ZoneOutline.vue';
 import HoverDisc from './HoverDisc.vue';
 import FacingIndicator3D from './FacingIndicator3D.vue';
+import SceneInspector from './SceneInspector.vue';
 import { PAWN_COLORS, SURFACE_COLORS } from '@/constants/theme.js';
 
 const props = defineProps({
@@ -23,6 +24,8 @@ const props = defineProps({
     effects: { type: Boolean, default: false },
     // animAction: { type: 'attack'|'skill', new_hp? } — drives pawn flash
     animAction: { type: Object, default: null },
+    // Enables SceneInspector (populates window.__upsilonDebug.board)
+    debug: { type: Boolean, default: false },
 });
 
 const ready = ref(false);
@@ -300,6 +303,15 @@ function onTileClick(tile, event) {
                     :tile-size="TILE_SIZE"
                     :tile-height="TILE_HEIGHT"
                     :surface-height="surfaceHeight(entity.position.x, entity.position.y)"
+                />
+
+                <!-- Debug seam: exposes board state to window.__upsilonDebug.board -->
+                <SceneInspector
+                    v-if="debug"
+                    :highlighted-cells="highlightedCells"
+                    :hovered-cell="hoveredCell"
+                    :tile-size="TILE_SIZE"
+                    :tile-height="TILE_HEIGHT"
                 />
         </TresCanvas>
     </div>

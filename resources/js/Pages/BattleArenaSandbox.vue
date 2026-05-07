@@ -277,6 +277,9 @@ onMounted(() => {
         nextStep,
         prevStep,
         getState: () => gameState.value,
+        // .board is written by SceneInspector once TresCanvas mounts.
+        // Exposed here as a placeholder so tests can await its presence.
+        board: null,
     };
 });
 
@@ -348,6 +351,7 @@ onUnmounted(() => {
                         :highlighted-cells="highlightedCells"
                         :anim-action="animAction"
                         :auto-rotate="isVisual"
+                        :debug="true"
                         effects
                         @tile-click="handleTileClick"
                     />

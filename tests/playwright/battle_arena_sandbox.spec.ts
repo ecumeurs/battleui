@@ -1,7 +1,7 @@
 // @test-link [[mech_frontend_test_seams]]
 // Battle Arena Sandbox — Playwright tests for arena logic & UI.
 // Tests validate: HP bar sync, character death, movement, skill targeting display,
-// turn transitions, game-over overlays, keyboard shortcuts, and visual snapshots.
+// turn transitions, game-over overlays, keyboard shortcuts, zone highlights, hover disc, and visual snapshots.
 import { test, expect } from '@playwright/test';
 
 const BASE = '/__test/battle';
@@ -18,6 +18,24 @@ async function nextStep(page: any) {
     await page.evaluate(() => (window as any).__upsilonDebug.nextStep());
     // Brief wait for Vue to re-render
     await page.waitForTimeout(120);
+}
+
+// Helper: wait until SceneInspector has mounted and populated __upsilonDebug.board
+async function waitForBoard(page: any) {
+    await page.waitForFunction(
+        () => (window as any).__upsilonDebug?.board !== null,
+        { timeout: 5000 },
+    );
+}
+
+// Helper: get screen position of a highlighted cell via camera projection
+async function getZoneCellScreenPos(page: any, cellIndex = 0): Promise<{ x: number; y: number } | null> {
+    return page.evaluate((idx: number) => {
+        const board = (window as any).__upsilonDebug?.board;
+        if (!board?.highlightedCells?.length) return null;
+        const cell = board.highlightedCells[idx] ?? board.highlightedCells[0];
+        return board.getCellScreenPos(cell.x, cell.y);
+    }, cellIndex);
 }
 
 // ─── Index ───────────────────────────────────────────────────────────────────
@@ -221,6 +239,124 @@ test('anim-attack marker present briefly after stepping into attack state', asyn
     // After 900ms it should be gone
     await page.waitForTimeout(900);
     await expect(marker).toHaveCount(0);
+});
+
+// ─── Console error guard ─────────────────────────────────────────────────────
+
+test('no console errors on scenario load', async ({ page }) => {
+    const errors: string[] = [];
+    page.on('console', msg => { if (msg.type() === 'error') errors.push(msg.text()); });
+
+    const scenarios = ['damage-hp-update', 'movement-sequence', 'skill-direct-range', 'turn-transition', 'game-end-win'];
+    for (const name of scenarios) {
+        errors.length = 0;
+        await loadScenario(page, name);
+        expect(errors, `Console errors in "${name}": ${errors.join(' | ')}`).toHaveLength(0);
+    }
+});
+
+// ─── Zone presence + HoverDisc (via SceneInspector / __upsilonDebug.board) ───
+
+test('move zone: cells present in board state after clicking MOVE', async ({ page }) => {
+    await loadScenario(page, 'movement-sequence');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="action-btn-move"]').click();
+    await page.waitForTimeout(100);
+
+    const cells: any[] = await page.evaluate(() => (window as any).__upsilonDebug.board.highlightedCells);
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.every((c: any) => c.type === 'move')).toBe(true);
+});
+
+test('move zone: HoverDisc activates when mouse enters a valid cell', async ({ page }) => {
+    await loadScenario(page, 'movement-sequence');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="action-btn-move"]').click();
+    await page.waitForTimeout(100);
+
+    const pos = await getZoneCellScreenPos(page);
+    if (!pos) { test.skip(); return; }
+
+    await page.mouse.move(pos.x, pos.y);
+    await page.waitForTimeout(120);
+
+    const hovered = await page.evaluate(() => (window as any).__upsilonDebug.board.hoveredCell);
+    expect(hovered).not.toBeNull();
+});
+
+test('attack zone: cells present in board state after clicking ATTACK', async ({ page }) => {
+    await loadScenario(page, 'damage-hp-update');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="action-btn-attack"]').click();
+    await page.waitForTimeout(100);
+
+    const cells: any[] = await page.evaluate(() => (window as any).__upsilonDebug.board.highlightedCells);
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.every((c: any) => c.type === 'attack')).toBe(true);
+});
+
+test('attack zone: HoverDisc activates when mouse enters a valid cell', async ({ page }) => {
+    await loadScenario(page, 'damage-hp-update');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="action-btn-attack"]').click();
+    await page.waitForTimeout(100);
+
+    const pos = await getZoneCellScreenPos(page);
+    if (!pos) { test.skip(); return; }
+
+    await page.mouse.move(pos.x, pos.y);
+    await page.waitForTimeout(120);
+
+    const hovered = await page.evaluate(() => (window as any).__upsilonDebug.board.hoveredCell);
+    expect(hovered).not.toBeNull();
+});
+
+test('skill zone: cells present in board state after clicking a Direct skill', async ({ page }) => {
+    await loadScenario(page, 'skill-direct-range');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="skill-btn"][data-behavior="Direct"]').click();
+    await page.waitForTimeout(100);
+
+    const cells: any[] = await page.evaluate(() => (window as any).__upsilonDebug.board.highlightedCells);
+    expect(cells.length).toBeGreaterThan(0);
+    expect(cells.every((c: any) => c.type === 'skill')).toBe(true);
+});
+
+test('skill zone: HoverDisc activates when mouse enters a valid cell', async ({ page }) => {
+    await loadScenario(page, 'skill-direct-range');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="skill-btn"][data-behavior="Direct"]').click();
+    await page.waitForTimeout(100);
+
+    const pos = await getZoneCellScreenPos(page);
+    if (!pos) { test.skip(); return; }
+
+    await page.mouse.move(pos.x, pos.y);
+    await page.waitForTimeout(120);
+
+    const hovered = await page.evaluate(() => (window as any).__upsilonDebug.board.hoveredCell);
+    expect(hovered).not.toBeNull();
+});
+
+test('Escape clears zone and board returns to empty state', async ({ page }) => {
+    await loadScenario(page, 'movement-sequence');
+    await waitForBoard(page);
+
+    await page.locator('[data-testid="action-btn-move"]').click();
+    await page.waitForTimeout(100);
+    let cells: any[] = await page.evaluate(() => (window as any).__upsilonDebug.board.highlightedCells);
+    expect(cells.length).toBeGreaterThan(0);
+
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(80);
+    cells = await page.evaluate(() => (window as any).__upsilonDebug.board.highlightedCells);
+    expect(cells).toHaveLength(0);
 });
 
 // ─── Visual snapshots ─────────────────────────────────────────────────────────

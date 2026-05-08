@@ -26,4 +26,6 @@ Thumbs.db
 
 *.log
 battle_dom.html
-dom.html
+dom.html*.db
+*.sqlite
+*.sqlite3

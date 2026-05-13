@@ -15,12 +15,21 @@ class UpsilonPlayerResource extends JsonResource
     public function toArray(Request $request): array
     {
         // $this is an array with 'user', 'team', 'ia', 'entities' or similar
-        return [
+        $payload = [
             'id' => $this->resource['id'],
             'nickname' => $this->resource['nickname'] ?? 'Unknown',
             'team' => $this->resource['team'],
             'ia' => $this->resource['ia'],
             'entities' => UpsilonEntityResource::collection($this->resource['entities']),
         ];
+
+        if ($this->resource['ia']) {
+            $payload['total_wins'] = $this->resource['total_wins'];
+            if (isset($this->resource['archetype'])) {
+                $payload['archetype'] = $this->resource['archetype'];
+            }
+        }
+
+        return $payload;
     }
 }

@@ -49,6 +49,7 @@ class UpsilonApiRoundtripTest extends TestCase
                 'id' => $p2Id,
                 'team' => 2,
                 'ia' => true,
+                'total_wins' => 0,
                 'entities' => [
                     tap(new \App\Models\Character([
                         'name' => "P2E1",

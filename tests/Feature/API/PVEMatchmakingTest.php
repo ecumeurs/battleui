@@ -103,32 +103,42 @@ class PVEMatchmakingTest extends TestCase
     }
 
     /**
-     * @spec-link [[rule_pve_winnability_balance]]
+     * AI entities carry auto_gen=true and a valid archetype so the Go engine generates stats
+     * and behavior pipeline. Team-comp constraint (≤1 support, ≤1 sneak) is also enforced.
+     *
+     * @spec-link [[rule_archetype_grade_progression]]
+     * @spec-link [[rule_team_composition]]
      */
-    public function test_ai_defense_is_capped_by_player_attack()
+    public function test_ai_entities_are_auto_gen_with_archetype()
     {
-        // Force player characters to have low attack (e.g. 1)
-        Character::where('player_id', $this->user->id)->update(['attack' => 2]);
-        
+        $this->user->update(['total_wins' => 15]);
+
         $this->mock(UpsilonApiServiceInterface::class, function (MockInterface $mock) {
             $mock->shouldReceive('startArena')
                 ->once()
                 ->withArgs(function ($matchId, $callbackUrl, $players) {
-                    // Check AI player (item 1 in players list)
                     $aiPlayer = $players[1];
+
+                    // Player carries total_wins for grade derivation on the Go side.
+                    if (($aiPlayer->resource['total_wins'] ?? null) !== 15) return false;
+
+                    $supportCount = 0;
+                    $sneakCount = 0;
+                    $validArchetypes = ['fighter', 'ranger', 'support', 'sneak'];
                     foreach ($aiPlayer->resource['entities'] as $entity) {
-                        // AI Defense must be < Player Max Attack (2)
-                        if ($entity->defense >= 2) return false;
+                        if (!($entity->auto_gen ?? false)) return false;
+                        if (!in_array($entity->archetype ?? '', $validArchetypes, true)) return false;
+                        if ($entity->archetype === 'support') $supportCount++;
+                        if ($entity->archetype === 'sneak') $sneakCount++;
                     }
+                    // Team-comp: ≤1 support, ≤1 sneak per AI team.
+                    if ($supportCount > 1 || $sneakCount > 1) return false;
                     return true;
                 })
                 ->andReturn([
                     'success' => true,
                     'data' => [
-                        'initial_state' => [
-                            'entities' => [],
-                            'players' => []
-                        ]
+                        'initial_state' => ['entities' => [], 'players' => []]
                     ]
                 ]);
         });
@@ -137,6 +147,8 @@ class PVEMatchmakingTest extends TestCase
             ->postJson('/api/v1/matchmaking/join', [
                 'character_ids' => $this->chars,
                 'game_mode' => '1v1_PVE',
-            ]);
+            ])
+            ->assertStatus(200)
+            ->assertJsonPath('data.status', 'matched');
     }
 }

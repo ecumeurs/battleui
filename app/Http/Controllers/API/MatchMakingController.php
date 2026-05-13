@@ -26,6 +26,27 @@ class MatchMakingController extends Controller
     ) {
     }
 
+    private const ARCHETYPES = ['fighter', 'ranger', 'support', 'sneak'];
+
+    private function assignAIArchetypes(int $count): array
+    {
+        $archetypes = [];
+        $usedSupport = false;
+        $usedSneak = false;
+        for ($i = 0; $i < $count; $i++) {
+            $available = array_values(array_filter(self::ARCHETYPES, function ($a) use ($usedSupport, $usedSneak) {
+                if ($a === 'support' && $usedSupport) return false;
+                if ($a === 'sneak' && $usedSneak) return false;
+                return true;
+            }));
+            $chosen = $available[array_rand($available)];
+            if ($chosen === 'support') $usedSupport = true;
+            if ($chosen === 'sneak') $usedSneak = true;
+            $archetypes[] = $chosen;
+        }
+        return $archetypes;
+    }
+
     private const AI_NAME_SEGMENTS = [
         'prefixes' => ['Null_', 'Void_', 'DeathX', 'Rust_', 'Cyber', 'Neon', 'Ghost_', 'Cinder'],
         'subjects' => ['Vermin', 'Proxy', 'Ghost', 'Core', 'Code', 'Glitch', 'Zero', 'One'],
@@ -164,43 +185,30 @@ class MatchMakingController extends Controller
 
             // Handle AI if needed
             if ($config['ai_count'] > 0) {
-                // Determine how many AI players we need. 
+                // Determine how many AI players we need.
                 // In 1v1_PVE, we need 1 AI (Team 2).
                 // In 2v2_PVE, we need 2 AIs (Team 2).
                 $aiPlayersToCreate = ($gameMode === '2v2_PVE') ? 2 : 1;
 
-                // Calculate max human attack for balance rule [[rule_pve_winnability_balance]]
-                $maxHumanAttack = 0;
-                foreach ($players as $pResource) {
-                    if (!$pResource->resource['ia']) {
-                        $entityMax = collect($pResource->resource['entities'])->max('attack');
-                        if ($entityMax > $maxHumanAttack)
-                            $maxHumanAttack = $entityMax;
-                    }
-                }
+                // Grade the AI from the human player's progression so difficulty scales with wins.
+                $totalWins = $user->total_wins ?? 0;
 
+                /** @spec-link [[rule_archetype_grade_progression]] */
                 for ($pIdx = 1; $pIdx <= $aiPlayersToCreate; $pIdx++) {
                     $aiPlayerId = "00000000-0000-0000-0000-00000000000{$pIdx}"; // Synthetic IDs AI_1, AI_2
                     $aiName = $this->generateAIName();
 
-                    /** @spec-link [[rule_pve_winnability_balance]] */
+                    // Assign archetypes respecting team-comp: ≤1 support, ≤1 sneak per AI team.
+                    /** @spec-link [[rule_team_composition]] */
+                    $archetypes = $this->assignAIArchetypes(3);
+
                     $aiEntities = [];
                     for ($i = 0; $i < 3; $i++) {
-                        $stats = \App\Models\Character::distributePoints(10);
-                        // Cap defense if it exceeds player attack
-                        if ($maxHumanAttack > 0 && $stats['defense'] >= $maxHumanAttack) {
-                            $stats['defense'] = max(0, $maxHumanAttack - 1);
-                        }
-
                         $aiEntities[] = (object) [
                             'id' => (string) Str::uuid(),
-                            'name' => $this->generateAIName(), // Unique name per unit too
-                            'hp' => $stats['hp'],
-                            'max_hp' => $stats['hp'],
-                            'attack' => $stats['attack'],
-                            'defense' => $stats['defense'],
-                            'movement' => $stats['movement'],
-                            'max_movement' => $stats['movement']
+                            'name' => $this->generateAIName(),
+                            'auto_gen' => true,
+                            'archetype' => $archetypes[$i],
                         ];
                     }
 
@@ -209,6 +217,7 @@ class MatchMakingController extends Controller
                         'nickname' => $aiName,
                         'team' => 2,
                         'ia' => true,
+                        'total_wins' => $totalWins,
                         'entities' => $aiEntities
                     ]);
 

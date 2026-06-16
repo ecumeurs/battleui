@@ -2,73 +2,118 @@
 <!-- @spec-link [[req_ui_look_and_feel]] -->
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref, computed, onMounted, onUnmounted, watch } from 'vue';
+import { ref, onMounted, onUnmounted, watch } from 'vue';
 import TacticalLayout from '@/Layouts/TacticalLayout.vue';
 import { getAuthUser } from '@/services/auth';
 import { game } from '@/services/game';
-import { connection } from '@/services/connection';
-import { tactical } from '@/services/tactical';
 
 import CombatHeader from '@/Components/Arena/CombatHeader.vue';
 import TeamRosterPanel from '@/Components/Arena/TeamRosterPanel.vue';
 import ThreeGrid from '@/Components/Arena/ThreeGrid.vue';
 import ActionPanel from '@/Components/Arena/ActionPanel.vue';
-import { TEAM_COLORS } from '@/constants/theme.js';
 import InitiativeTimeline from '@/Components/Arena/InitiativeTimeline.vue';
 import TacticalActionReport from '@/Components/Arena/TacticalActionReport.vue';
 import ConfirmModal from '@/Components/Shared/Modals/ConfirmModal.vue';
 
-const user = ref(getAuthUser());
-const matchId = ref(new URLSearchParams(window.location.search).get('match_id'));
+import { useBattleChannel } from '@/composables/useBattleChannel';
+import { useBoardState }    from '@/composables/useBoardState';
+import { useActionDispatch } from '@/composables/useActionDispatch';
 
-const gameState = ref(null);
+// ─── Core state ───────────────────────────────────────────────────────────────
+const user     = ref(getAuthUser());
+const matchId  = ref(new URLSearchParams(window.location.search).get('match_id'));
+
+const gameState      = ref(null);
 const matchStartedAt = ref(null);
-const isLoading = ref(true);
-const error = ref(null);
-const isSocketConnected = ref(false);
-const lastAction = ref(null);
+const isLoading      = ref(true);
+const error          = ref(null);
+
+const lastAction       = ref(null);
 const showActionReport = ref(false);
-const showForfeitModal = ref(false);
-const animAction = ref(null);
+const animAction       = ref(null);
 let actionTimeout = null;
-let animTimeout = null;
+let animTimeout   = null;
 
-const myPlayer = computed(() => tactical.myPlayer(gameState.value));
-const currentPlayerId = computed(() => {
-    if (!myPlayer.value) return '';
-    return String(myPlayer.value.player_id || myPlayer.value.nickname);
-});
+// ─── Board state composable ───────────────────────────────────────────────────
+const {
+    matchSeconds,
+    shotClock,
+    myPlayer,
+    currentPlayerId,
+    grid,
+    allEntities,
+    turnOrder,
+    currentEntityId,
+    currentEntity,
+    isPlayerTurn,
+    activePlayerName,
+    myTeam,
+    allyParticipants,
+    enemyParticipants,
+    allyEntities,
+    enemyEntities,
+    allyRoster,
+    enemyRoster,
+    teamColors,
+    isGameOver,
+    isVictory,
+    allyTeamHp,
+    allyTeamMaxHp,
+    allyCharsRemaining,
+    enemyTeamHp,
+    enemyTeamMaxHp,
+    enemyCharsRemaining,
+    matchDuration,
+    canMove,
+    canAttack,
+} = useBoardState(gameState);
 
+// ─── Action dispatch composable ───────────────────────────────────────────────
+const {
+    selectedAction,
+    selectedPath,
+    highlightedCells,
+    isProcessing,
+    showForfeitModal,
+    handleAction,
+    handleTileClick,
+    handleKeydown,
+    executeForfeit,
+} = useActionDispatch(
+    matchId,
+    gameState,
+    currentEntityId,
+    currentEntity,
+    isPlayerTurn,
+    allEntities,
+    enemyEntities,
+    allyEntities,
+    grid,
+);
+
+// ─── WebSocket channel composable ────────────────────────────────────────────
+const { isSocketConnected, wireConnectionHealth } = useBattleChannel(
+    matchId,
+    gameState,
+    selectedAction,
+    selectedPath,
+    highlightedCells,
+);
+
+// ─── Mount: initial fetch + timers + keyboard ─────────────────────────────────
 let matchTimerInterval = null;
-let shotTimerInterval = null;
+let shotTimerInterval  = null;
 
 onMounted(async () => {
     if (!matchId.value) return;
 
-    // 1. Subscribe to updates FIRST to capture any events arriving during initial fetch
-    game.subscribeToBoard(matchId.value, (event) => {
-        console.log('[BoardUpdated] Received payload:', event);
-        // Guard: Only update if the incoming version is newer or if we have no state yet
-        if (!gameState.value || (event.version && event.version >= (gameState.value.version || 0))) {
-            gameState.value = event;
-            connection.setBoardLinked(true);
-            // Clear pathfinding/selection on state update
-            selectedAction.value = null;
-            selectedPath.value = [];
-            highlightedCells.value = [];
-        } else {
-            console.warn('[Arena] Ignoring older version update from socket', event.version, 'vs', gameState.value?.version);
-        }
-    });
-
-    // 2. Fetch Initial State
+    // Fetch initial state
     try {
         const response = await game.fetchGameState(matchId.value);
         console.log('[Arena] Initial fetch response:', response);
         if (response && response.game_state) {
-            // Guard: Only apply fetch if we haven't already received a newer socket event
             if (!gameState.value || response.game_state.version >= (gameState.value.version || 0)) {
-                gameState.value = response.game_state;
+                gameState.value      = response.game_state;
                 matchStartedAt.value = response.started_at;
             } else {
                 console.warn('[Arena] Ignoring stale initial fetch (Version', response.game_state.version, ') as socket already provided Version', gameState.value.version);
@@ -77,16 +122,9 @@ onMounted(async () => {
             console.warn('[Arena] No game_state found in response!');
         }
 
-        // Listen for connection health
-        if (window.Echo && window.Echo.connector.pusher.connection) {
-            isSocketConnected.value = window.Echo.connector.pusher.connection.state === 'connected';
-            window.Echo.connector.pusher.connection.bind('state_change', (states) => {
-                isSocketConnected.value = states.current === 'connected';
-                console.log('[PusherState]', states.current);
-            });
-        }
+        wireConnectionHealth();
 
-        // Watch for actions to trigger feedback and animations
+        // Watch for actions → feedback + animation
         watch(() => gameState.value?.action, (newAction) => {
             if (newAction && newAction.type) {
                 lastAction.value = newAction;
@@ -94,7 +132,6 @@ onMounted(async () => {
                 if (actionTimeout) clearTimeout(actionTimeout);
                 actionTimeout = setTimeout(() => { showActionReport.value = false; }, 3000);
 
-                // Brief animation overlay (detectable by Playwright + drives Pawn3D flash)
                 animAction.value = newAction;
                 if (animTimeout) clearTimeout(animTimeout);
                 animTimeout = setTimeout(() => { animAction.value = null; }, 800);
@@ -102,13 +139,13 @@ onMounted(async () => {
         }, { deep: true });
 
     } catch (e) {
-        console.error("Failed to load game state", e);
-        error.value = "CRITICAL: Failed to establish tactical link with Game Engine.";
+        console.error('Failed to load game state', e);
+        error.value = 'CRITICAL: Failed to establish tactical link with Game Engine.';
     } finally {
         isLoading.value = false;
     }
 
-    // Fallback polling for the initial board state if empty
+    // Fallback polling: refetch if board is still empty after 2 s intervals
     const emergencyPoller = setInterval(async () => {
         if (allEntities.value.length > 0 || isGameOver.value) {
             clearInterval(emergencyPoller);
@@ -118,9 +155,8 @@ onMounted(async () => {
         try {
             const response = await game.fetchGameState(matchId.value);
             if (response && response.game_state && response.game_state.players) {
-                // Version protection applies here as well
                 if (!gameState.value || response.game_state.version >= (gameState.value.version || 0)) {
-                    gameState.value = response.game_state;
+                    gameState.value      = response.game_state;
                     matchStartedAt.value = response.started_at;
                 }
                 clearInterval(emergencyPoller);
@@ -145,412 +181,14 @@ onMounted(async () => {
     window.addEventListener('keydown', handleKeydown);
 });
 
-function handleKeydown(e) {
-    if (e.target.tagName === 'INPUT' || e.target.tagName === 'TEXTAREA') return;
-    if (e.key === 'Escape') {
-        selectedAction.value = null;
-        selectedPath.value = [];
-        highlightedCells.value = [];
-        return;
-    }
-    if (!isPlayerTurn.value || isProcessing.value) return;
-    if (e.code === 'KeyM') handleAction('move');
-    else if (e.code === 'KeyA') handleAction('attack');
-    else if (e.code === 'KeyP' || e.code === 'Space') { e.preventDefault(); handleAction('pass'); }
-    else if (e.key >= '1' && e.key <= '5') {
-        const idx = parseInt(e.key) - 1;
-        const actionable = (currentEntity.value?.equipped_skills ?? []).filter(
-            s => s.behavior === 'Direct' || s.behavior === 'Trap',
-        );
-        if (actionable[idx]) handleAction({ type: 'skill', skill: actionable[idx] });
-    }
-}
-
 onUnmounted(() => {
-    if (matchId.value) {
-        game.unsubscribeFromBoard(matchId.value);
-        connection.setBoardLinked(false);
-    }
     clearInterval(matchTimerInterval);
     clearInterval(shotTimerInterval);
+    if (actionTimeout) clearTimeout(actionTimeout);
+    if (animTimeout)   clearTimeout(animTimeout);
     window.removeEventListener('keydown', handleKeydown);
+    // Channel cleanup is handled by useBattleChannel's own onUnmounted
 });
-
-// ─── COMPUTED STATE ──────────────────────────────────────────
-
-const grid = computed(() => gameState.value?.grid || null);
-const allEntities = computed(() => {
-    if (!gameState.value?.players) return [];
-    return gameState.value.players.flatMap(p => p.entities);
-});
-
-const turnOrder = computed(() => {
-    if (!gameState.value?.turn) return [];
-    return gameState.value.turn.map(t => {
-        const ent = allEntities.value.find(e => e.id === t.entity_id);
-        return { ...t, name: ent ? ent.name : 'Unknown' };
-    });
-});
-
-const currentEntityId = computed(() => gameState.value?.current_entity_id || '');
-const currentEntity = computed(() => tactical.currentCharacter(gameState.value));
-const isPlayerTurn = computed(() => !!gameState.value?.current_player_is_self);
-
-// The player whose character is currently acting (used in ActionPanel header)
-const activePlayerName = computed(() => tactical.currentPlayer(gameState.value)?.nickname || '');
-
-const myTeam = computed(() => myPlayer.value?.team || 1);
-
-const allyParticipants = computed(() => tactical.myAllies(gameState.value).concat(myPlayer.value ? [myPlayer.value] : []));
-const enemyParticipants = computed(() => tactical.myFoes(gameState.value));
-
-const allyEntities = computed(() => tactical.myCharacters(gameState.value).concat(tactical.myAlliesCharacters(gameState.value)));
-const enemyEntities = computed(() => tactical.myFoesCharacters(gameState.value));
-
-function mapParticipantsToRoster(parts) {
-    return parts.map(p => ({
-        id: String(p.player_id || p.nickname),
-        nickname: p.nickname,
-        team: p.team,
-        entities: (p.entities || []).map(e => ({
-            ...e,
-            _isActive: String(e.id) === currentEntityId.value
-        }))
-    }));
-}
-
-const allyRoster = computed(() => mapParticipantsToRoster(allyParticipants.value));
-const enemyRoster = computed(() => mapParticipantsToRoster(enemyParticipants.value));
-
-const teamColors = computed(() => {
-    const colors = {};
-    if (!gameState.value?.players) return colors;
-
-    gameState.value.players.forEach(p => {
-        let color = '#ffffff';
-        if (p.is_self) {
-            color = TEAM_COLORS.self;
-        } else if (p.team === myTeam.value) {
-            color = TEAM_COLORS.ally;
-        } else {
-            const foes = enemyParticipants.value;
-            if (foes[0] && (foes[0].player_id === p.player_id || foes[0].nickname === p.nickname)) {
-                color = TEAM_COLORS.enemy;
-            } else {
-                color = TEAM_COLORS.enemy2;
-            }
-        }
-        
-        if (p.player_id) colors[String(p.player_id)] = color;
-        if (p.nickname) colors[String(p.nickname)] = color;
-    });
-
-    return colors;
-});
-
-const isGameOver = computed(() => {
-    return !!gameState.value?.game_finished;
-});
-
-const isVictory = computed(() => {
-    return tactical.isWinner(gameState.value);
-});
-
-const allyTeamHp = computed(() => allyEntities.value.reduce((sum, e) => sum + e.hp, 0));
-const allyTeamMaxHp = computed(() => allyEntities.value.reduce((sum, e) => sum + e.max_hp, 0));
-const allyCharsRemaining = computed(() => allyEntities.value.filter(e => e.hp > 0).length);
-
-const enemyTeamHp = computed(() => enemyEntities.value.reduce((sum, e) => sum + e.hp, 0));
-const enemyTeamMaxHp = computed(() => enemyEntities.value.reduce((sum, e) => sum + e.max_hp, 0));
-const enemyCharsRemaining = computed(() => enemyEntities.value.filter(e => e.hp > 0).length);
-
-const matchSeconds = ref(0);
-const shotClock = ref(0);
-
-const matchDuration = computed(() => {
-    const m = Math.floor(matchSeconds.value / 60);
-    const s = matchSeconds.value % 60;
-    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
-});
-
-const canMove = computed(() => currentEntity.value?.move > 0);
-const canAttack = computed(() => currentEntity.value?.hp > 0); // or based on action points if implemented
-
-// ─── ACTION LOGIC ──────────────────────────────────────────
-const selectedAction = ref(null);
-const selectedPath = ref([]);
-const highlightedCells = ref([]);
-const isProcessing = ref(false);
-
-async function handleAction(type) {
-    if (!isPlayerTurn.value || isProcessing.value) return;
-
-    // Skill activation — ActionPanel emits { type: 'skill', skill: <skillObj> }
-    if (typeof type === 'object' && type.type === 'skill') {
-        const skill = type.skill;
-        // Passive / auto-triggered skills cannot be manually activated
-        if (!skill || skill.behavior === 'Passive' || skill.behavior === 'Reaction' || skill.behavior === 'Counter') return;
-
-        const targetType = skill.targeting?.TargetType?.value ?? 'Entity';
-
-        // Self-targeting Direct skills fire immediately
-        if (skill.behavior === 'Direct' && targetType === 'Self') {
-            isProcessing.value = true;
-            try {
-                await game.sendAction(matchId.value, currentEntityId.value, 'skill', [], { skill_id: skill.skill_id });
-                selectedAction.value = null;
-            } catch (err) {
-                console.error('Skill action failed:', err);
-            } finally {
-                isProcessing.value = false;
-            }
-            return;
-        }
-
-        // All other Direct / Trap skills require target selection
-        selectedAction.value = { type: 'skill', skill };
-        calculateSkillRange(skill);
-        return;
-    }
-
-    if (type === 'pass') {
-        isProcessing.value = true;
-        try {
-            await game.sendAction(matchId.value, currentEntityId.value, 'pass');
-            selectedAction.value = null;
-            highlightedCells.value = [];
-        } catch (err) {
-            console.error("Pass action failed:", err);
-        } finally {
-            isProcessing.value = false;
-        }
-        return;
-    }
-
-    if (type === 'forfeit') {
-        showForfeitModal.value = true;
-        return;
-    }
-
-    selectedAction.value = type;
-    selectedPath.value = [];
-
-    if (type === 'move') {
-        calculateMoveRange();
-    } else if (type === 'attack') {
-        calculateAttackRange();
-    }
-}
-
-function getNeighbors(x, y) {
-    const neighbors = [];
-    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-    for (const d of dirs) {
-        const nx = x + d[0];
-        const ny = y + d[1];
-        if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
-            // Check for obstacle
-            const cell = grid.value.cells[nx] && grid.value.cells[nx][ny];
-            if (cell && !cell.obstacle) {
-                // Check if another entity is there (except current active)
-                const isOccupied = allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === nx && e.position.y === ny && e.hp > 0);
-                if (!isOccupied) {
-                    neighbors.push({ x: nx, y: ny });
-                }
-            }
-        }
-    }
-    return neighbors;
-}
-
-function findShortestPath(start, target, maxMove) {
-    const queue = [[start]];
-    const visited = new Set([`${start.x},${start.y}`]);
-
-    while (queue.length > 0) {
-        const path = queue.shift();
-        const curr = path[path.length - 1]; // Current tail node
-
-        if (curr.x === target.x && curr.y === target.y) {
-            return path.slice(1); // Return path excluding start node
-        }
-
-        if (path.length - 1 < maxMove) {
-            for (const n of getNeighbors(curr.x, curr.y)) {
-                const key = `${n.x},${n.y}`;
-                if (!visited.has(key)) {
-                    visited.add(key);
-                    queue.push([...path, { x: n.x, y: n.y }]);
-                }
-            }
-        }
-    }
-    return null; // Not reachable
-}
-
-async function handleTileClick(x, y) {
-    if (!isPlayerTurn.value || !selectedAction.value || isProcessing.value) return;
-
-    if (selectedAction.value === 'move') {
-        const path = findShortestPath(currentEntity.value.position, { x, y }, currentEntity.value.move);
-        if (path) {
-            selectedPath.value = path;
-            isProcessing.value = true;
-            try {
-                await game.sendAction(matchId.value, currentEntityId.value, 'move', path);
-                selectedAction.value = null;
-                highlightedCells.value = [];
-            } catch (err) {
-                console.error("Move action failed:", err);
-            } finally {
-                isProcessing.value = false;
-            }
-        }
-    } else if (selectedAction.value === 'attack') {
-        const inZone = highlightedCells.value.some(c => c.x === x && c.y === y && c.type === 'attack');
-        if (inZone) {
-            const enemy = enemyEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
-            if (enemy) {
-                isProcessing.value = true;
-                try {
-                    await game.sendAction(matchId.value, currentEntityId.value, 'attack', [{ x, y }]);
-                    selectedAction.value = null;
-                    highlightedCells.value = [];
-                } catch (err) {
-                    console.error("Attack failed:", err);
-                } finally {
-                    isProcessing.value = false;
-                }
-            }
-        }
-    } else if (selectedAction.value?.type === 'skill') {
-        const inZone = highlightedCells.value.some(c => c.x === x && c.y === y);
-        if (inZone) {
-            const skill = selectedAction.value.skill;
-            const targetType = skill.targeting?.TargetType?.value ?? 'Entity';
-            const cell = grid.value.cells[x]?.[y];
-            const enemyAtCell = enemyEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
-            const allyAtCell  = allyEntities.value.find(e => e.id !== currentEntityId.value && e.position.x === x && e.position.y === y && e.hp > 0);
-            const anyEntity   = allEntities.value.find(e => e.position.x === x && e.position.y === y && e.hp > 0);
-
-            let valid = false;
-            if (skill.behavior === 'Trap')           valid = !cell?.obstacle && !anyEntity;
-            else if (targetType === 'EnemyOnly')     valid = !!enemyAtCell;
-            else if (targetType === 'FriendOnly')    valid = !!allyAtCell;
-            else if (targetType === 'Tile')          valid = !cell?.obstacle;
-            else                                     valid = !!anyEntity;
-
-            if (valid) {
-                isProcessing.value = true;
-                try {
-                    await game.sendAction(matchId.value, currentEntityId.value, 'skill', [{ x, y }], { skill_id: skill.skill_id });
-                    selectedAction.value = null;
-                    highlightedCells.value = [];
-                } catch (err) {
-                    console.error("Skill action failed:", err);
-                } finally {
-                    isProcessing.value = false;
-                }
-            }
-        }
-    }
-}
-
-function calculateMoveRange() {
-    if (!currentEntity.value) return;
-    const start = currentEntity.value.position;
-    const maxMove = currentEntity.value.move;
-
-    const queue = [{ x: start.x, y: start.y, dist: 0 }];
-    const visited = new Set([`${start.x},${start.y}`]);
-    const highlighted = [];
-
-    while (queue.length > 0) {
-        const curr = queue.shift();
-        if (curr.x !== start.x || curr.y !== start.y) {
-            highlighted.push({ x: curr.x, y: curr.y, type: 'move' });
-        }
-
-        if (curr.dist < maxMove) {
-            for (const n of getNeighbors(curr.x, curr.y)) {
-                const key = `${n.x},${n.y}`;
-                if (!visited.has(key)) {
-                    visited.add(key);
-                    queue.push({ x: n.x, y: n.y, dist: curr.dist + 1 });
-                }
-            }
-        }
-    }
-    highlightedCells.value = highlighted;
-}
-
-// Highlight full melee ring (all adjacent non-obstacle cells); enemy validation at click time.
-function calculateAttackRange() {
-    if (!currentEntity.value || !grid.value) return;
-    const start = currentEntity.value.position;
-    const dirs = [[0, -1], [1, 0], [0, 1], [-1, 0]];
-    const highlighted = [];
-    for (const d of dirs) {
-        const nx = start.x + d[0];
-        const ny = start.y + d[1];
-        if (nx >= 0 && nx < grid.value.width && ny >= 0 && ny < grid.value.height) {
-            const cell = grid.value.cells[nx]?.[ny];
-            if (cell && !cell.obstacle) highlighted.push({ x: nx, y: ny, type: 'attack' });
-        }
-    }
-    highlightedCells.value = highlighted;
-}
-
-// LOS: trace intermediate cells between (sx,sy) and (tx,ty).
-// Both obstacles and live entities (except the caster) block sight.
-function hasLOS(sx, sy, tx, ty) {
-    const dx = tx - sx;
-    const dy = ty - sy;
-    const dist = Math.max(Math.abs(dx), Math.abs(dy));
-    if (dist <= 1) return true;
-    for (let i = 1; i < dist; i++) {
-        const cx = Math.round(sx + dx * i / dist);
-        const cy = Math.round(sy + dy * i / dist);
-        if (grid.value.cells[cx]?.[cy]?.obstacle) return false;
-        if (allEntities.value.some(e => e.id !== currentEntityId.value && e.position.x === cx && e.position.y === cy && e.hp > 0)) return false;
-    }
-    return true;
-}
-
-// Highlight the full reachable zone for a skill (all in-range, non-obstacle, LOS-clear cells).
-// Target-type validation (EnemyOnly, FriendOnly, etc.) is deferred to handleTileClick so the
-// zone outline shows the complete diamond the player can aim into.
-function calculateSkillRange(skill) {
-    if (!currentEntity.value || !grid.value) return;
-    const start = currentEntity.value.position;
-    const range = skill.targeting?.Range?.value ?? 1;
-    const highlighted = [];
-
-    for (let dx = -range; dx <= range; dx++) {
-        for (let dy = -range; dy <= range; dy++) {
-            if (dx === 0 && dy === 0) continue;
-            if (Math.abs(dx) + Math.abs(dy) > range) continue;
-            const nx = start.x + dx;
-            const ny = start.y + dy;
-            if (nx < 0 || nx >= grid.value.width || ny < 0 || ny >= grid.value.height) continue;
-            const cell = grid.value.cells[nx]?.[ny];
-            if (!cell || cell.obstacle) continue;
-            if (!hasLOS(start.x, start.y, nx, ny)) continue;
-            highlighted.push({ x: nx, y: ny, type: 'skill' });
-        }
-    }
-    highlightedCells.value = highlighted;
-}
-async function executeForfeit() {
-    isProcessing.value = true;
-    try {
-        await game.forfeit(matchId.value);
-    } catch (err) {
-        console.error("Forfeit failed:", err);
-    } finally {
-        isProcessing.value = false;
-    }
-}
 </script>
 
 <template>
@@ -569,44 +207,78 @@ async function executeForfeit() {
         </div>
         <div v-else class="arena">
             <!-- COMBAT HEADER -->
-            <CombatHeader :ally-team-hp="allyTeamHp" :ally-team-max-hp="allyTeamMaxHp"
-                :ally-chars-remaining="allyCharsRemaining" :ally-total-chars="allyEntities.length"
-                :enemy-team-hp="enemyTeamHp" :enemy-team-max-hp="enemyTeamMaxHp"
-                :enemy-chars-remaining="enemyCharsRemaining" :enemy-total-chars="enemyEntities.length"
-                :match-duration="matchDuration" :shot-clock="shotClock" :is-socket-connected="isSocketConnected" />
+            <CombatHeader
+                :ally-team-hp="allyTeamHp"
+                :ally-team-max-hp="allyTeamMaxHp"
+                :ally-chars-remaining="allyCharsRemaining"
+                :ally-total-chars="allyEntities.length"
+                :enemy-team-hp="enemyTeamHp"
+                :enemy-team-max-hp="enemyTeamMaxHp"
+                :enemy-chars-remaining="enemyCharsRemaining"
+                :enemy-total-chars="enemyEntities.length"
+                :match-duration="matchDuration"
+                :shot-clock="shotClock"
+                :is-socket-connected="isSocketConnected"
+            />
 
             <!-- ACTION REPORT OVERLAY -->
             <TacticalActionReport :action="lastAction" :show="showActionReport" />
 
-            <!-- Animation presence markers (pointer-events:none; used by Playwright + drives 3D flash) -->
+            <!-- Animation presence markers (pointer-events:none; used by Playwright + drives Pawn3D flash) -->
             <div v-if="animAction?.type === 'attack'" data-testid="anim-attack" class="anim-marker" />
             <div v-if="animAction?.type === 'skill'"  data-testid="anim-skill"  class="anim-marker" />
 
             <!-- MAIN CONTENT: Rosters + Board -->
             <div class="arena__body">
                 <!-- LEFT ROSTER: Allied Forces -->
-                <TeamRosterPanel :players="allyRoster" :detailed-player-id="currentPlayerId" :team-colors="teamColors"
-                    side="left" />
+                <TeamRosterPanel
+                    :players="allyRoster"
+                    :detailed-player-id="currentPlayerId"
+                    :team-colors="teamColors"
+                    side="left"
+                />
 
                 <!-- CENTER: Board + Actions -->
                 <div class="arena__center">
-                    <ThreeGrid :grid="grid" :entities="allEntities" :current-entity-id="currentEntityId"
-                        :team-colors="teamColors" :highlighted-cells="highlightedCells"
-                        :anim-action="animAction" effects @tile-click="handleTileClick" />
+                    <ThreeGrid
+                        :grid="grid"
+                        :entities="allEntities"
+                        :current-entity-id="currentEntityId"
+                        :team-colors="teamColors"
+                        :highlighted-cells="highlightedCells"
+                        :anim-action="animAction"
+                        effects
+                        @tile-click="handleTileClick"
+                    />
 
-                    <ActionPanel :is-player-turn="isPlayerTurn" :is-processing="isProcessing"
-                        :selected-action="selectedAction" :active-character="currentEntity"
-                        :active-player-name="activePlayerName" :can-move="canMove" :can-attack="canAttack"
+                    <ActionPanel
+                        :is-player-turn="isPlayerTurn"
+                        :is-processing="isProcessing"
+                        :selected-action="selectedAction"
+                        :active-character="currentEntity"
+                        :active-player-name="activePlayerName"
+                        :can-move="canMove"
+                        :can-attack="canAttack"
                         :equipped-skills="currentEntity?.equipped_skills ?? []"
-                        @action="handleAction" />
+                        @action="handleAction"
+                    />
                 </div>
 
                 <!-- RIGHT ROSTER: Hostile Forces -->
-                <TeamRosterPanel :players="enemyRoster" detailed-player-id="" :team-colors="teamColors" side="right" />
+                <TeamRosterPanel
+                    :players="enemyRoster"
+                    detailed-player-id=""
+                    :team-colors="teamColors"
+                    side="right"
+                />
             </div>
 
             <!-- INITIATIVE TIMELINE -->
-            <InitiativeTimeline :turns="turnOrder" :team-colors="teamColors" :current-entity-id="currentEntityId" />
+            <InitiativeTimeline
+                :turns="turnOrder"
+                :team-colors="teamColors"
+                :current-entity-id="currentEntityId"
+            />
 
             <!-- Match ID watermark -->
             <div class="arena__watermark">
@@ -630,10 +302,16 @@ async function executeForfeit() {
             </div>
 
             <!-- FORFEIT CONFIRMATION -->
-            <ConfirmModal :show="showForfeitModal" title="TERMINATION REQUEST"
+            <ConfirmModal
+                :show="showForfeitModal"
+                title="TERMINATION REQUEST"
                 message="Are you sure you want to forfeit? This will cause an immediate loss for your entire team and disconnect all tactical links."
-                confirm-text="FORFEIT MATCH" cancel-text="RESUME COMBAT" type="danger" @close="showForfeitModal = false"
-                @confirm="executeForfeit" />
+                confirm-text="FORFEIT MATCH"
+                cancel-text="RESUME COMBAT"
+                type="danger"
+                @close="showForfeitModal = false"
+                @confirm="executeForfeit"
+            />
         </div>
     </TacticalLayout>
 </template>
@@ -799,6 +477,7 @@ async function executeForfeit() {
     border-color: #fff;
     box-shadow: 0 0 12px rgba(255, 255, 255, 0.3);
 }
+
 .arena-error {
     flex: 1;
     display: flex;

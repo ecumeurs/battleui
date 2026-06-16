@@ -68,11 +68,17 @@ class LeaderboardController extends Controller
             return ($row->wins + $row->losses) > 0;
         });
 
-        $sorted = $results->sortByDesc(function ($row) {
-            // Sort by Wins first, then Score
+        $sorted = $results->sort(function ($a, $b) {
+            // Sort by Wins first (desc), then Score (desc)
             // @spec-link [[ui_leaderboard_primary_sorting]]
             // @spec-link [[ui_leaderboard_secondary_sorting]]
-            return sprintf('%010d.%010d', $row->wins, (int)($row->score * 1000000));
+            $keyA = sprintf('%010d.%010d', $a->wins, (int)($a->score * 1000000));
+            $keyB = sprintf('%010d.%010d', $b->wins, (int)($b->score * 1000000));
+            if ($keyA !== $keyB) {
+                return $keyB <=> $keyA; // descending: higher key = better rank
+            }
+            // Tiebreaker: more recently registered user ranks higher among equals (id desc)
+            return $b->id <=> $a->id;
         })->values();
 
         $currentUserId = auth()->id();

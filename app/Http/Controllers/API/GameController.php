@@ -69,7 +69,7 @@ class GameController extends Controller
 
         if (!$ownsEntity) {
             return $this->error('Forbidden: You do not own the entity specified in this action.', 403, (object)[], [
-                'error_key' => 'entity.controller.missmatch'
+                'error_key' => 'entity.controller.mismatch'
             ]);
         }
 

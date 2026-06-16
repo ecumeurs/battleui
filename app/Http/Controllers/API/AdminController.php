@@ -143,9 +143,15 @@ class AdminController extends Controller
 
     /**
      * Anonymize a user (GDPR)
+     *
+     * @spec-link [[uc_admin_user_management]]
      */
     public function anonymize(User $user)
     {
+        if ($guard = $this->assertNotSelfDestruct($user)) {
+            return $guard;
+        }
+
         if ($user->isAdmin() && User::where('role', 'Admin')->count() <= 1) {
             return $this->error('Cannot anonymize the last remaining administrator.', 400);
         }
@@ -156,14 +162,32 @@ class AdminController extends Controller
 
     /**
      * Soft delete a user
+     *
+     * @spec-link [[uc_admin_user_management]]
      */
     public function destroy(User $user)
     {
-        if ($user->id === auth()->id()) {
-            return $this->error('Cannot delete your own active administrative session.', 400);
+        if ($guard = $this->assertNotSelfDestruct($user)) {
+            return $guard;
         }
 
         $user->delete();
         return $this->success(null, 'User account deactivated.');
+    }
+
+    /**
+     * Guard: reject any destructive action an admin attempts on its own account.
+     * Returns a 403 envelope error when the target user is the authenticated admin,
+     * or null when the target is a different user (caller continues normally).
+     *
+     * @spec-link [[uc_admin_user_management]]
+     */
+    private function assertNotSelfDestruct(User $user): ?\Illuminate\Http\JsonResponse
+    {
+        if ($user->id === auth()->id()) {
+            return $this->error('Cannot perform destructive actions on your own administrative account.', 403);
+        }
+
+        return null;
     }
 }

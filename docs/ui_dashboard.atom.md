@@ -24,8 +24,6 @@ dependents:
   - [[ui_dashboard_roster_display]]
   - [[ui_dashboard_security_check]]
   - [[ui_diagnostic_terminal]]
-  - [[shared:uc_player_login]]
-  - [[shared:uc_progression_stat_allocation]]
 ---
 # Dashboard Page UI
 

@@ -10,10 +10,6 @@ dependents:
   - [[ui_shop]]
   - [[ui_skill_icon]]
   - [[ui_theme]]
-  - [[shared:rule_pve_winnability_balance]]
-  - [[shared:rule_pvp_stalemate_draw]]
-  - [[upsilonbattle:mech_ai_name_generation]]
-  - [[upsilonbattle:mech_skill_name_generation]]
 parents: []
 human_name: UI Look and Feel Aesthetic
 type: REQUIREMENT

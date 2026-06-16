@@ -7,7 +7,8 @@ version: 1.0
 status: STABLE
 priority: 5
 tags: []
-parents: []
+parents:
+  - [[req_tech_debt_backlog]]
 dependents:
   - [[ui_leaderboard_data_display]]
   - [[ui_leaderboard_metrics_displayed]]
@@ -15,7 +16,6 @@ dependents:
   - [[ui_leaderboard_primary_sorting]]
   - [[ui_leaderboard_secondary_sorting]]
   - [[ui_leaderboard_security]]
-  - [[upsilonapi:api_leaderboard]]
 ---
 # Leaderboard Page UI
 

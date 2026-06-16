@@ -5,6 +5,12 @@ use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\DB;
 
+/**
+ * Add initial_movement to characters — snapshot of base Move stat before in-game consumption.
+ *
+ * @spec-link [[entity_character]]
+ * @spec-link [[shared:rule_stat_taxonomy]]
+ */
 return new class extends Migration
 {
     /**

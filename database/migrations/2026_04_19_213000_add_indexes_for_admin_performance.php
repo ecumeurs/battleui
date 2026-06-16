@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Performance indexes on game_matches and users for admin dashboard queries.
+ *
+ * @spec-link [[upsilonbattle:entity_game_match]]
+ * @spec-link [[upsilonbattle:entity_users]]
+ */
 return new class extends Migration
 {
     /**

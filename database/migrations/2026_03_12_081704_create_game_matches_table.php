@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Initial game_matches table — state cache, grid, turn counter, game mode.
+ *
+ * @spec-link [[upsilonbattle:entity_game_match]]
+ */
 return new class extends Migration
 {
     /**

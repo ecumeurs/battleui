@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Add version counter to game_matches — monotonic version for optimistic-lock / conflict detection.
+ *
+ * @spec-link [[upsilonbattle:entity_game_match]]
+ */
 return new class extends Migration
 {
     /**

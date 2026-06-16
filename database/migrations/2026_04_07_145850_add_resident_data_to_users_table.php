@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Add GDPR-protected resident fields (full_address, birth_date) to users.
+ *
+ * @spec-link [[upsilonbattle:entity_users]]
+ * @spec-link [[shared:requirement_customer_user_id_privacy]]
+ */
 return new class extends Migration
 {
     /**

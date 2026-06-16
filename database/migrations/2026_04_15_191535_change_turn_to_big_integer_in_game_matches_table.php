@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Widen game_matches.turn from INT to BIGINT — supports long-running matches without overflow.
+ *
+ * @spec-link [[upsilonbattle:entity_game_match]]
+ */
 return new class extends Migration
 {
     /**

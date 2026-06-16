@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Core users, password_reset_tokens, and sessions tables.
+ *
+ * @spec-link [[upsilonbattle:entity_users]]
+ * @spec-link [[shared:requirement_customer_user_account]]
+ */
 return new class extends Migration
 {
     /**

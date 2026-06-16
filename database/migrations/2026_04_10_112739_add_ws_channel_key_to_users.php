@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Add ws_channel_key to users — opaque UUID for secure Reverb WebSocket subscriptions
+ * (never exposes the real user id to the frontend).
+ *
+ * @spec-link [[shared:requirement_customer_user_id_privacy]]
+ */
 return new class extends Migration
 {
     /**

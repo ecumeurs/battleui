@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Laravel Sanctum personal_access_tokens table — API token auth with TTL.
+ *
+ * @spec-link [[shared:req_security]]
+ * @spec-link [[shared:req_security_token_ttl]]
+ */
 return new class extends Migration
 {
     /**

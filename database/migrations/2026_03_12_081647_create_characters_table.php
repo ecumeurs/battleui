@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Initial characters table — base stat block (hp, movement, attack, defense).
+ *
+ * @spec-link [[entity_character]]
+ */
 return new class extends Migration
 {
     /**

@@ -4,6 +4,12 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Add spent_cp to characters — tracks Character Points consumed via stat upgrades.
+ *
+ * @spec-link [[entity_character]]
+ * @spec-link [[shared:rule_progression]]
+ */
 return new class extends Migration
 {
     /**

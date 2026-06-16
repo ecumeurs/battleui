@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Credit economy — adds credits balance to users and creates credit_transactions ledger.
+ *
+ * @spec-link [[upsilonbattle:entity_player_credits]]
+ */
 return new class extends Migration
 {
     /**

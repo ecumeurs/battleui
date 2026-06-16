@@ -4,6 +4,11 @@ use Illuminate\Database\Migrations\Migration;
 use Illuminate\Database\Schema\Blueprint;
 use Illuminate\Support\Facades\Schema;
 
+/**
+ * Initial match_participants table — per-player outcome record for each game match.
+ *
+ * @spec-link [[upsilonbattle:entity_match_participants]]
+ */
 return new class extends Migration
 {
     /**

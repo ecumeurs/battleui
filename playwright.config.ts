@@ -6,6 +6,18 @@ export default defineConfig({
     snapshotDir: './tests/playwright/__snapshots__',
     outputDir: './tests/playwright/.output',
 
+    // Bound runaway specs so a hang can't stall the whole CI job.
+    timeout: 60_000,
+    retries: process.env.CI ? 1 : 0,
+    forbidOnly: !!process.env.CI,
+
+    // HTML report is what CI looks for (battleui/playwright-report/) and uploads
+    // as an artifact; without it CI prints "No HTML Report found".
+    reporter: [
+        ['list'],
+        ['html', { outputFolder: 'playwright-report', open: 'never' }],
+    ],
+
     expect: {
         toHaveScreenshot: {
             // 0.1% pixel diff tolerance — tight enough to catch regressions,

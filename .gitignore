@@ -32,3 +32,8 @@ dom.html
 *.sqlite3
 
 pipeline_output/
+
+# Playwright artifacts
+/playwright-report/
+/tests/playwright/.output/
+/battle_screenshot.png

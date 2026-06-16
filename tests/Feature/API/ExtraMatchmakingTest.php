@@ -9,6 +9,10 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 use Mockery\MockInterface;
 
+/**
+ * @test-link [[upsilonbattle:mech_matchmaking]]
+ * @test-link [[upsilonapi:api_matchmaking]]
+ */
 class ExtraMatchmakingTest extends TestCase
 {
     use RefreshDatabase;

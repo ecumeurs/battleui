@@ -7,6 +7,10 @@ use App\Traits\ApiResponder;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 
+/**
+ * @test-link [[upsilonapi:api_standard_envelope]]
+ * @test-link [[upsilonapi:api_request_id]]
+ */
 class ApiResponderTest extends TestCase
 {
     /**

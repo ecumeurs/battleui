@@ -8,6 +8,9 @@ use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Tests\TestCase;
 
+/**
+ * @test-link [[upsilonbattle:mech_sanctum_token_renewal]]
+ */
 class SanctumTokenRenewalTest extends TestCase
 {
     use RefreshDatabase;

@@ -10,6 +10,11 @@ use App\Http\Resources\API\Upsilon\UpsilonPlayerResource;
 use App\Http\Resources\API\Upsilon\UpsilonEntityResource;
 use Illuminate\Support\Str;
 
+/**
+ * @test-link [[upsilonapi:api_go_battle_start]]
+ * @test-link [[upsilonapi:api_go_battle_action]]
+ * @test-link [[upsilonapi:api_battle_proxy]]
+ */
 class UpsilonApiRoundtripTest extends TestCase
 {
     /**

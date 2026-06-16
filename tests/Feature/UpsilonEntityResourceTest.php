@@ -11,6 +11,11 @@ use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
+/**
+ * @test-link [[upsilonbattle:entity_character_equipment]]
+ * @test-link [[upsilonbattle:mec_three_slot_equipment_system]]
+ * @test-link [[upsilonapi:api_equipment_management]]
+ */
 class UpsilonEntityResourceTest extends TestCase
 {
     use RefreshDatabase;

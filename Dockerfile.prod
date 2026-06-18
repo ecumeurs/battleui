@@ -5,7 +5,7 @@ COPY composer.json composer.lock ./
 RUN composer install --no-dev --ignore-platform-reqs --no-scripts --no-autoloader
 
 # Stage 1: Build Assets
-FROM node:20-alpine AS assets-builder
+FROM node:24-alpine AS assets-builder
 WORKDIR /app
 
 # Accept build arguments for environment variables

@@ -23,8 +23,21 @@
         <env name="BCRYPT_ROUNDS" value="4"/>
         <env name="BROADCAST_CONNECTION" value="null"/>
         <env name="CACHE_STORE" value="array"/>
-        <env name="DB_CONNECTION" value="sqlite"/>
-        <env name="DB_DATABASE" value=":memory:"/>
+        <!-- Tests run on PostgreSQL: the migrations use Postgres-only DDL
+             (ALTER TABLE ... ADD CONSTRAINT ... CHECK) that SQLite cannot build.
+             Values default to the dev compose `db` service and a dedicated
+             `testing` database; CI/scripts override DB_HOST etc. via env. -->
+        <env name="DB_CONNECTION" value="pgsql"/>
+        <env name="DB_HOST" value="db"/>
+        <env name="DB_PORT" value="5432"/>
+        <env name="DB_DATABASE" value="testing"/>
+        <env name="DB_USERNAME" value="postgres"/>
+        <env name="DB_PASSWORD" value="postgres"/>
+        <!-- Engine URLs: UpsilonApiService / SkillGeneratorBridge type baseUrl as
+             string and would throw on a null config. Tests Http::fake the calls,
+             so any valid URL works; these just keep construction from failing. -->
+        <env name="UPSILON_API_URL" value="http://engine:8081"/>
+        <env name="UPSILON_WEBHOOK_URL" value="http://app/api/webhook/upsilon"/>
         <env name="MAIL_MAILER" value="array"/>
         <env name="QUEUE_CONNECTION" value="sync"/>
         <env name="SESSION_DRIVER" value="array"/>

@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Foundation\Testing\WithFaker;
+use PHPUnit\Framework\Attributes\Group;
 use Tests\TestCase;
 use App\Services\Contracts\UpsilonApiServiceInterface;
 use App\Http\Resources\API\Upsilon\UpsilonPlayerResource;
@@ -15,6 +16,7 @@ use Illuminate\Support\Str;
  * @test-link [[upsilonapi:api_go_battle_action]]
  * @test-link [[upsilonapi:api_battle_proxy]]
  */
+#[Group('engine-required')]
 class UpsilonApiRoundtripTest extends TestCase
 {
     /**

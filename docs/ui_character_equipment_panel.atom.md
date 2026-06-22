@@ -15,7 +15,7 @@ type: UI
 layer: ARCHITECTURE
 ---
 
-# New Atom
+# Character Equipment Panel UI
 
 ## INTENT
 To surface the 3-slot equipment configuration inline on each character card on the dashboard, with a click-to-equip drawer affordance. Tightly coupled to the character stat panel so equipment contributions are visible alongside the stats they modify.

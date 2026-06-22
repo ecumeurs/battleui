@@ -12,7 +12,7 @@ dependents: []
 human_name: BattleUI Contract
 ---
 
-# New Atom
+# BattleUI Contract
 
 ## INTENT
 Establish the architectural standards and integration rules for the BattleUI Laravel/Vue application.
@@ -25,7 +25,7 @@ Establish the architectural standards and integration rules for the BattleUI Lar
 - **Responsiveness:** Support multiple resolutions while maintaining tactical grid legibility.
 
 ## TECHNICAL INTERFACE
-- **Code Tag:** `@spec-link [[ui_contract]]`
-- **Related Atoms:** `[[module_frontend_session_management]]`, `[[shared:upsilon_contract]]`
+- **Code Tag:** `@spec-link [[contract_ui_contract]]`
+- **Related Atoms:** `[[module_frontend_session_management]]`, `[[shared:contract_upsilon_contract]]`
 
 ## EXPECTATION

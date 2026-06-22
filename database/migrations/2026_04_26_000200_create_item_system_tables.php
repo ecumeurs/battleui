@@ -8,10 +8,10 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Create the four ISS-074 item-system tables.
  *
- * @spec-link [[upsilonbattle:entity_shop_item]]
- * @spec-link [[upsilonbattle:entity_player_inventory]]
- * @spec-link [[upsilonbattle:entity_character_equipment]]
- * @spec-link [[upsilonbattle:mec_credit_spending_shop]]
+ * @spec-link [[entity_shop_item]]
+ * @spec-link [[entity_player_inventory]]
+ * @spec-link [[entity_character_equipment]]
+ * @spec-link [[mechanic_shop_inventory_system]]
  *
  * Schema decisions (per ISS-074 prep plan §2 Decisions):
  *   D1: player_inventory has NO character_id; equip lives only in character_equipment.

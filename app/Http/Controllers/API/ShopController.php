@@ -18,7 +18,7 @@ class ShopController extends Controller
     }
 
     /**
-     * @spec-link [[upsilonapi:api_shop_browse]]
+     * @spec-link [[api_shop_browse]]
      */
     public function index(Request $request)
     {
@@ -31,7 +31,7 @@ class ShopController extends Controller
     }
 
     /**
-     * @spec-link [[upsilonapi:api_shop_purchase]]
+     * @spec-link [[api_shop_purchase]]
      */
     public function purchase(PurchaseShopItemRequest $request)
     {

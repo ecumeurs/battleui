@@ -2,8 +2,8 @@
  * Maps skill tags to inline SVG path data and neon theme colors.
  * All paths are drawn in a 32×32 viewBox, stroke-only (no fill).
  *
- * @spec-link [[battleui:ui_skill_icon]]
- * @spec-link [[shared:req_skill_generation]]
+ * @spec-link [[ui_skill_icon]]
+ * @spec-link [[req_skill_generation]]
  */
 export const iconRegistry = {
     // ── Delivery ───────────────────────────────────────────────────

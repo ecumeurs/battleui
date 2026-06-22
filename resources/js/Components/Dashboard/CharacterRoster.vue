@@ -1,5 +1,5 @@
 <!-- @spec-link [[ui_character_roster]] -->
-<!-- @spec-link [[mechanic_mech_frontend_auth_bridge]] -->
+<!-- @spec-link [[mechanic_frontend_auth_bridge]] -->
 <script setup>
 import { useDashboardState } from '@/Composables/useDashboardState';
 import CharacterCard from '../Character/CharacterCard.vue';

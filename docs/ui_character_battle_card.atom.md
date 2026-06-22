@@ -12,7 +12,7 @@ parents:
 dependents: []
 ---
 
-# New Atom
+# Character Battle Card UI
 
 ## INTENT
 A single character display card within a team roster panel, showing name, HP bar, movement, and stats with support for compact mode and configurable accent color.

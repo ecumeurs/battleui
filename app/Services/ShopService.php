@@ -10,10 +10,10 @@ use Illuminate\Support\Facades\DB;
 
 /**
  * Shop transactions: credit deduction + inventory upsert + audit logs.
- * All-or-nothing per `[[upsilonbattle:mec_credit_spending_shop]]`.
+ * All-or-nothing per `[[mechanic_shop_inventory_system]]`.
  *
- * @spec-link [[upsilonapi:api_shop_purchase]]
- * @spec-link [[upsilonbattle:mec_credit_spending_shop]]
+ * @spec-link [[api_shop_purchase]]
+ * @spec-link [[mechanic_shop_inventory_system]]
  */
 class ShopService
 {

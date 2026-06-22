@@ -13,7 +13,7 @@ parents:
   - [[ui_battle_arena]]
 ---
 
-# New Atom
+# Team Roster Panel UI
 
 ## INTENT
 A side panel displaying all characters for a team grouped by player nickname, supporting both detailed and compact display modes.

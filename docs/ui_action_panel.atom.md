@@ -4,9 +4,9 @@ status: STABLE
 type: UI
 version: 1.1
 parents:
-  - [[shared:req_skill_generation]]
   - [[ui_battle_arena]]
   - [[upsilonbattle:mech_action_economy]]
+  - [[upsilonbattle:req_skill_generation]]
 dependents: []
 human_name: Action Panel Component
 layer: ARCHITECTURE
@@ -14,7 +14,7 @@ priority: 4
 tags: [ui, combat, actions, turn, skills]
 ---
 
-# New Atom
+# Action Panel Component
 
 ## INTENT
 A self-contained, boxed combat action panel that enables or disables player actions depending on whether the authenticated user owns the current turn.

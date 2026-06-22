@@ -15,10 +15,10 @@ parents:
   - [[upsilonapi:api_inventory_list]]
 ---
 
-# New Atom
+# Inventory UI Page
 
 ## INTENT
-To provide an inventory page where players see what they own and bind items to specific characters via the equip flow. Read-side mirrors `[[api_inventory_list]]`; write-side calls `[[api_equipment_management]]` equip / unequip endpoints.
+To provide an inventory page where players see what they own and bind items to specific characters via the equip flow. Read-side mirrors `[[upsilonapi:api_inventory_list]]`; write-side calls `[[upsilonapi:api_equipment_management]]` equip / unequip endpoints.
 
 ## THE RULE / LOGIC
 **Route:** `/inventory` (Inertia route).

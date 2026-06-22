@@ -14,8 +14,8 @@ use Mockery\MockInterface;
 /**
  * @spec-link [[api_matchmaking]]
  * @spec-link [[mech_matchmaking]]
- * @test-link [[upsilonapi:api_matchmaking]]
- * @test-link [[upsilonbattle:mech_matchmaking]]
+ * @test-link [[api_matchmaking]]
+ * @test-link [[mech_matchmaking]]
  * @test-link [[rule_matchmaking_single_queue]]
  * @test-link [[requirement_customer_user_id_privacy]]
  */

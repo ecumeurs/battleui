@@ -7,8 +7,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Laravel Sanctum personal_access_tokens table — API token auth with TTL.
  *
- * @spec-link [[shared:req_security]]
- * @spec-link [[shared:req_security_token_ttl]]
+ * @spec-link [[req_security]]
+ * @spec-link [[req_security_token_ttl]]
  */
 return new class extends Migration
 {

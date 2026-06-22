@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\DB;
 /**
  * Seed the V2.0 shop catalog.
  *
- * @spec-link [[upsilonbattle:entity_shop_item]]
- * @spec-link [[upsilonbattle:rule_item_pricing_simple]]
+ * @spec-link [[entity_shop_item]]
+ * @spec-link [[rule_item_pricing_simple]]
  *
  * Three items, deterministic UUIDs (test stability), fixed costs per V2.0.
  */

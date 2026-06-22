@@ -6,7 +6,7 @@ use App\Models\Character;
 use Tests\TestCase;
 
 /**
- * @test-link [[upsilontypes:entity_character]]
+ * @test-link [[entity_character]]
  * @test-link [[rule_character_create_character]]
  */
 class CharacterStatDistributionTest extends TestCase

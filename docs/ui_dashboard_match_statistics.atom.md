@@ -12,7 +12,7 @@ version: 1.0
 dependents: []
 ---
 
-# New Atom
+# Dashboard Match Statistics
 
 ## INTENT
 To display real-time matchmaking activity statistics to the user on the dashboard.

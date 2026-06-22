@@ -15,7 +15,7 @@ tags: [ui, shop, dashboard, iss-074]
 type: UI
 ---
 
-# New Atom
+# Shop UI Page
 
 ## INTENT
 To provide a dedicated shop page where players browse the V2.0 catalog and purchase items with credits, surfaced via the "Neon in the Dust" aesthetic with sci-fi / post-apoc terminology.

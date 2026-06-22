@@ -9,7 +9,7 @@ use Illuminate\Database\Eloquent\Model;
  * Per-user owned items. Ownership only — equip state lives in
  * `character_equipment` (D1 of ISS-074).
  *
- * @spec-link [[upsilonbattle:entity_player_inventory]]
+ * @spec-link [[entity_player_inventory]]
  */
 class PlayerInventory extends Model
 {

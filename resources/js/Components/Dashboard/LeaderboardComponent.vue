@@ -1,6 +1,4 @@
 <!-- @spec-link [[ui_leaderboard]] -->
-<!-- @spec-link [[ui_leaderboard_data_display]] -->
-<!-- @spec-link [[ui_leaderboard_modes]] -->
 <script setup>
 import { ref, onMounted, watch } from 'vue';
 import auth from '@/services/auth';

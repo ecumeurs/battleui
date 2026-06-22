@@ -9,7 +9,7 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\DB;
 
 /**
- * @spec-link [[upsilonapi:api_inventory_list]]
+ * @spec-link [[api_inventory_list]]
  */
 class InventoryController extends Controller
 {

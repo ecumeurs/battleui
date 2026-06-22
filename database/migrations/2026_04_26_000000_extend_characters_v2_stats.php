@@ -8,8 +8,8 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Extend characters with V2 stat columns missing from ISS-071.
  *
- * @spec-link [[shared:rule_progression]]
- * @spec-link [[shared:rule_stat_taxonomy]]
+ * @spec-link [[rule_progression]]
+ * @spec-link [[rule_stat_taxonomy]]
  *
  * Adds Class A (CP-upgradable) stats absent from prior schema:
  *   - mp           (resource counter, parity with hp; default 10)

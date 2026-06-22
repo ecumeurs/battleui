@@ -49,7 +49,7 @@ class CharacterPolicy
     }
 
     /**
-     * @spec-link [[upsilonapi:api_equipment_management]]
+     * @spec-link [[api_equipment_management]]
      */
     public function equip(User $user, Character $character): bool
     {
@@ -57,7 +57,7 @@ class CharacterPolicy
     }
 
     /**
-     * @spec-link [[upsilonapi:api_equipment_management]]
+     * @spec-link [[api_equipment_management]]
      */
     public function unequip(User $user, Character $character): bool
     {

@@ -12,7 +12,7 @@ parents:
   - [[ui_dashboard]]
 ---
 
-# New Atom
+# Profile Management UI
 
 ## INTENT
 To allow users to manage their personal profile information and exercise their GDPR rights.

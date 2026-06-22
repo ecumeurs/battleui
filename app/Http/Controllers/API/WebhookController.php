@@ -30,7 +30,7 @@ class WebhookController extends Controller
      * @spec-link [[api_battle_proxy]]
      * @spec-link [[api_go_webhook_callback]]
      * @spec-link [[mech_game_state_versioning]]
-     * @spec-link [[battleui_api_dtos]]
+     * @spec-link [[entity_api_dtos]]
      */
     public function handle(WebhookRequest $request)
     {

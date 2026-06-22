@@ -12,7 +12,7 @@ layer: ARCHITECTURE
 tags: [ui, combat, header, hp-bar, timer]
 ---
 
-# New Atom
+# Combat Header UI
 
 ## INTENT
 The fighting-game-style combat header displaying team HP bars, remaining character counts, match duration timer, and shot clock with neon color transitions.

@@ -12,9 +12,9 @@ use App\Http\Resources\API\Upsilon\UpsilonEntityResource;
 use Illuminate\Support\Str;
 
 /**
- * @test-link [[upsilonapi:api_go_battle_start]]
- * @test-link [[upsilonapi:api_go_battle_action]]
- * @test-link [[upsilonapi:api_battle_proxy]]
+ * @test-link [[api_go_battle_start]]
+ * @test-link [[api_go_battle_action]]
+ * @test-link [[api_battle_proxy]]
  */
 #[Group('engine-required')]
 class UpsilonApiRoundtripTest extends TestCase

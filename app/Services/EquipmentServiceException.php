@@ -5,7 +5,7 @@ namespace App\Services;
 /**
  * Domain exception for equipment operations.
  *
- * @spec-link [[upsilonapi:api_equipment_management]]
+ * @spec-link [[api_equipment_management]]
  */
 class EquipmentServiceException extends \RuntimeException
 {

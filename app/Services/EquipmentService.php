@@ -10,9 +10,9 @@ use Illuminate\Support\Facades\DB;
 /**
  * Equip / unequip orchestration with cross-character mutual exclusivity.
  *
- * @spec-link [[upsilonapi:api_equipment_management]]
- * @spec-link [[upsilonbattle:entity_character_equipment]]
- * @spec-link [[upsilonbattle:mec_three_slot_equipment_system]]
+ * @spec-link [[api_equipment_management]]
+ * @spec-link [[entity_character_equipment]]
+ * @spec-link [[mechanic_three_slot_equipment_system]]
  */
 class EquipmentService
 {

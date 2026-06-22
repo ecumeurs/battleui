@@ -10,6 +10,9 @@ dependents:
   - [[ui_shop]]
   - [[ui_skill_icon]]
   - [[ui_theme]]
+  - [[upsilonapi:rule_pve_winnability_balance]]
+  - [[upsilonbattle:mech_ai_name_generation]]
+  - [[upsilonbattle:mech_skill_name_generation]]
 parents: []
 human_name: UI Look and Feel Aesthetic
 type: REQUIREMENT
@@ -19,7 +22,7 @@ priority: 5
 tags: [ui, design, aesthetic]
 ---
 
-# New Atom
+# UI Look and Feel Aesthetic
 
 ## INTENT
 To define the core visual identity and aesthetic philosophy of the Upsilon Battle project.

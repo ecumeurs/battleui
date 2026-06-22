@@ -22,7 +22,7 @@ class UpdateCharacterRequest extends FormRequest
     public function rules(): array
     {
         // Class A only — Class B (AttackRange, Shield) intentionally absent
-        // per [[shared:rule_stat_taxonomy]] (item / buff only).
+        // per [[rule_stat_taxonomy]] (item / buff only).
         return [
             'stats'              => 'required|array',
             'stats.hp'           => 'integer|min:0',

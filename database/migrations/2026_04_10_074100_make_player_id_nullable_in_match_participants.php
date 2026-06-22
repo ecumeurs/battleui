@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Make match_participants.player_id nullable — supports PVE AI slots with no user account.
  *
- * @spec-link [[upsilonbattle:entity_match_participants]]
+ * @spec-link [[entity_match_participants]]
  */
 return new class extends Migration
 {

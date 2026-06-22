@@ -89,7 +89,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @spec-link [[upsilonbattle:entity_player_inventory]]
+     * @spec-link [[entity_player_inventory]]
      */
     public function inventory()
     {
@@ -97,7 +97,7 @@ class User extends Authenticatable
     }
 
     /**
-     * @spec-link [[upsilonbattle:entity_player_inventory]]
+     * @spec-link [[entity_player_inventory]]
      */
     public function inventoryTransactions()
     {

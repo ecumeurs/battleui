@@ -12,7 +12,7 @@ human_name: Character Roster Component
 version: 1.0
 ---
 
-# New Atom
+# Character Roster Component
 
 ## INTENT
 To provide a standalone component for managing character rosters, stats, and progression.

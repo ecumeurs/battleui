@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Add soft-delete support (deleted_at) to users — GDPR-compliant account deactivation.
  *
- * @spec-link [[shared:requirement_customer_user_id_privacy]]
+ * @spec-link [[requirement_customer_user_id_privacy]]
  */
 return new class extends Migration
 {

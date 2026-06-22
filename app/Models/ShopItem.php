@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * V2.0 catalog of purchasable items.
  *
- * @spec-link [[upsilonbattle:entity_shop_item]]
+ * @spec-link [[entity_shop_item]]
  */
 class ShopItem extends Model
 {

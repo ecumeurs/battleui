@@ -1,8 +1,8 @@
 <!-- Composable neon-polygon skill icon.
      Major glyph = tags[0], minor overlay = tags[1], tertiary (grade≥III) = tags[2].
      Falls back to behavior-derived tag when tags array is empty.
-     @spec-link [[battleui:ui_skill_icon]]
-     @spec-link [[shared:req_skill_generation]] -->
+     @spec-link [[ui_skill_icon]]
+     @spec-link [[req_skill_generation]] -->
 <script setup>
 import { computed } from 'vue';
 import { getIcon } from './skillIconRegistry.js';

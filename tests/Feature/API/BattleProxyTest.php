@@ -15,9 +15,9 @@ use Mockery\MockInterface;
 
 /**
  * @spec-link [[api_battle_proxy]]
- * @test-link [[upsilonapi:api_battle_proxy]]
- * @test-link [[upsilonapi:api_go_webhook_callback]]
- * @test-link [[upsilonbattle:mech_game_state_versioning]]
+ * @test-link [[api_battle_proxy]]
+ * @test-link [[api_go_webhook_callback]]
+ * @test-link [[mech_game_state_versioning]]
  */
 class BattleProxyTest extends TestCase
 {

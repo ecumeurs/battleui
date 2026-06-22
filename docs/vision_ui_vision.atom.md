@@ -12,7 +12,7 @@ parents:
 dependents: []
 ---
 
-# New Atom
+# BattleUI Vision
 
 ## INTENT
 Define the vision for the BattleUI as the immersive management and visualization gateway for the Upsilon ecosystem.
@@ -24,7 +24,7 @@ Define the vision for the BattleUI as the immersive management and visualization
 - **Accessibility:** Ensure the TRPG mechanics are intuitive and accessible via a modern web interface.
 
 ## TECHNICAL INTERFACE
-- **Code Tag:** `@spec-link [[ui_vision]]`
-- **Related Atoms:** `[[module_frontend]]`, `[[shared:upsilon_vision]]`
+- **Code Tag:** `@spec-link [[vision_ui_vision]]`
+- **Related Atoms:** `[[module_frontend]]`, `[[shared:vision_upsilon_vision]]`
 
 ## EXPECTATION

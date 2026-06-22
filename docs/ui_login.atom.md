@@ -8,7 +8,7 @@ status: STABLE
 priority: 3
 tags: [ui, auth]
 parents:
-  - [[shared:uc_player_login]]
+  - [[uc_player_login]]
 dependents: []
 ---
 

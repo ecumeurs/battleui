@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Widen game_matches.turn from INT to BIGINT — supports long-running matches without overflow.
  *
- * @spec-link [[upsilonbattle:entity_game_match]]
+ * @spec-link [[entity_game_match]]
  */
 return new class extends Migration
 {

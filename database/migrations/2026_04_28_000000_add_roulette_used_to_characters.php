@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Per-character "skill roulette consumed" flag (ISS-073 frontend follow-up).
  *
- * @spec-link [[shared:rule_skill_grading_system]]
+ * @spec-link [[rule_skill_grading_system]]
  *
  * Mirrors the reroll-on-spawn pattern: each character starts with one roulette
  * available; the flag flips on first successful skill roll and never resets.

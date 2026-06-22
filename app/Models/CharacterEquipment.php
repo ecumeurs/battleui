@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
  * 3-slot equipment binding for a single character. Single source of truth
  * for "what a character has equipped" (D1 of ISS-074).
  *
- * @spec-link [[upsilonbattle:entity_character_equipment]]
+ * @spec-link [[entity_character_equipment]]
  */
 class CharacterEquipment extends Model
 {

@@ -10,8 +10,8 @@ use Tests\TestCase;
 use Mockery\MockInterface;
 
 /**
- * @test-link [[upsilonbattle:mech_matchmaking]]
- * @test-link [[upsilonapi:api_matchmaking]]
+ * @test-link [[mech_matchmaking]]
+ * @test-link [[api_matchmaking]]
  */
 class ExtraMatchmakingTest extends TestCase
 {

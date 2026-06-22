@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Initial match_participants table — per-player outcome record for each game match.
  *
- * @spec-link [[upsilonbattle:entity_match_participants]]
+ * @spec-link [[entity_match_participants]]
  */
 return new class extends Migration
 {

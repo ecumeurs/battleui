@@ -6,8 +6,8 @@ layer: ARCHITECTURE
 version: 1.0
 tags: [ui, combat, arena, battle]
 parents:
-  - [[req_trpg_game_definition]]
   - [[req_ui_look_and_feel]]
+  - [[shared:req_trpg_game_definition]]
   - [[ui_board]]
 human_name: Battle Arena Page UI
 priority: 5
@@ -19,7 +19,7 @@ dependents:
   - [[ui_team_roster_panel]]
 ---
 
-# New Atom
+# Battle Arena Page UI
 
 ## INTENT
 The top-level Battle Arena page layout orchestrating the combat header, team rosters, isometric board, action panel, and initiative timeline into a cohesive tactical combat interface.

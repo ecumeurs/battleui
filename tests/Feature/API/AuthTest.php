@@ -10,9 +10,9 @@ use Tests\TestCase;
 /**
  * @spec-link [[api_auth_register]]
  * @spec-link [[api_auth_login]]
- * @test-link [[upsilonapi:api_auth_register]]
- * @test-link [[upsilonapi:api_auth_login]]
- * @test-link [[upsilonapi:api_auth_logout]]
+ * @test-link [[api_auth_register]]
+ * @test-link [[api_auth_login]]
+ * @test-link [[api_auth_logout]]
  * @test-link [[requirement_customer_user_account]]
  */
 class AuthTest extends TestCase

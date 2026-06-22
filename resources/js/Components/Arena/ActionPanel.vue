@@ -1,6 +1,6 @@
 <!-- @spec-link [[ui_action_panel]] -->
 <!-- @spec-link [[mech_action_economy]] -->
-<!-- @spec-link [[shared:req_skill_generation]] -->
+<!-- @spec-link [[req_skill_generation]] -->
 <!-- Action Panel — turn-aware combat action dispatcher -->
 <script setup>
 import { computed } from 'vue';

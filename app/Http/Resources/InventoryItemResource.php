@@ -9,7 +9,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
  * Wraps a `player_inventory` row, joining the catalog details and (when
  * loaded via `withEquippedAnnotation` scope) the current equip binding.
  *
- * @spec-link [[upsilonapi:api_inventory_list]]
+ * @spec-link [[api_inventory_list]]
  */
 class InventoryItemResource extends JsonResource
 {

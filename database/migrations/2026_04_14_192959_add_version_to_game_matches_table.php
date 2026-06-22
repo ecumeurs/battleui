@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Add version counter to game_matches — monotonic version for optimistic-lock / conflict detection.
  *
- * @spec-link [[upsilonbattle:entity_game_match]]
+ * @spec-link [[entity_game_match]]
  */
 return new class extends Migration
 {

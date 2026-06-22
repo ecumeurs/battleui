@@ -18,7 +18,7 @@ class CharacterResource extends JsonResource
         return [
             'id'               => $this->id,
             'name'             => $this->name,
-            // Class A — CP-upgradable, persisted [[shared:rule_progression]]
+            // Class A — CP-upgradable, persisted [[rule_progression]]
             'hp'               => (int) $this->hp,
             'mp'               => (int) $this->mp,
             'sp'               => (int) $this->sp,

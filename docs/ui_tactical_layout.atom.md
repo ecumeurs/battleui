@@ -1,10 +1,11 @@
 ---
-id: module_ui_tactical_layout
+id: ui_tactical_layout
 status: STABLE
 tags: [ui, layout]
 parents:
   - [[ui_dashboard]]
-dependents: []
+dependents:
+  - [[upsilonbattle:mech_web_catchall_router]]
 human_name: Tactical UI Layout
 type: MODULE
 layer: ARCHITECTURE
@@ -12,7 +13,7 @@ priority: 5
 version: 1.0
 ---
 
-# New Atom
+# Tactical UI Layout
 
 ## INTENT
 To provide a consistent, tactical user interface framework across all authenticated pages.

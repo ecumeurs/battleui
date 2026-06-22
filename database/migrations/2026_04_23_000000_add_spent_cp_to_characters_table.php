@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * Add spent_cp to characters — tracks Character Points consumed via stat upgrades.
  *
  * @spec-link [[entity_character]]
- * @spec-link [[shared:rule_progression]]
+ * @spec-link [[rule_progression]]
  */
 return new class extends Migration
 {

@@ -8,7 +8,7 @@ use Illuminate\Http\Resources\Json\JsonResource;
 /**
  * 3-slot view: each slot is either null or a populated InventoryItemResource.
  *
- * @spec-link [[upsilonapi:api_equipment_management]]
+ * @spec-link [[api_equipment_management]]
  */
 class CharacterEquipmentResource extends JsonResource
 {

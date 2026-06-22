@@ -70,8 +70,7 @@ class LeaderboardController extends Controller
 
         $sorted = $results->sort(function ($a, $b) {
             // Sort by Wins first (desc), then Score (desc)
-            // @spec-link [[ui_leaderboard_primary_sorting]]
-            // @spec-link [[ui_leaderboard_secondary_sorting]]
+            // @spec-link [[ui_leaderboard]]
             $keyA = sprintf('%010d.%010d', $a->wins, (int)($a->score * 1000000));
             $keyB = sprintf('%010d.%010d', $b->wins, (int)($b->score * 1000000));
             if ($keyA !== $keyB) {

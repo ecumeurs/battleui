@@ -42,7 +42,7 @@ class Character extends Model
     }
 
     /**
-     * @spec-link [[upsilonbattle:entity_character_equipment]]
+     * @spec-link [[entity_character_equipment]]
      */
     public function equipment()
     {
@@ -130,7 +130,7 @@ class Character extends Model
     public static function getBaseStats(): array
     {
         // V2 Baseline Stats — Class A (CP-upgradable). Class B (AttackRange,
-        // Shield) intentionally absent: items/buffs only per [[shared:rule_stat_taxonomy]].
+        // Shield) intentionally absent: items/buffs only per [[rule_stat_taxonomy]].
         return [
             'hp'          => 30,
             'mp'          => 10,

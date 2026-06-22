@@ -12,9 +12,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * @test-link [[upsilonbattle:entity_character_equipment]]
- * @test-link [[upsilonbattle:mec_three_slot_equipment_system]]
- * @test-link [[upsilonapi:api_equipment_management]]
+ * @test-link [[entity_character_equipment]]
+ * @test-link [[mechanic_three_slot_equipment_system]]
+ * @test-link [[api_equipment_management]]
  */
 class UpsilonEntityResourceTest extends TestCase
 {

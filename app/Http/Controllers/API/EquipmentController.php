@@ -13,7 +13,7 @@ use App\Services\EquipmentServiceException;
 use Illuminate\Http\Request;
 
 /**
- * @spec-link [[upsilonapi:api_equipment_management]]
+ * @spec-link [[api_equipment_management]]
  */
 class EquipmentController extends Controller
 {

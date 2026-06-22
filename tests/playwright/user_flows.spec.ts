@@ -289,8 +289,8 @@ test('equip: purchase item → open character panel → link item → slot refle
 // ---------------------------------------------------------------------------
 // Skill icon + name visible after roulette reveal
 // @test-link [[shared:req_skill_generation_overhaul]]
-// @test-link [[upsilonbattle:mech_skill_name_generation]]
-// @test-link [[battleui:ui_skill_icon]]
+// @test-link [[mech_skill_name_generation]]
+// @test-link [[ui_skill_icon]]
 // ---------------------------------------------------------------------------
 test('skill roulette → revealed skill has diegetic name and SkillIcon', async ({ page }) => {
     await registerAndLand(page);
@@ -335,8 +335,8 @@ test('skill roulette → revealed skill has diegetic name and SkillIcon', async 
 
 // ---------------------------------------------------------------------------
 // Battle Arena: active skill buttons + passive rail
-// @test-link [[battleui:ui_action_panel]]
-// @test-link [[battleui:ui_skill_icon]]
+// @test-link [[ui_action_panel]]
+// @test-link [[ui_skill_icon]]
 // FIXME: stub only — ActionPanel skill split not implemented yet.
 // ---------------------------------------------------------------------------
 test.fixme('battle arena action panel renders active skills and passive rail', async ({ page }) => {

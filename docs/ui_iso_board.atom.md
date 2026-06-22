@@ -14,7 +14,7 @@ human_name: 3D Hexagonal Board Grid UI (Three.js)
 priority: 5
 parents:
   - [[ui_battle_arena]]
-  - [[upsilonbattle:mech_board_generation_board_dimensions]]
+  - [[upsilonbattle:mech_board_generation]]
 ---
 
 # Board Grid UI

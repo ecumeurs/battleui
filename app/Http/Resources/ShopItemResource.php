@@ -6,7 +6,7 @@ use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\JsonResource;
 
 /**
- * @spec-link [[upsilonapi:api_shop_browse]]
+ * @spec-link [[api_shop_browse]]
  */
 class ShopItemResource extends JsonResource
 {

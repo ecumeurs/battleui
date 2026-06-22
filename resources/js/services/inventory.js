@@ -2,8 +2,7 @@ import auth from './auth';
 
 /**
  * @spec-link [[api_inventory_list]]
- * @spec-link [[api_character_equip]]
- * @spec-link [[api_character_unequip]]
+ * @spec-link [[api_equipment_management]]
  */
 class InventoryService {
     async listInventory() {

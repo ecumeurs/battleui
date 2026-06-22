@@ -14,7 +14,7 @@ use Mockery\MockInterface;
 
 /**
  * @spec-link [[api_arena_existence_check]]
- * @test-link [[upsilonapi:api_arena_existence_check]]
+ * @test-link [[api_arena_existence_check]]
  */
 class MatchVerificationTest extends TestCase
 {

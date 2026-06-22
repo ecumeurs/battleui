@@ -42,7 +42,7 @@ class CharacterSkillController extends Controller
      * Accepts optional ?grade query param; enforces grade is within the character's win window.
      *
      * @spec-link [[rule_character_skill_slots]]
-     * @spec-link [[shared:req_skill_generation]]
+     * @spec-link [[req_skill_generation]]
      */
     public function roll(Request $request, string $characterId): JsonResponse
     {

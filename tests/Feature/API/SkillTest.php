@@ -15,7 +15,7 @@ use Tests\TestCase;
  * @test-link [[api_character_skill_inventory]]
  * @test-link [[rule_character_skill_slots]]
  * @test-link [[api_skill_template_browse]]
- * @test-link [[shared:req_skill_generation]]
+ * @test-link [[req_skill_generation]]
  */
 class SkillTest extends TestCase
 {

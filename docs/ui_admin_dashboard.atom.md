@@ -8,7 +8,7 @@ status: STABLE
 priority: 5
 tags: [admin, ui]
 parents:
-  - [[shared:uc_admin_login]]
+  - [[upsilonapi:uc_admin_login]]
 dependents: []
 ---
 
@@ -18,9 +18,9 @@ dependents: []
 To serve as the primary landing hub for authorized Administrators to manage system maintenance.
 
 ## THE RULE / LOGIC
-1. Accessible only after successful **Admin Login** [[uc_admin_login]].
+1. Accessible only after successful **Admin Login** [[upsilonapi:uc_admin_login]].
 2. Provides navigation to **User Management** (UC-5) and **History Management** (UC-6).
-3. Enforces [[rule_admin_access_restriction]] at the presentation layer.
+3. Enforces [[upsilonapi:rule_admin_access_restriction]] at the presentation layer.
 
 ## TECHNICAL INTERFACE (The Bridge)
 - **Frontend Page:** `Admin/Dashboard.vue`

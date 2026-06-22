@@ -7,7 +7,7 @@ namespace App\Services;
  * the HTTP status; `reason` carries the machine-readable failure tag for
  * `meta.reason` in the standard envelope.
  *
- * @spec-link [[upsilonapi:api_shop_purchase]]
+ * @spec-link [[api_shop_purchase]]
  */
 class ShopServiceException extends \RuntimeException
 {

@@ -8,9 +8,9 @@ status: STABLE
 priority: 4
 tags: [ui, matchmaking, dashboard, websocket]
 parents:
-  - [[shared:rule_matchmaking_single_queue]]
   - [[ui_dashboard]]
   - [[upsilonapi:api_websocket_user_notifications]]
+  - [[upsilonapi:rule_matchmaking_single_queue]]
 dependents: []
 has_tests: true
 linked_codes:

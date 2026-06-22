@@ -13,7 +13,7 @@ version: 1.0
 human_name: Character Pawn UI
 ---
 
-# New Atom
+# Character Pawn UI
 
 ## INTENT
 The holographic 3D character pawn rendered on the isometric board — a faceted rotating cone body with a directional sphere head, floating name label, and HP bar.

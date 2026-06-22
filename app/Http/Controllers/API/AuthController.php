@@ -20,7 +20,7 @@ use App\Http\Resources\UserResource;
  * @spec-link [[api_auth_login]]
  * @spec-link [[api_auth_register]]
  * @spec-link [[rule_password_policy]]
- * @spec-link [[customer_user_account]]
+ * @spec-link [[requirement_customer_user_account]]
  * @spec-link [[rule_gdpr_compliance]]
  */
 class AuthController extends Controller
@@ -86,7 +86,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @spec-link [[customer_user_account]]
+     * @spec-link [[requirement_customer_user_account]]
      */
     public function updateAccount(UpdateAccountRequest $request)
     {
@@ -99,7 +99,7 @@ class AuthController extends Controller
     }
 
     /**
-     * @spec-link [[customer_user_account]]
+     * @spec-link [[requirement_customer_user_account]]
      */
     public function changePassword(ChangePasswordRequest $request)
     {

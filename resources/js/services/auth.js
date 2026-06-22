@@ -4,7 +4,7 @@ import { v7 as uuidv7 } from 'uuid';
 import { clearTacticalId } from '@/services/tactical_id';
 
 /** 
- * @spec-link [[mechanic_mech_frontend_auth_bridge]]
+ * @spec-link [[mechanic_frontend_auth_bridge]]
  * @spec-link [[req_ui_session_timeout]]
  */
 export const isSessionExpired = ref(false);

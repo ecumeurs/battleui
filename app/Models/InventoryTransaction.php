@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 /**
  * Audit row for every inventory mutation.
  *
- * @spec-link [[upsilonbattle:mec_credit_spending_shop]]
+ * @spec-link [[mechanic_shop_inventory_system]]
  */
 class InventoryTransaction extends Model
 {

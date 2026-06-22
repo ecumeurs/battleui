@@ -46,7 +46,7 @@ class UpsilonEntityResource extends JsonResource
 
         // Collect equipped skills: inventory rows + item-derived skills (D11)
         // @spec-link [[api_character_skill_inventory]]
-        // @spec-link [[mec_skill_payload_resolution]]
+        // @spec-link [[mechanic_skill_payload_resolution]]
         $equippedSkills = [];
 
         if ($this->resource instanceof \Illuminate\Database\Eloquent\Model && $this->relationLoaded('equippedSkills')) {

@@ -16,7 +16,7 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
-        /** @spec-link [[upsilonbattle:entity_shop_item]] */
+        /** @spec-link [[entity_shop_item]] */
         $this->call(ShopItemsSeeder::class);
 
         /** @spec-link [[entity_skill_template]] */

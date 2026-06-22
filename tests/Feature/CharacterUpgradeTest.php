@@ -8,9 +8,9 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
 
 /**
- * @test-link [[upsilonapi:api_profile_character]]
- * @test-link [[shared:rule_progression]]
- * @test-link [[shared:rule_stat_taxonomy]]
+ * @test-link [[api_profile_character]]
+ * @test-link [[rule_progression]]
+ * @test-link [[rule_stat_taxonomy]]
  */
 class CharacterUpgradeTest extends TestCase
 {

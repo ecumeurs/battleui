@@ -10,10 +10,10 @@ use Tests\TestCase;
 /**
  * @spec-link [[api_profile_character]]
  * @spec-link [[mech_character_reroll]]
- * @test-link [[upsilonapi:api_profile_character]]
- * @test-link [[upsilonbattle:mech_character_reroll]]
- * @test-link [[upsilonbattle:mech_character_reroll_limit]]
- * @test-link [[upsilonbattle:mech_character_reroll_effect]]
+ * @test-link [[api_profile_character]]
+ * @test-link [[mech_character_reroll]]
+ * @test-link [[mech_character_reroll_limit]]
+ * @test-link [[mech_character_reroll_effect]]
  */
 class CharacterTest extends TestCase
 {

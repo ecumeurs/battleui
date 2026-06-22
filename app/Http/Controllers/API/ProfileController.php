@@ -18,7 +18,7 @@ class ProfileController extends Controller
 {
     /**
      * @spec-link [[api_profile_character]]
-     * @spec-link [[customer_player_profile]]
+     * @spec-link [[requirement_customer_player_profile]]
      */
     public function getProfile(Request $request)
     {
@@ -84,8 +84,8 @@ class ProfileController extends Controller
 
     /**
      * @spec-link [[api_profile_character]]
-     * @spec-link [[shared:rule_progression]]
-     * @spec-link [[shared:rule_stat_taxonomy]]
+     * @spec-link [[rule_progression]]
+     * @spec-link [[rule_stat_taxonomy]]
      *
      * Class A stats only — Class B (AttackRange, Shield) cannot be CP-upgraded.
      */
@@ -111,7 +111,7 @@ class ProfileController extends Controller
             'crit_damage' => $stats['crit_damage'] ?? 0,
         ];
 
-        // CP costs per [[shared:rule_progression]] v2.1.
+        // CP costs per [[rule_progression]] v2.1.
         $costs = [
             'hp'          => 1,
             'mp'          => 1,

@@ -1,5 +1,5 @@
 ---
-id: battleui_api_dtos
+id: entity_api_dtos
 human_name: BattleUI API Data Transfer Objects
 type: ENTITY
 layer: IMPLEMENTATION
@@ -8,7 +8,7 @@ status: STABLE
 priority: 5
 tags: [battleui, dto, api, types]
 parents:
-  - [[battleui_upsilon_api_service]]
+  - [[module_upsilon_api_service]]
   - [[upsilonapi:api_go_battle_action]]
   - [[upsilonapi:api_go_battle_start]]
 dependents: []
@@ -46,7 +46,7 @@ Each Player nests an 'entities' array where tactical stats (HP, position) and id
 
 ## TECHNICAL INTERFACE (The Bridge)
 - **Namespace:** `App\DTOs` or `App\Http\Resources`
-- **Code Tag:** `@spec-link [[battleui_api_dtos]]`
+- **Code Tag:** `@spec-link [[entity_api_dtos]]`
 
 ## EXPECTATION (For Testing)
 - Mapping a Go `BoardState` JSON to `BoardStateDTO` must not lose data.

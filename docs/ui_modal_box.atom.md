@@ -12,7 +12,7 @@ priority: 5
 version: 1.0
 ---
 
-# New Atom
+# UI Modal Box Specification
 
 ## INTENT
 To provide a consistent visual and behavioral specification for interactive modal dialogs.

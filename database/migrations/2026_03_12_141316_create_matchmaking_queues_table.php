@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
  * Initial matchmaking_queues table — queue entry per user with character selection.
  *
  * @spec-link [[shared:req_matchmaking_matchmaking_queue]]
- * @spec-link [[shared:rule_matchmaking_single_queue]]
+ * @spec-link [[rule_matchmaking_single_queue]]
  */
 return new class extends Migration
 {

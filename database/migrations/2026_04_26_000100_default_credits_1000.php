@@ -8,7 +8,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Set users.credits default to 1000 and backfill zero-balance accounts.
  *
- * @spec-link [[shared:rule_starting_credits_1000]]
+ * @spec-link [[rule_starting_credits_1000]]
  *
  * V2 design decision: every new user starts with 1000 credits.
  * Backfill is idempotent (only updates rows currently at 0).

@@ -82,14 +82,14 @@ Route::prefix("v1")->group(function () {
         Route::post('/game/{id}/forfeit', [GameController::class, 'forfeit']);
 
         // Shop (ISS-074)
-        // @spec-link [[upsilonapi:api_shop_browse]]
-        // @spec-link [[upsilonapi:api_shop_purchase]]
+        // @spec-link [[api_shop_browse]]
+        // @spec-link [[api_shop_purchase]]
         Route::get('/shop/items', [ShopController::class, 'index']);
         Route::post('/shop/purchase', [ShopController::class, 'purchase']);
 
         // Inventory & Equipment (ISS-074)
-        // @spec-link [[upsilonapi:api_inventory_list]]
-        // @spec-link [[upsilonapi:api_equipment_management]]
+        // @spec-link [[api_inventory_list]]
+        // @spec-link [[api_equipment_management]]
         Route::get('/profile/inventory', [InventoryController::class, 'index']);
         Route::get('/profile/character/{characterId}/equipment', [EquipmentController::class, 'show']);
         Route::post('/profile/character/{characterId}/equip', [EquipmentController::class, 'equip']);

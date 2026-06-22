@@ -13,7 +13,7 @@ type: UI
 version: 1.0
 ---
 
-# New Atom
+# Initiative Timeline UI
 
 ## INTENT
 A horizontal timeline at the bottom of the arena showing the turn order queue, each character's next expected activation tick, and projected action cost shadows.

@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 /**
  * Add role column to users — 'Player' (default) or 'Admin' RBAC level.
  *
- * @spec-link [[upsilonbattle:entity_users]]
+ * @spec-link [[entity_users]]
  */
 return new class extends Migration
 {
